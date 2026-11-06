@@ -27,11 +27,11 @@
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
 | `auth_headers` | fixture | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | Utente DEFAULT (`allowed_obs_archive=True` via [customization.py](projects/mistral/backend/customization.py#L33)). |
 | `test_runtime` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L31) | `override_attr(BeDballe, "LASTDAYS", ...)`. |
-| `_dballe_window_override` | helper locale | (file) | Classifica `2020-04-06` come dballe per i soli test positivi. |
-| `_require_dballe_product` | helper locale | (file) | Probe `/fields`; **`pytest.skip`** se non 200 o nessun prodotto. |
+| `dballe_window_override` | helper condiviso | [helpers/observed_windows.py](projects/mistral/backend/tests/helpers/observed_windows.py) | Classifica `2020-04-06` come dballe per i soli test positivi. |
+| `_require_dballe_product` | helper locale | (file) | Wrapper su `require_dballe_product` di `helpers/observed_windows.py`: probe `/fields`; **`pytest.skip`** se non 200 o nessun prodotto. |
 | `_require_station_coordinates` | helper locale | (file) | Esegue una query reale e ricava `lat`/`lon`; **`pytest.skip`** se nessuna stazione. |
-| `_extract_products` | helper locale | (file) | Estrae i `var` dei prodotti dalla struttura annidata. |
-| `_get_observations` / `_url` / `_parse_response` | helper locale | (file) | Costruzione URL + GET + parsing. |
+| `extract_products` | helper di dominio | [observed/support.py](projects/mistral/backend/tests/integration/observed/support.py) | Estrae i `var` dei prodotti dalla struttura annidata (stesso helper della baseline). |
+| `_get_observations` | helper locale | (file) | GET `/observations`; usa `api_url` e, nei test, `parse_response` da `helpers/observed_windows.py`. |
 
 Nessun mock dei dati; l'unica patch è la soglia `LASTDAYS`. Nessuna scrittura DB.
 
@@ -58,7 +58,7 @@ Nessun mock dei dati; l'unica patch è la soglia `LASTDAYS`. Nessuna scrittura D
 ### `test_observations_daily_returns_valid_payload_on_dballe_window`
 - **Obiettivo**: `daily=true` produce payload valido sulla finestra DBALLE.
 - **Backend coinvolto**: ramo `daily` (calcola `timerange` su tempo ITA) → query DBALLE.
-- **Flusso**: `_require_dballe_product` (**skip**) → GET `daily=true` dentro `_dballe_window_override`.
+- **Flusso**: `_require_dballe_product` (**skip**) → GET `daily=true` dentro `dballe_window_override`.
 - **Assert**: `200`, `isinstance(content, dict)`, `"data" in content`. **Skippabile** via probe.
 
 ### `test_observations_last_smoke_returns_valid_payload_on_dballe_window`

@@ -51,7 +51,7 @@
 - Observed: `observed_derived_variable_*` (postprocessor `["B12103"]`), `observed_statistic_elaboration_*` (`step=1`), `observed_chaining_filters` (B12101+B13003+B13011).
 
 ### Guardie di skip (RUNTIME-SENSITIVE) e helper GRIB
-- **`require_dataset(db, name)`** → `pytest.skip` se il dataset non esiste nella tabella `Datasets` (match su `name` **o** `arkimet_id`).
+- **`require_dataset(db, name)`** → non e piu definito qui: e l'helper condiviso di [helpers/datasets.py](projects/mistral/backend/tests/helpers/datasets.py), importato da `conftest.py`; `pytest.skip` se il dataset non esiste nella tabella `Datasets` (match su `name` **o** `arkimet_id`).
 - **`require_observed_lastdays()`** → `pytest.skip` se le variabili `ALCHEMY_*` non sono configurate **oppure** se non ci sono dati observed reali in DBALLE; altrimenti **si connette al DB DBALLE reale** e calcola un `LASTDAYS` derivato dalla prima riga di `query_data({})`.
 - **`require_spare_point_template_archive()`** → `pytest.skip` se manca `/data/templates_for_pp/template_for_spare_point.zip`.
 - **`delete_request_row(db, id)`** → cancellazione diretta su DB (cleanup), no-op se la riga non esiste.

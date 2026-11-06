@@ -6,8 +6,8 @@
 ## 1. Informazioni generali
 
 - **Percorso**: [projects/mistral/backend/tests/helpers/datasets.py](projects/mistral/backend/tests/helpers/datasets.py)
-- **Scopo**: creare un dataset sintetico completo, pubblico o privato, per i test di integrazione.
-- **Consumatori attuali**: i test `integration/dataset`, `integration/opendata/test_download.py` e gli environment builder in `integration/opendata/support.py`.
+- **Scopo**: creare un dataset sintetico completo, pubblico o privato, per i test di integrazione, ed eventualmente una rete sintetica che punta a un dataset privato.
+- **Consumatori attuali**: i test `integration/dataset`, `integration/opendata/test_download.py`, gli environment builder in `integration/opendata/support.py`, e (per la rete privata) `integration/fields/test_fields_api_EXT.py` e `integration/observed/test_observations_download_EXT.py`.
 - **Dipendenze runtime**: connettore SQLAlchemy gia inizializzato e fixture `cleanup_registry`.
 
 ## 2. Elementi definiti
@@ -26,21 +26,35 @@ committato prima delle richieste HTTP e viene restituito al test chiamante.
 Non legge license, attribution o dataset seedati e non contiene
 `pytest.skip`.
 
-### `_delete_test_dataset_bundle(...)`
+### `create_private_test_network(db, cleanup_registry, monkeypatch, *, prefix="private_network_test")`
 
-Callback privata registrata in `cleanup_registry`. Esegue prima un rollback
+Crea un dataset privato con `create_test_dataset(is_public=False)` e restituisce
+una rete sintetica `<arkimet_id>_net`. Tramite `monkeypatch` sostituisce
+`BeArkimet.from_network_to_dataset` solo per quella rete, delegando ogni altra
+rete alla mappatura reale; `check_dataset_authorization` resta reale. Serve a
+costruire un 401 portabile su `/fields` e `POST /observations` senza modificare
+dataset reali come agrmet. Il patch viene annullato dal teardown di `monkeypatch`,
+il bundle dal `cleanup_registry`.
+
+### `delete_test_dataset_bundle(...)`
+
+Callback pubblica registrata in `cleanup_registry` da `create_test_dataset` e da
+`create_fields_synthetic_dataset` di `integration/fields/support_EXT.py`, che prima
+aveva una copia locale (`delete_fields_dataset_bundle`). Esegue prima un rollback
 difensivo della sessione, poi:
 
 1. stacca tutte le associazioni `dataset.users`;
 2. elimina il dataset;
 3. elimina la license;
 4. elimina il group license;
-5. elimina l'attribution;
+5. elimina l'attribution, solo se `attribution_id` non e `None` (i dataset
+   sintetici di `fields` riusano un'attribution reale quando esiste e la passano
+   come `None` per non cancellarla);
 6. esegue il commit finale.
 
 Ogni lookup e difensivo: il cleanup resta valido anche se una risorsa fosse
-gia stata rimossa dal test. Dopo il commit, quattro assert verificano che
-dataset, license, group license e attribution non siano piu presenti; un
+gia stata rimossa dal test. Dopo il commit, le assert verificano che
+dataset, license, group license e (se gestita) attribution non siano piu presenti; un
 teardown incompleto diventa quindi un errore visibile della suite.
 
 ## 3. Contratto e isolamento

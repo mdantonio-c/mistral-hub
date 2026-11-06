@@ -9,43 +9,35 @@
 # i casi di validazione multi-dataset usano dataset DB sintetici e monkeypatch mirati
 # solo per arrivare al ramo controller senza richiedere dati forecast aggiuntivi.
 # Cleanup: ogni utente temporaneo, dataset sintetico, gruppo licenza e licenza creati
-# dal supporto viene registrato nel cleanup_registry; i record reali letti non vengono
-# modificati salvo nei test che ripristinano esplicitamente la licenza originale.
+# dal supporto viene registrato nel cleanup_registry; i record reali del catalogo, come
+# agrmet, vengono solo letti e mai modificati.
 # Baseline non toccata: non vengono creati conftest.py, fixture globali o helper fuori
 # dal dominio fields; la logica nuova resta confinata in file *_EXT.py.
 
 from __future__ import annotations
 
-import json
-from contextlib import nullcontext
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 from typing import Any
-from urllib.parse import urlencode
 from uuid import uuid4
 
 import pytest
 from mistral.models.sqlalchemy import DatasetCategories
-from mistral.services.dballe import BeDballe
-from mistral.tests.helpers.auth import (
-    AuthenticatedTestUser,
-    create_authenticated_test_user,
-    register_test_user_cleanup,
+from mistral.tests.helpers.auth import create_dataset_test_user
+from mistral.tests.helpers.datasets import delete_test_dataset_bundle
+from mistral.tests.helpers.observed_windows import (
+    FIELDS_ENDPOINT,
+    OBS_ARKIMET_FROM,
+    OBS_ARKIMET_TO,
+    OBS_DBALLE_FROM,
+    OBS_DBALLE_TO,
+    OBSERVED_LICENSE_GROUP,
+    OBSERVED_NETWORK,
+    api_url,
+    parse_response,
 )
 from restapi.connectors import sqlalchemy
-from restapi.tests import API_URI, BaseTests, FlaskClient
+from restapi.tests import FlaskClient
 
-
-FIELDS_ENDPOINT = f"{API_URI}/fields"
-OBSERVED_DATASET_NAME = "agrmet"
-OBSERVED_NETWORK = "agrmet"
-OBSERVED_LICENSE_GROUP = "CCBY_COMPLIANT"
-OBSERVED_MISMATCH_LICENSE_GROUP = "CCBY-SA_COMPLIANT"
-
-OBS_DBALLE_FROM = "2020-04-06 00:00"
-OBS_DBALLE_TO = "2020-04-06 01:00"
-OBS_ARKIMET_FROM = "2020-03-31 00:00"
-OBS_ARKIMET_TO = "2020-04-01 23:59"
 
 OBS_DBALLE_QUERY = (
     f"reftime:>={OBS_DBALLE_FROM},<={OBS_DBALLE_TO};"
@@ -98,85 +90,8 @@ class ForecastFieldsCase:
 
 
 def fields_url(**params: Any) -> str:
-    """Costruisce un URL /fields con query string codificata in modo leggibile.
-
-    Il carattere `;` e gli operatori `>=`/`<=` sono significativi per il parser del
-    backend, quindi lasciamo a urlencode il compito di trasportarli senza ambiguita.
-    """
-    # Componiamo l'URL in un solo punto per non duplicare dettagli di escaping nei test.
-    return f"{FIELDS_ENDPOINT}?{urlencode(params)}"
-
-
-def parse_response(response) -> Any:
-    """Normalizza il payload restapi/flask in una struttura Python per le asserzioni."""
-    # Il wrapper BaseTests conosce gia la forma delle risposte restapi usate dalla suite.
-    return BaseTests().get_content(response)
-
-
-def observed_dballe_override(test_runtime):
-    """Forza DBALLE a classificare il 2020-04-06 come finestra recente del test.
-
-    La fixture runtime contiene davvero i dati agrmet del 2020-04-06, ma il classifier
-    BeDballe.get_db_type usa una soglia mobile basata sulla data corrente. Questo
-    override riproduce la strategia gia usata dalla suite observed esistente e resta
-    confinato al singolo test tramite il context manager del TestRuntime.
-    """
-    # Calcoliamo LASTDAYS facendo cadere il cutoff il giorno prima della finestra DBALLE
-    # ammessa, in modo che 2020-04-06 00:00 sia trattato come dato recente.
-    first_dballe_day = datetime(2020, 4, 6)
-    last_archived_day = first_dballe_day - timedelta(days=1)
-    lastdays = (datetime.now() - last_archived_day).days
-    return test_runtime.override_attr(BeDballe, "LASTDAYS", lastdays)
-
-
-def require_dataset(db, dataset_name: str):
-    """Restituisce un dataset reale o salta con una motivazione legata alla finestra.
-
-    Il prompt 03 consente solo agrmet, lm5 e lm2.2 per i rami runtime-realistic; quando
-    uno di questi cataloghi manca, lo skip deve citarlo esplicitamente invece di cercare
-    date o dataset alternativi.
-    """
-    # Leggiamo il catalogo reale per verificare che il runtime esponga il dataset chiave.
-    dataset = db.Datasets.query.filter_by(arkimet_id=dataset_name).first()
-    if dataset is None:
-        pytest.skip(
-            f"Dataset '{dataset_name}' is not available for Prompt 03 allowed windows"
-        )
-    return dataset
-
-
-def create_fields_user(
-    client: FlaskClient,
-    cleanup_registry,
-    dataset_ids: list[int] | None = None,
-    *,
-    allowed_obs_archive: bool = False,
-    open_dataset: bool = True,
-) -> AuthenticatedTestUser:
-    """Crea un utente temporaneo con autorizzazioni dichiarate dal test.
-
-    Per i forecast lm5/lm2.2 questo helper associa esplicitamente il dataset all'utente,
-    cosi il caso positivo resta portabile tra il locale con restrizioni e la CI senza
-    restrizioni. Per gli archive observed, il flag allowed_obs_archive viene scelto dal
-    test per colpire il ramo 401 o il ramo positivo.
-    """
-    # Costruiamo il profilo tramite l'API admin della suite, mantenendo il cleanup nel
-    # registry per eliminare utente e cartella output anche in caso di failure.
-    permissions: dict[str, Any] = {
-        "open_dataset": open_dataset,
-        "allowed_obs_archive": allowed_obs_archive,
-        "datasets": json.dumps([str(dataset_id) for dataset_id in dataset_ids or []]),
-    }
-    base = BaseTests()
-    user = create_authenticated_test_user(base, client, permissions)
-    register_test_user_cleanup(
-        base,
-        client,
-        cleanup_registry,
-        user_uuid=user.uuid,
-        root_path=user.output_dir.parent,
-    )
-    return user
+    """Costruisce un URL /fields con query string codificata da urlencode."""
+    return api_url(FIELDS_ENDPOINT, **params)
 
 
 def create_fields_synthetic_dataset(
@@ -244,12 +159,15 @@ def create_fields_synthetic_dataset(
     db.session.add(dataset)
     db.session.commit()
 
+    dataset_id = dataset.id
+    license_id = license_entry.id
+    group_license_id = group_license.id
     cleanup_registry.add(
-        lambda: delete_fields_dataset_bundle(
+        lambda: delete_test_dataset_bundle(
             db,
-            dataset_id=dataset.id,
-            license_id=license_entry.id,
-            group_license_id=group_license.id,
+            dataset_id=dataset_id,
+            license_id=license_id,
+            group_license_id=group_license_id,
             attribution_id=created_attribution_id,
         )
     )
@@ -291,42 +209,6 @@ def get_or_create_multim_forecast_dataset(db, cleanup_registry) -> FieldsSynthet
     )
 
 
-def delete_fields_dataset_bundle(
-    db,
-    *,
-    dataset_id: int,
-    license_id: int,
-    group_license_id: int,
-    attribution_id: int | None,
-) -> None:
-    """Rimuove dataset sintetico, link utenti, licenza e gruppo licenza se presenti."""
-    # Il cleanup e difensivo: se un test fallisce prima del commit completo, rimuove
-    # solo cio che esiste ancora senza mascherare l'errore originale.
-    dataset = db.Datasets.query.get(dataset_id)
-    if dataset is not None:
-        for user in dataset.users.all():
-            dataset.users.remove(user)
-        db.session.delete(dataset)
-        db.session.flush()
-
-    license_entry = db.License.query.get(license_id)
-    if license_entry is not None:
-        db.session.delete(license_entry)
-        db.session.flush()
-
-    group_license = db.GroupLicense.query.get(group_license_id)
-    if group_license is not None:
-        db.session.delete(group_license)
-        db.session.flush()
-
-    if attribution_id is not None:
-        attribution = db.Attribution.query.get(attribution_id)
-        if attribution is not None:
-            db.session.delete(attribution)
-
-    db.session.commit()
-
-
 def create_private_observed_dataset_for_all_available_products(db, cleanup_registry) -> str:
     """Crea un gruppo licenza OBS privato per verificare il filtro autorizzativo.
 
@@ -349,25 +231,6 @@ def create_private_observed_dataset_for_all_available_products(db, cleanup_regis
     return group_license.name
 
 
-def require_observed_dataset_user(
-    client: FlaskClient,
-    cleanup_registry,
-    *,
-    allowed_obs_archive: bool = False,
-) -> AuthenticatedTestUser:
-    """Crea un utente associato al dataset reale agrmet quando il runtime lo espone."""
-    # Associamo agrmet in modo esplicito anche se oggi e pubblico: se in futuro il
-    # runtime locale cambia restrizioni, il test resta portabile.
-    db = sqlalchemy.get_instance()
-    dataset = require_dataset(db, OBSERVED_DATASET_NAME)
-    return create_fields_user(
-        client,
-        cleanup_registry,
-        [dataset.id],
-        allowed_obs_archive=allowed_obs_archive,
-    )
-
-
 def require_forecast_fields_case(
     client: FlaskClient,
     cleanup_registry,
@@ -385,7 +248,7 @@ def require_forecast_fields_case(
         dataset = db.Datasets.query.filter_by(arkimet_id=dataset_name).first()
         if dataset is None:
             continue
-        user = create_fields_user(client, cleanup_registry, [dataset.id])
+        user = create_dataset_test_user(client, cleanup_registry, [dataset.id])
         query = f"reftime:>={date_from},<={date_to}"
         response = client.get(
             fields_url(datasets=dataset_name, q=query),
@@ -409,60 +272,3 @@ def require_forecast_fields_case(
         "No forecast data found for Prompt 03 allowed windows: "
         "lm5 2021-10-19 or lm2.2 2019-09-10"
     )
-
-
-def temporarily_make_observed_dataset_private(db, cleanup_registry) -> str:
-    """Rende temporaneamente agrmet privato e registra il ripristino della licenza.
-
-    Serve a costruire un 401 portabile per i controlli network authorization: non si
-    usa la configurazione locale come oracolo, ma si crea il diniego in modo controllato
-    e si ripristina sempre la licenza reale in teardown.
-    """
-    # Salviamo la licenza originale prima di creare il gruppo privato, cosi il cleanup
-    # puo riportare il catalogo runtime allo stato iniziale.
-    dataset = require_dataset(db, OBSERVED_DATASET_NAME)
-    original_license_id = dataset.license_id
-    private_group_name = f"fields_ext_private_{uuid4().hex[:10]}"
-    private_group = db.GroupLicense(
-        name=private_group_name,
-        descr="Private group for fields EXT authorization denial",
-        is_public=False,
-        dballe_dsn="DBALLE",
-    )
-    db.session.add(private_group)
-    db.session.flush()
-    private_license = db.License(
-        name=f"{private_group_name}_license",
-        descr="Private license for fields EXT authorization denial",
-        group_license_id=private_group.id,
-    )
-    db.session.add(private_license)
-    db.session.flush()
-    dataset.license_id = private_license.id
-    db.session.add(dataset)
-    db.session.commit()
-
-    def _restore_observed_dataset_license() -> None:
-        # Ripristiniamo prima il dataset reale, poi rimuoviamo i record sintetici.
-        current_dataset = db.Datasets.query.get(dataset.id)
-        if current_dataset is not None:
-            current_dataset.license_id = original_license_id
-            db.session.add(current_dataset)
-            db.session.flush()
-        current_license = db.License.query.get(private_license.id)
-        if current_license is not None:
-            db.session.delete(current_license)
-            db.session.flush()
-        current_group = db.GroupLicense.query.get(private_group.id)
-        if current_group is not None:
-            db.session.delete(current_group)
-        db.session.commit()
-
-    cleanup_registry.add(_restore_observed_dataset_license)
-    return private_group_name
-
-
-def null_runtime_context():
-    """Restituisce un context manager nullo per simmetria con override runtime opzionali."""
-    # Piccolo helper per mantenere leggibili i test che scelgono a runtime se patchare.
-    return nullcontext()

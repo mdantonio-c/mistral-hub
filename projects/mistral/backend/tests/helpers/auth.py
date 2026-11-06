@@ -9,6 +9,7 @@ with user creation, login, output directories, or teardown wiring.
 from __future__ import annotations
 
 import base64
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -112,6 +113,37 @@ def register_test_user_cleanup(
     # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta affidabile
     # anche in caso di fallimento.
     cleanup_registry.add(lambda: delete_test_user(base, client, user_uuid))
+
+
+def create_dataset_test_user(
+    client: FlaskClient,
+    cleanup_registry,
+    dataset_ids: list[int] | None = None,
+    *,
+    allowed_obs_archive: bool = False,
+    open_dataset: bool = True,
+) -> AuthenticatedTestUser:
+    """Create a temporary user with explicit dataset grants and register its teardown.
+
+    ``dataset_ids`` lists the only datasets explicitly granted to the user: an empty
+    list produces a user without grants, useful to hit private-dataset 401 branches.
+    ``allowed_obs_archive`` controls access to archived observed data.
+    """
+    permissions: dict[str, Any] = {
+        "open_dataset": open_dataset,
+        "allowed_obs_archive": allowed_obs_archive,
+        "datasets": json.dumps([str(dataset_id) for dataset_id in dataset_ids or []]),
+    }
+    base = BaseTests()
+    user = create_authenticated_test_user(base, client, permissions)
+    register_test_user_cleanup(
+        base,
+        client,
+        cleanup_registry,
+        user_uuid=user.uuid,
+        root_path=user.output_dir.parent,
+    )
+    return user
 
 
 def make_basic_auth(email: str, access_key: str) -> dict[str, str]:

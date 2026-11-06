@@ -38,7 +38,7 @@
 | `_dballe_network_window` | privato | Scorre `transaction.query_data({"rep_memo": network})` e ritorna la finestra **più ampia** (min→max+1h) o `None`. |
 | `_summary_datetime` | privato | Converte una lista timestamp summary in `datetime`. |
 | `_arkimet_dataset_window` | privato | Da `load_summary` ricava `(b, e)` o `None` se mancano. |
-| `_lastdays_override_for_dballe_window` | privato | Calcola il valore `LASTDAYS` per far classificare la finestra storica come "recente". |
+| `lastdays_for_dballe_window` | importato da [helpers/observed_windows.py](projects/mistral/backend/tests/helpers/observed_windows.py) | Calcola il valore `LASTDAYS` per far classificare la finestra storica come "recente". |
 | `yield_observed_case` | generator | Scopre i parametri, applica l'eventuale override `LASTDAYS` e **`yield`** l'`ObservedCase`. |
 | `discover_observed_params` | funzione | **Cuore della scoperta** (vedi §4); ritorna `(params, lastdays_override)` o esegue `pytest.skip`/`pytest.fail`. |
 | `build_reftime_query` | builder | Compone la `q` `reftime:…;[product:…];license:CCBY_COMPLIANT`. |

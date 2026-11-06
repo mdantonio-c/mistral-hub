@@ -14,7 +14,7 @@
 Le fixture **non** invocano ancora il backend di estrazione: predispongono lo scenario. Toccano però backend reale per:
 
 - Creazione utente + login: `create_postprocessing_user` (in `support.py`) usa i canali reali `BaseTests.create_user` / `do_login` e legge l'utente da `sqlalchemy.get_instance()`.
-- Lettura dataset: `require_dataset(db, "lm5"|"agrmet")` interroga la tabella `Datasets` ([services](projects/mistral/backend/services/sqlapi_db_manager.py)) e **fa `pytest.skip`** se assente.
+- Lettura dataset: `require_dataset(db, "lm5"|"agrmet")` (helper condiviso di [helpers/datasets.py](projects/mistral/backend/tests/helpers/datasets.py)) interroga la tabella `Datasets` ([services](projects/mistral/backend/services/sqlapi_db_manager.py)) e **fa `pytest.skip`** se assente.
 - Solo observed: `require_observed_lastdays()` si connette al **DB DBALLE reale** per derivare `LASTDAYS` e sovrascrive `BeDballe.LASTDAYS` ([services/dballe.py](projects/mistral/backend/services/dballe.py#L33)).
 
 ## 3. Elementi definiti

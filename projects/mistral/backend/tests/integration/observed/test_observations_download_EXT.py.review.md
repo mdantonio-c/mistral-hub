@@ -22,7 +22,7 @@
 | `BeDballe.get_db_type` / `LASTDAYS` | [services/dballe.py](projects/mistral/backend/services/dballe.py#L117) | Classifica la finestra; senza override una data del 2020 è **arkimet**. |
 | `SqlApiDbManager.get_user_permissions` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L665) | `allowed_obs_archive` per il ramo archiviato (401 se assente). |
 | `MapsObservations.get` (via `/fields`) | [endpoints/maps_observed.py](projects/mistral/backend/endpoints/maps_observed.py) | **Probe** indiretto: `_require_dballe_product` interroga `/fields` per scegliere un prodotto reale. |
-| Modelli `Datasets`/`License`/`GroupLicense` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L101) | **Mutati realmente** in `_temporarily_make_agrmet_private` (vedi §6). |
+| Modelli `Datasets`/`License`/`GroupLicense` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L101) | Letti; il test 10 crea solo righe sintetiche tramite `create_test_dataset` (vedi §6). |
 
 ## 3. Mappa delle dipendenze
 
@@ -31,14 +31,14 @@
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
 | `auth_headers` | fixture | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | Utente DEFAULT (`allowed_obs_archive=True` via [customization.py](projects/mistral/backend/customization.py#L33)). |
 | `test_runtime` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L31) | Singleton di sessione; usato per `override_attr(BeDballe, "LASTDAYS", ...)`. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L39) | Teardown **LIFO**; raccoglie utenti temporanei e il ripristino licenza agrmet. |
-| `create_authenticated_test_user`, `register_test_user_cleanup` | helper | [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) | Creano utente via API admin + login + cleanup (FS + delete utente). |
-| `sqlalchemy.get_instance()` | connettore | `restapi.connectors` | Accesso DB diretto (lookup dataset, mutazione licenza). |
-| `_dballe_window_override` | helper locale | (file) | Patcha `BeDballe.LASTDAYS` perché `2020-04-06` sia classificata **dballe** anche eseguendo nel 2026. |
-| `_require_agrmet_dataset` | helper locale | (file) | **`pytest.skip`** se il dataset `agrmet` non esiste. |
-| `_require_dballe_product` | helper locale | (file) | Probe `/fields`; **`pytest.skip`** se 200 non ottenuto o nessun prodotto. |
-| `_create_observed_user` / `_create_observed_user_without_dataset_grant` | helper locale | (file) | Utenti temporanei con/senza grant `agrmet`; archive flag controllato. |
-| `_temporarily_make_agrmet_private` | helper locale | (file) | **Sposta agrmet su un gruppo licenza privato** e registra il ripristino. |
+| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L39) | Teardown **LIFO**; raccoglie utenti temporanei e il dataset privato sintetico. |
+| `create_dataset_test_user` | helper condiviso | [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) | Crea utente via API admin + login + cleanup (FS + delete utente). |
+| `sqlalchemy.get_instance()` | connettore | `restapi.connectors` | Accesso DB diretto (dataset privato sintetico). |
+| `dballe_window_override`, `api_url`, costanti `OBS_*`/`OBSERVED_*` | helper condivisi | [helpers/observed_windows.py](projects/mistral/backend/tests/helpers/observed_windows.py) | Patch di `BeDballe.LASTDAYS` perché `2020-04-06` sia classificata **dballe** anche eseguendo nel 2026; URL e finestre dati comuni con `/fields`. |
+| `require_observed_dataset_user` | helper condiviso | [helpers/observed_windows.py](projects/mistral/backend/tests/helpers/observed_windows.py) | Utente con grant `agrmet` e archive flag controllato; **`pytest.skip`** se `agrmet` non esiste. |
+| `_require_dballe_product` | helper locale | (file) | Wrapper su `require_dballe_product` (helpers/observed_windows.py): probe `/fields`; **`pytest.skip`** se 200 non ottenuto o nessun prodotto. |
+| `create_dataset_test_user` (senza dataset) | helper condiviso | [helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) | Utente senza grant del test 10. |
+| `create_private_test_network` | helper condiviso | [helpers/datasets.py](projects/mistral/backend/tests/helpers/datasets.py) | Crea un dataset privato sintetico e mappa una rete sintetica su di esso; le altre reti usano la mappatura reale. Condiviso con `fields/test_fields_api_EXT.py`. |
 | `uuid4` | stdlib | `uuid` | Nomi/licenze/network sicuramente inesistenti. |
 
 ## 4. Analisi dettagliata di ogni test
@@ -46,7 +46,7 @@
 ### `test_observed_post_download_json_returns_stream_for_dballe_window`
 - **Obiettivo**: download **JSON** sulla finestra DBALLE agrmet.
 - **Backend coinvolto**: `post` → ramo `db_type=="dballe"` → `download_data_from_map` (stream).
-- **Flusso**: `_require_dballe_product` (probe, **skip** se assente) → POST con prodotto reale, `output_format=JSON`, dentro `_dballe_window_override`.
+- **Flusso**: `_require_dballe_product` (probe, **skip** se assente) → POST con prodotto reale, `output_format=JSON`, dentro `dballe_window_override`.
 - **Assert**: `200`, `mimetype=="application/json"`, `data` non vuoto; il payload è **newline-delimited JSON** (ogni riga è un documento; lo stream **non** è un array unico).
 - **Casi coperti**: happy path JSON + forma NDJSON dello stream.
 
@@ -82,11 +82,11 @@
 - **Obiettivo**: network inesistente → **404**. **Nessun** probe.
 
 ### `test_observed_post_private_network_returns_unauthorized_without_local_oracle`
-- **Obiettivo**: **401** portabile su network reso privato.
+- **Obiettivo**: **401** portabile su network privato.
 - **Backend coinvolto**: `check_dataset_authorization` (dataset privato, utente senza grant) → `Unauthorized`.
-- **Flusso**: `_temporarily_make_agrmet_private(db, cleanup_registry)` (crea `GroupLicense`+`License` privati, riassegna `agrmet.license_id`, **commit**) → utente senza grant → POST → 401.
-- **Setup/cleanup**: **mutazione reale del DB**; il ripristino della licenza originale è registrato in `cleanup_registry` (eseguito **prima** della cancellazione dei record sintetici).
-- **Casi coperti**: error path 401 senza dipendere da una restrizione locale preesistente. **Skippabile** se `agrmet` manca.
+- **Flusso**: `create_private_test_network(db, cleanup_registry, monkeypatch, prefix=...)` (dataset privato sintetico + rete sintetica mappata su di esso) → utente senza grant → POST con `networks=<rete sintetica>` → 401.
+- **Setup/cleanup**: solo righe sintetiche, rimosse dal cleanup di `create_test_dataset`; agrmet non viene modificato.
+- **Casi coperti**: error path 401 senza dipendere da una restrizione locale preesistente e senza alterare il catalogo reale.
 
 ### `test_observed_post_single_station_without_networks_returns_bad_request`
 - **Obiettivo**: `singleStation=true` senza `networks` → **400** ("Parameter networks is missing"). **Nessun** probe.
@@ -104,7 +104,7 @@
 
 ### `test_observed_post_archived_window_rejects_user_without_archive_permission`
 - **Obiettivo**: finestra Arkimet + utente con `allowed_obs_archive=False` → **401**.
-- **Flusso**: `_create_observed_user(..., allowed_obs_archive=False)` (associato ad agrmet, cleanup registrato) → POST archive → 401.
+- **Flusso**: `require_observed_dataset_user(..., allowed_obs_archive=False)` (associato ad agrmet, cleanup registrato) → POST archive → 401.
 - **Casi coperti**: error path archive senza permesso. **Skippabile** se `agrmet` manca.
 
 ## 5. Call chain
@@ -132,17 +132,16 @@ probe interno (success path): GET /api/fields?q=<DBALLE_QUERY;network:agrmet>  (
 ## 6. Comportamenti nascosti
 
 - **`POST` legge dalla query string, non dal body**: `_post_observations` mette tutto in URL (`urlencode`). Coerente col controller, ma non ovvio per chi si aspetta un body JSON in un POST.
-- **Override `LASTDAYS` (non un mock dei dati)**: `_dballe_window_override` patcha solo la **soglia mobile** di `get_db_type` (via `test_runtime.override_attr`), così che `2020-04-06` sia classificata "dballe" anche eseguendo nel 2026. I dati restano quelli reali del runtime. I rami **archived** (test 14–15) **non** usano l'override, perché vogliono `db_type=arkimet`.
-- **Mutazione reale del catalogo `agrmet` (test 10)**: `_temporarily_make_agrmet_private` crea `GroupLicense`/`License` privati e **riassegna `agrmet.license_id`** con `commit`. Il ripristino è in `cleanup_registry` e ripristina la licenza **prima** di cancellare i record sintetici. **Se il teardown salta, il dataset agrmet resta su licenza privata** → impatto su altri test (vedi §8).
+- **Override `LASTDAYS` (non un mock dei dati)**: `dballe_window_override` patcha solo la **soglia mobile** di `get_db_type` (via `test_runtime.override_attr`), così che `2020-04-06` sia classificata "dballe" anche eseguendo nel 2026. I dati restano quelli reali del runtime. I rami **archived** (test 14–15) **non** usano l'override, perché vogliono `db_type=arkimet`.
+- **Rete privata sintetica (test 10)**: `create_private_test_network` crea un dataset privato sintetico e sostituisce `BeArkimet.from_network_to_dataset` solo per la rete sintetica, delegando ogni altra rete alla funzione reale. `check_dataset_authorization` resta reale. In precedenza il test spostava agrmet su una licenza privata con commit: il catalogo reale era alterato per tutti durante il test e restava privato se il teardown saltava.
 - **Validazioni skippabili senza motivo dato** (test 4 e 5): pur essendo 400 di schema/controller che **non** richiedono dati reali, l'`arrange` chiama `_require_dballe_product` → questi test possono fare `pytest.skip` se la finestra DBALLE non è esposta. La copertura della validazione è quindi legata, inutilmente, alla presenza dei dati.
-- **Triplice canale di skip silenzioso** (runtime-sensitive): (1) `_require_agrmet_dataset` se agrmet manca; (2) `_require_dballe_product` se `/fields` non risponde 200 o non espone prodotti; (3) `_require_dballe_product` se `summarystats["c"] <= 0`.
+- **Triplice canale di skip silenzioso** (runtime-sensitive): (1) `require_observed_dataset_user` (via `require_dataset`) se agrmet manca; (2) `_require_dballe_product` se `/fields` non risponde 200 o non espone prodotti; (3) `_require_dballe_product` se `summarystats["c"] <= 0`.
 - **NDJSON nel test JSON**: l'asserzione decodifica **riga per riga** (`splitlines`), perché il downloader DBALLE emette JSON newline-delimited e non un array unico. Un reviewer potrebbe aspettarsi `json.loads(response.data)` su tutto il body.
 - **`allowed_obs_archive` di default True** per gli utenti creati ([customization.py](projects/mistral/backend/customization.py#L33)): il test 15 passa **esplicitamente** `False` per ottenere il 401; senza quell'override l'utente avrebbe accesso archivio.
-- **Doppio uso di agrmet come oracolo e come soggetto di mutazione**: lo stesso dataset è sia la fonte dei dati positivi sia il bersaglio della restrizione privata (test 10).
 
 ## 7. Checklist di revisione
 
-- [ ] Verificare che il teardown di `_temporarily_make_agrmet_private` ripristini **sempre** `agrmet.license_id` (anche con assert fallito): un teardown saltato corrompe il catalogo per i test successivi.
+- [ ] Verificare che `create_private_test_network` mappi solo la rete sintetica e deleghi tutte le altre alla mappatura Arkimet reale.
 - [ ] Valutare se i test 4 e 5 (validazioni 400) debbano **evitare** il probe `_require_dballe_product`, per non renderli skippabili senza necessità.
 - [ ] Confermare in CI quanti test risultano `skipped` per assenza di agrmet/finestra DBALLE.
 - [ ] Confermare che `2020-04-06` resti la finestra DBALLE attesa e `2020-03-31/04-01` quella Arkimet nei dati seed.
@@ -151,7 +150,7 @@ probe interno (success path): GET /api/fields?q=<DBALLE_QUERY;network:agrmet>  (
 
 ## 8. Possibili criticità
 
-- **Effetto collaterale su risorsa condivisa (agrmet)**: la mutazione/ripristino della licenza reale è l'aspetto più rischioso del modulo. Un crash tra `commit` e cleanup lascerebbe `agrmet` privato, con cascata di 401 inattesi altrove. Il cleanup è difensivo, ma resta un punto da sorvegliare.
+- **Mappatura rete→dataset finta nel test 10**: il 401 non verifica la mappatura Arkimet reale di agrmet, già esercitata dai test positivi e dal 404 di rete inesistente.
 - **Skip inutile su validazioni pure**: la copertura dei 400 di schema/controller (formato, bbox) può svanire se la finestra DBALLE non è inizializzata, pur non dipendendo dai dati.
 - **Copertura "verde per skip"**: tre canali di `pytest.skip` possono annullare silenziosamente i success path (JSON/BUFR/reliability/private/archive-no-perm).
 - **Dipendenza forte dalle date fisse**: l'intero modulo è ancorato a `agrmet 2020-04-06` e `2020-03-31/04-01`; un reseeding con date diverse lo rende inservibile (skip o fallimenti).
@@ -171,7 +170,7 @@ probe interno (success path): GET /api/fields?q=<DBALLE_QUERY;network:agrmet>  (
 | `..._unknown_license_group_...` | `UnexistingLicenseGroup` | 400 | — | id. | No |
 | `..._mismatch_network_license_...` | `NetworkNotInLicenseGroup` | 400 | — | id. | No |
 | `..._unknown_network_...` | `from_network_to_dataset` None | 404 | — | id. | No |
-| `..._private_network_..._unauthorized_...` | `check_dataset_authorization` | 401 | **DB mutation** agrmet | `client`,`cleanup_registry` | sì (agrmet) |
+| `..._private_network_..._unauthorized_...` | `check_dataset_authorization` | 401 | rete sintetica (`from_network_to_dataset`) | `client`,`cleanup_registry`,`monkeypatch` | No |
 | `..._single_station_without_networks_...` | "Parameter networks is missing" | 400 | — | `client`,`auth_headers` | No |
 | `..._single_station_with_multiple_networks_...` | `len(networks)!=1` | 400 | — | id. | No |
 | `..._single_station_without_station_identity_...` | "Parameters ... missing" | 400 | — | id. | No |

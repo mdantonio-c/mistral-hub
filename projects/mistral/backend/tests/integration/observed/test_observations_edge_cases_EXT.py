@@ -14,13 +14,23 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
 from typing import Any
-from urllib.parse import urlencode
 
 import pytest
-from mistral.services.dballe import BeDballe
-from restapi.tests import API_URI, BaseTests, FlaskClient
+from mistral.tests.helpers.observed_windows import (
+    OBS_DBALLE_FROM,
+    OBS_DBALLE_TO,
+    OBSERVATIONS_ENDPOINT,
+    OBSERVED_LICENSE_GROUP,
+    OBSERVED_NETWORK,
+    api_url,
+    dballe_window_override,
+    parse_response,
+    require_dballe_product,
+)
+from restapi.tests import FlaskClient
+
+from .support import extract_products
 
 
 pytestmark = [
@@ -29,80 +39,22 @@ pytestmark = [
     pytest.mark.runtime_sensitive,
 ]
 
-OBSERVED_ENDPOINT = f"{API_URI}/observations"
-FIELDS_ENDPOINT = f"{API_URI}/fields"
-OBSERVED_NETWORK = "agrmet"
-OBSERVED_LICENSE_GROUP = "CCBY_COMPLIANT"
-OBS_DBALLE_FROM = "2020-04-06 00:00"
-OBS_DBALLE_TO = "2020-04-06 01:00"
-
 DBALLE_QUERY = (
     f"reftime:>={OBS_DBALLE_FROM},<={OBS_DBALLE_TO};"
     f"network:{OBSERVED_NETWORK};license:{OBSERVED_LICENSE_GROUP}"
 )
 
 
-def _url(endpoint: str, **params: Any) -> str:
-    """Costruisce URL query-string safe per /observations e /fields."""
-    # I parser del backend leggono operatori e separatori dentro q, quindi usiamo
-    # urlencode per consegnarli alla view senza ambiguita.
-    return f"{endpoint}?{urlencode(params)}"
-
-
-def _parse_response(response) -> Any:
-    """Normalizza payload JSON restapi usati nelle asserzioni GET observed."""
-    # BaseTests e il parser condiviso gia usato dal resto della suite di integrazione.
-    return BaseTests().get_content(response)
-
-
-def _dballe_window_override(test_runtime):
-    """Classifica agrmet 2020-04-06 come DBALLE recente per i soli test positivi."""
-    # L'override non inventa dati: sposta soltanto la soglia mobile usata da get_db_type.
-    first_dballe_day = datetime(2020, 4, 6)
-    last_archived_day = first_dballe_day - timedelta(days=1)
-    lastdays = (datetime.now() - last_archived_day).days
-    return test_runtime.override_attr(BeDballe, "LASTDAYS", lastdays)
-
-
 def _require_dballe_product(client: FlaskClient, headers: Any, test_runtime) -> str:
-    """Sceglie un prodotto reale agrmet nella finestra DBALLE 2020-04-06."""
-    # Il probe evita di assumere un codice prodotto fisso e produce uno skip esplicito
-    # se il runtime non espone la finestra dati ammessa.
-    with _dballe_window_override(test_runtime):
-        response = client.get(_url(FIELDS_ENDPOINT, q=DBALLE_QUERY), headers=headers)
-    if response.status_code != 200:
-        pytest.skip(
-            "agrmet DBALLE 2020-04-06 00:00-01:00 is not exposed by /fields "
-            f"for observed edge tests, status={response.status_code}"
-        )
-    content = _parse_response(response)
-    products = content["items"].get("product") or []
-    if content["items"].get("summarystats", {}).get("c", 0) <= 0 or not products:
-        pytest.skip(
-            "agrmet DBALLE 2020-04-06 00:00-01:00 exposes no product for "
-            "observed edge tests"
-        )
-    return products[0]["code"]
+    """Sceglie via /fields un prodotto reale agrmet nella finestra DBALLE 2020-04-06."""
+    return require_dballe_product(client, headers, test_runtime, DBALLE_QUERY)
 
 
 def _get_observations(client: FlaskClient, headers: Any | None = None, **params: Any):
     """Esegue GET /observations con parametri espliciti."""
     # Manteniamo una sola azione HTTP per test, lasciando ai chiamanti la costruzione
     # dello scenario e delle asserzioni.
-    return client.get(_url(OBSERVED_ENDPOINT, **params), headers=headers)
-
-
-def _extract_products(content: dict[str, Any]) -> set[str]:
-    """Estrae i codici prodotto dal payload nested delle osservazioni."""
-    # Il formato observed contiene prodotti dentro ogni stazione; l'helper rende
-    # l'assert allStationProducts=false leggibile e confinato al modulo EXT.
-    products: set[str] = set()
-    for station in content.get("data", []):
-        for entry in station.get("prod", []):
-            product = entry.get("var")
-            if product is not None:
-                products.add(product)
-    return products
+    return client.get(api_url(OBSERVATIONS_ENDPOINT, **params), headers=headers)
 
 
 def _require_station_coordinates(
@@ -114,7 +66,7 @@ def _require_station_coordinates(
     # Usiamo una risposta observed reale per evitare coordinate hardcoded non portabili.
     product = _require_dballe_product(client, headers, test_runtime)
     query = f"{DBALLE_QUERY};product:{product}"
-    with _dballe_window_override(test_runtime):
+    with dballe_window_override(test_runtime):
         response = _get_observations(
             client,
             headers,
@@ -122,7 +74,7 @@ def _require_station_coordinates(
             networks=OBSERVED_NETWORK,
         )
     assert response.status_code == 200
-    content = _parse_response(response)
+    content = parse_response(response)
     if not content.get("data"):
         pytest.skip(
             "agrmet DBALLE 2020-04-06 00:00-01:00 returned no stations for "
@@ -194,11 +146,11 @@ def test_observations_daily_returns_valid_payload_on_dballe_window(
     query = f"{DBALLE_QUERY};product:{product}"
 
     # act
-    with _dballe_window_override(test_runtime):
+    with dballe_window_override(test_runtime):
         response = _get_observations(client, auth_headers, q=query, daily="true")
 
     # assert
-    content = _parse_response(response)
+    content = parse_response(response)
     assert response.status_code == 200
     assert isinstance(content, dict)
     assert "data" in content
@@ -220,11 +172,11 @@ def test_observations_last_smoke_returns_valid_payload_on_dballe_window(
     query = f"{DBALLE_QUERY};product:{product}"
 
     # act
-    with _dballe_window_override(test_runtime):
+    with dballe_window_override(test_runtime):
         response = _get_observations(client, auth_headers, q=query, last="true")
 
     # assert
-    content = _parse_response(response)
+    content = parse_response(response)
     assert response.status_code == 200
     assert isinstance(content, dict)
     assert "data" in content
@@ -301,7 +253,7 @@ def test_observations_station_details_unknown_station_returns_not_found(
     missing_lon = min(float(station_lon) + 20.0, 179.0)
 
     # act
-    with _dballe_window_override(test_runtime):
+    with dballe_window_override(test_runtime):
         ident_response = _get_observations(
             client,
             auth_headers,
@@ -313,9 +265,9 @@ def test_observations_station_details_unknown_station_returns_not_found(
 
     response = ident_response
     if ident_response.status_code == 200:
-        ident_content = _parse_response(ident_response)
+        ident_content = parse_response(ident_response)
         if not ident_content.get("data"):
-            with _dballe_window_override(test_runtime):
+            with dballe_window_override(test_runtime):
                 response = _get_observations(
                     client,
                     auth_headers,
@@ -328,7 +280,7 @@ def test_observations_station_details_unknown_station_returns_not_found(
 
     # assert
     if response.status_code == 200:
-        content = _parse_response(response)
+        content = parse_response(response)
         if not content.get("data"):
             pytest.skip(
                 "agrmet DBALLE 2020-04-06 does not construct the stationDetails "
@@ -355,7 +307,7 @@ def test_observations_all_station_products_false_limits_station_details_products
     query = f"{DBALLE_QUERY};product:{product}"
 
     # act
-    with _dballe_window_override(test_runtime):
+    with dballe_window_override(test_runtime):
         response = _get_observations(
             client,
             auth_headers,
@@ -368,9 +320,9 @@ def test_observations_all_station_products_false_limits_station_details_products
         )
 
     # assert
-    content = _parse_response(response)
+    content = parse_response(response)
     assert response.status_code == 200
-    products = _extract_products(content)
+    products = extract_products(content)
     if not products:
         pytest.skip(
             "stationDetails payload for agrmet DBALLE 2020-04-06 has no products to "

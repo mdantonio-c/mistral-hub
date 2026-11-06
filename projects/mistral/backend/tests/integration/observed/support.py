@@ -18,6 +18,7 @@ import dballe
 import pytest
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe
+from mistral.tests.helpers.observed_windows import lastdays_for_dballe_window
 from mistral.tests.helpers.runtime import TestRuntime
 from restapi.connectors import sqlalchemy
 from restapi.tests import API_URI, BaseTests, FlaskClient
@@ -182,17 +183,6 @@ def _arkimet_dataset_window(dataset_name: str) -> tuple[datetime, datetime] | No
     return _summary_datetime(summary_stats["b"]), _summary_datetime(summary_stats["e"])
 
 
-def _lastdays_override_for_dballe_window(date_from_dt: datetime) -> int:
-    """Place the DBALLE/Arkimet cutoff just before the discovered DBALLE slice."""
-    # Entriamo nel blocco operativo dell'helper osservazioni, mantenendo esplicito quale
-    # stato viene letto o prodotto.
-    today = datetime.now()
-    last_dballe_date = date_from_dt - timedelta(days=1)
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
-    return (today - last_dballe_date).days
-
-
 def yield_observed_case(
     client: FlaskClient,
     headers: Any,
@@ -307,7 +297,7 @@ def discover_observed_params(
                 if dballe_window is None:
                     continue
                 date_from_dt, date_to_dt = dballe_window
-                lastdays_override = _lastdays_override_for_dballe_window(date_from_dt)
+                lastdays_override = lastdays_for_dballe_window(date_from_dt)
 
             elif db_type == "arkimet":
                 # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve
@@ -324,7 +314,7 @@ def discover_observed_params(
                     continue
                 date_from_dt = arkimet_window[0]
                 date_to_dt = dballe_window[1]
-                lastdays_override = _lastdays_override_for_dballe_window(
+                lastdays_override = lastdays_for_dballe_window(
                     dballe_window[0]
                 )
 

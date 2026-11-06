@@ -34,10 +34,12 @@
 | `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L39) | Teardown LIFO per utenti/dataset/licenze sintetici. |
 | `test_runtime` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L31) | Singleton di sessione; fornisce `override_attr` per il patch di `LASTDAYS`. |
 | `monkeypatch` | fixture | pytest | Patch di `fields_endpoint_module.arki.get_datasets_category` (test 17, 18). |
-| `observed_dballe_override` | helper | [fields/support_EXT.py](projects/mistral/backend/tests/integration/fields/support_EXT.py) | Context manager che forza `BeDballe.LASTDAYS` per trattare il 2020-04-06 come recente. |
-| `require_observed_dataset_user` / `require_forecast_fields_case` / `require_dataset` | helper | [fields/support_EXT.py](projects/mistral/backend/tests/integration/fields/support_EXT.py) | Creano utenti/scenari reali; **`pytest.skip`** se i dataset richiesti mancano. |
-| `create_fields_user` / `create_fields_synthetic_dataset` / `get_or_create_multim_forecast_dataset` / `create_private_observed_dataset_for_all_available_products` / `temporarily_make_observed_dataset_private` | helper | [fields/support_EXT.py](projects/mistral/backend/tests/integration/fields/support_EXT.py) | Setup utenti/dataset/licenze + cleanup; uno **muta agrmet reale** e ripristina. |
-| `fields_url`, `parse_response`, costanti `OBS_*`/`OBSERVED_*` | helper/cost. | [fields/support_EXT.py](projects/mistral/backend/tests/integration/fields/support_EXT.py) | Costruzione URL, decodifica risposta, finestre dati ammesse. |
+| `dballe_window_override`, `require_observed_dataset_user`, `parse_response`, costanti `OBSERVED_*` | helper condivisi | [helpers/observed_windows.py](projects/mistral/backend/tests/helpers/observed_windows.py) | Override di `BeDballe.LASTDAYS` per il 2020-04-06; utente agrmet (**`pytest.skip`** se agrmet manca); decodifica risposta; costanti comuni con `observed`. |
+| `require_forecast_fields_case` | helper | [fields/support_EXT.py](projects/mistral/backend/tests/integration/fields/support_EXT.py) | Scenario forecast reale; **`pytest.skip`** se nessuna finestra lm5/lm2.2 espone dati. |
+| `create_fields_synthetic_dataset` / `get_or_create_multim_forecast_dataset` / `create_private_observed_dataset_for_all_available_products` | helper | [fields/support_EXT.py](projects/mistral/backend/tests/integration/fields/support_EXT.py) | Setup dataset/licenze + cleanup; nessuno modifica il catalogo reale. |
+| `create_dataset_test_user` | helper condiviso | [helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) | Utente temporaneo con grant dataset espliciti e flag archive + cleanup. |
+| `create_private_test_network` | helper condiviso | [helpers/datasets.py](projects/mistral/backend/tests/helpers/datasets.py) | Dataset privato sintetico + rete sintetica mappata su di esso; le altre reti usano la mappatura reale. |
+| `fields_url`, query `OBS_*_QUERY` | helper/cost. | [fields/support_EXT.py](projects/mistral/backend/tests/integration/fields/support_EXT.py) | Costruzione URL `/fields` e query sulle finestre dati ammesse. |
 
 ## 4. Analisi dettagliata di ogni test
 
@@ -48,7 +50,7 @@
 #### `test_fields_observed_map_mode_returns_recent_agrmet_filters` — R
 - **Obiettivo**: filtri OBS map mode su agrmet DBALLE.
 - **Backend**: `Fields.get` ramo OBS senza `datasets`; `from_query_to_dic`, `get_db_type` (forzato dballe), autorizzazione network, `load_filters`.
-- **Flusso**: `GET /fields?q=...network:agrmet;license:CCBY_COMPLIANT` con `auth_headers` dentro `observed_dballe_override`.
+- **Flusso**: `GET /fields?q=...network:agrmet;license:CCBY_COMPLIANT` con `auth_headers` dentro `dballe_window_override`.
 - **Setup**: `auth_headers`, `test_runtime`; override `LASTDAYS`.
 - **Assert**: 200; `summarystats.c > 0`; presenza network `agrmet`; `product` non vuoto.
 - **Casi coperti**: happy path map mode. **Fallisce** (non skippa) se la finestra DBALLE agrmet è vuota.
@@ -76,10 +78,10 @@
 - **Assert**: 401. **Skip** possibile (via `require_dataset(agrmet)`), pur essendo il 401 indipendente dai dati.
 
 #### `test_fields_observed_private_network_returns_unauthorized_without_local_oracle` — S
-- **Obiettivo**: costruire un **401 portabile** rendendo agrmet temporaneamente privato.
+- **Obiettivo**: costruire un **401 portabile** con una rete OBS privata sintetica.
 - **Backend**: `check_dataset_authorization` → privato non assegnato → `Unauthorized`.
-- **Flusso**: `temporarily_make_observed_dataset_private` (muta `license_id` di agrmet, ripristino in cleanup) → utente senza dataset → GET map query in override.
-- **Assert**: 401. **Skip** se agrmet assente. **Muta dati reali** (ripristinati in teardown).
+- **Flusso**: `create_private_test_network` (dataset OBS privato sintetico + rete sintetica mappata su di esso) → utente senza dataset → GET map query con la rete sintetica, in override.
+- **Assert**: 401. Il catalogo reale non viene modificato.
 
 ### Gruppo C — OBS validazione (400/404)
 
@@ -175,10 +177,10 @@ GET /api/fields (dataset)   → not user? 401 → for ds: get_datasets()→ not 
 
 ## 6. Comportamenti nascosti
 
-- **Override di `LASTDAYS` indispensabile per OBS happy path**: `observed_dballe_override` patcha `BeDballe.LASTDAYS` (via `test_runtime.override_attr`) così che il 2020-04-06 cada nella finestra "dballe" (recente). Senza, `get_db_type` lo classificherebbe come archiviato e i test riceverebbero 401 invece dei dati. L'override è confinato al context manager.
+- **Override di `LASTDAYS` indispensabile per OBS happy path**: `dballe_window_override` patcha `BeDballe.LASTDAYS` (via `test_runtime.override_attr`) così che il 2020-04-06 cada nella finestra "dballe" (recente). Senza, `get_db_type` lo classificherebbe come archiviato e i test riceverebbero 401 invece dei dati. L'override è confinato al context manager.
 - **`auth_headers` è l'utente DEFAULT condiviso**: i test map mode lo usano come utente "qualsiasi". I rami che richiedono `allowed_obs_archive` o assegnazioni dataset specifiche usano invece utenti dedicati creati ad hoc — non si affidano ai permessi del default.
 - **Monkeypatch mirato solo sulla categoria**: i test multi-dataset forecast (17, 18) patchano **esclusivamente** `arki.get_datasets_category` per raggiungere il controllo categoria/gruppo senza dati Arkimet reali; il resto del controller gira davvero.
-- **Mutazione di agrmet reale**: `test_..._private_network...` rende temporaneamente agrmet privato (licenza sintetica) per fabbricare un 401 portabile, poi ripristina la licenza originale in cleanup. Stato reale alterato e ripristinato.
+- **Rete privata sintetica**: `test_..._private_network...` fabbrica il 401 con un dataset privato sintetico e una rete sintetica; il `monkeypatch` di `BeArkimet.from_network_to_dataset` delega ogni altra rete alla funzione reale. In precedenza il test spostava agrmet su una licenza privata con commit.
 - **Bug forecast `SummaryStats=False`**: documentato e gestito con `pytest.skip` verboso (non `xfail`), così la suite non si rompe ma segnala il difetto. Da riportare a verde dopo il fix backend.
 - **Skip silenziosi diffusi**: `require_dataset`/`require_forecast_fields_case` saltano quando agrmet/lm5/lm2.2 mancano → in runtime minimali una quota dei test (2, 4, 6, 14, 15, 20, 21) può non eseguire alcuna asserzione.
 - **Differenza skip vs fail**: i rami di errore (3, 5, 7, 8, 10, 11, 16, 17, 18, 19) sono deterministici; i happy path map mode (1, 12, 13, 14) **falliscono** (non skippano) se la finestra DBALLE è vuota o l'infrastruttura dballe non risponde.
@@ -189,7 +191,7 @@ GET /api/fields (dataset)   → not user? 401 → for ds: get_datasets()→ not 
 - [ ] Confermare che le finestre dati (agrmet 2020-04-06, lm5 2021-10-19, lm2.2 2019-09-10) siano presenti nell'ambiente di CI, altrimenti gli happy path falliranno o skipperanno.
 - [ ] Verificare che l'override di `LASTDAYS` rispecchi fedelmente la logica di `get_db_type` e non mascheri regressioni nella classificazione dballe/arkimet.
 - [ ] Tracciare il **bug forecast `SummaryStats=False`** (UnboundLocalError) come difetto reale di [endpoints/fields.py](projects/mistral/backend/endpoints/fields.py) e pianificare il ritorno a verde del test 21.
-- [ ] Verificare che la mutazione temporanea di agrmet (test 6) sia sempre ripristinata, anche in caso di errore.
+- [ ] Verificare che il test 6 resti un controllo dell'autorizzazione reale: solo la mappatura rete→dataset della rete sintetica è finta.
 - [ ] Distinguere chiaramente, nei report CI, i test che **skippano** da quelli che **falliscono** per assenza dati (rischio di rumore).
 - [ ] Confermare che i monkeypatch di `get_datasets_category` non nascondano differenze rispetto al comportamento reale di Arkimet.
 - [ ] Verificare che `auth_headers` (default) abbia/non abbia `allowed_obs_archive` in modo coerente con le aspettative dei test che lo usano.
@@ -199,7 +201,7 @@ GET /api/fields (dataset)   → not user? 401 → for ds: get_datasets()→ not 
 - **Ampia superficie runtime-sensitive**: ~7 test possono skippare e ~4-5 possono fallire silenziosamente per assenza di dati; il "verde" della suite non garantisce copertura effettiva degli happy path.
 - **Bug di backend mascherato da skip**: il difetto forecast `SummaryStats=False` resta latente; finché il test 21 skippa, nessuno se ne accorge dai report.
 - **Dipendenza dalla config Arkimet su disco**: i test reali dipendono da `arkimet_conf` e dalla finestra dati; cambiamenti di configurazione possono spostare gli esiti.
-- **Mutazione di dati condivisi**: la riassegnazione della licenza di agrmet introduce un rischio di residui se il teardown fallisce (FK pendente verso licenza sintetica eliminata).
+- **Mappatura rete→dataset finta nel test 6**: il 401 non verifica la mappatura Arkimet reale di agrmet, già esercitata dai test positivi OBS dello stesso modulo.
 - **Accoppiamento ai monkeypatch interni**: i test 17/18 dipendono dal **nome del modulo** `fields_endpoint_module.arki`; un refactor degli import dell'endpoint romperebbe il patch silenziosamente (il controller userebbe l'Arkimet reale).
 - **Complessità del controller**: `Fields.get` (302 righe) concentra molti rami; la suite è ricca ma la lettura incrociata test↔endpoint resta onerosa.
 
@@ -212,7 +214,7 @@ GET /api/fields (dataset)   → not user? 401 → for ds: get_datasets()→ not 
 | 3 | `..._archived_map_mode_rejects_anonymous_user` | archive auth | 401 | — | `client` | D |
 | 4 | `..._archived_map_mode_rejects_user_without_archive_permission` | `allowed_obs_archive` | 401 | — | `cleanup_registry` | S |
 | 5 | `..._unknown_network_returns_not_found` | `from_network_to_dataset` | 404 | override (innocuo) | `auth_headers`, `test_runtime` | D |
-| 6 | `..._private_network_returns_unauthorized_without_local_oracle` | `check_dataset_authorization` | 401 | override LASTDAYS | `cleanup_registry`, `test_runtime` | S, muta agrmet |
+| 6 | `..._private_network_returns_unauthorized_without_local_oracle` | `check_dataset_authorization` | 401 | override LASTDAYS | `cleanup_registry`, `test_runtime`, `monkeypatch` | rete sintetica |
 | 7 | `..._missing_license_group_returns_bad_request` | license mandatory | 400 | override | `auth_headers`, `test_runtime` | D |
 | 8 | `..._unknown_license_group_returns_bad_request` | `UnexistingLicenseGroup` | 400 | override | `auth_headers`, `test_runtime` | D |
 | 9 | `..._mismatch_network_license_returns_bad_request` | `NetworkNotInLicenseGroup` | 400 | override | `auth_headers`, `test_runtime` | R (mapping) |

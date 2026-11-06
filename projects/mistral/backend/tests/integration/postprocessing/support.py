@@ -374,24 +374,6 @@ def register_user_cleanup(
     )
 
 
-def require_dataset(db, dataset_name: str):
-    """Return a dataset or skip the test when the environment does not expose it."""
-    # Entriamo nel blocco operativo dell'helper post-processing, mantenendo esplicito
-    # quale stato viene letto o prodotto.
-    dataset = db.Datasets.query.filter(
-        (db.Datasets.name == dataset_name) | (db.Datasets.arkimet_id == dataset_name)
-    ).first()
-    # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve succedere
-    # quando lo stato non e quello ideale.
-    if dataset is None:
-        # Saltiamo lo scenario quando i dati runtime richiesti non esistono, perche il
-        # contratto non sarebbe verificabile in modo significativo.
-        pytest.skip(f"Dataset '{dataset_name}' is not available in this environment")
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
-    return dataset
-
-
 def require_observed_lastdays() -> int:
     """Derive a safe LASTDAYS override from real DBALLE observed data or skip."""
     # Entriamo nel blocco operativo dell'helper post-processing, mantenendo esplicito

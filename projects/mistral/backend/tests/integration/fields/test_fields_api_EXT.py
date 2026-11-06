@@ -8,8 +8,9 @@
 # Runtime fake: i rami multi-dataset non richiedono dati Arkimet reali e usano dataset
 # sintetici piu monkeypatch mirati del calcolo categoria per raggiungere il controller;
 # i rami happy path interrogano il runtime reale nelle finestre consentite.
-# Cleanup: utenti temporanei, dataset sintetici e licenze temporanee sono registrati nel
-# cleanup_registry; nessun conftest.py viene creato o modificato.
+# Cleanup: utenti temporanei, dataset sintetici e licenze sintetiche sono registrati nel
+# cleanup_registry; il catalogo reale (agrmet compreso) viene solo letto e nessun
+# conftest.py viene creato o modificato.
 # Baseline non toccata: i test sono tutti in un nuovo modulo *_EXT.py e usano helper
 # locali del dominio fields/support_EXT.py.
 
@@ -20,28 +21,29 @@ from uuid import uuid4
 import mistral.endpoints.fields as fields_endpoint_module
 import pytest
 from mistral.models.sqlalchemy import DatasetCategories
-from restapi.connectors import sqlalchemy
-from restapi.tests import FlaskClient
-
-from mistral.tests.integration.fields.support_EXT import (
+from mistral.tests.helpers.auth import create_dataset_test_user
+from mistral.tests.helpers.datasets import create_private_test_network
+from mistral.tests.helpers.observed_windows import (
     OBSERVED_DATASET_NAME,
     OBSERVED_LICENSE_GROUP,
     OBSERVED_MISMATCH_LICENSE_GROUP,
     OBSERVED_NETWORK,
+    dballe_window_override,
+    parse_response,
+    require_observed_dataset_user,
+)
+from restapi.connectors import sqlalchemy
+from restapi.tests import FlaskClient
+
+from mistral.tests.integration.fields.support_EXT import (
     OBS_ARCHIVE_QUERY,
     OBS_DBALLE_QUERY,
     OBS_DBALLE_QUERY_WITHOUT_LICENSE,
     create_fields_synthetic_dataset,
-    create_fields_user,
     create_private_observed_dataset_for_all_available_products,
     fields_url,
     get_or_create_multim_forecast_dataset,
-    observed_dballe_override,
-    parse_response,
-    require_dataset,
     require_forecast_fields_case,
-    require_observed_dataset_user,
-    temporarily_make_observed_dataset_private,
 )
 
 
@@ -66,7 +68,7 @@ def test_fields_observed_map_mode_returns_recent_agrmet_filters(
     endpoint = fields_url(q=OBS_DBALLE_QUERY)
 
     # act
-    with observed_dballe_override(test_runtime):
+    with dballe_window_override(test_runtime):
         response = client.get(endpoint, headers=auth_headers)
 
     # assert
@@ -93,7 +95,7 @@ def test_fields_observed_dataset_mode_returns_agrmet_filters(
     )
 
     # act
-    with observed_dballe_override(test_runtime):
+    with dballe_window_override(test_runtime):
         response = client.get(endpoint, headers=user.headers)
 
     # assert
@@ -142,7 +144,7 @@ def test_fields_observed_unknown_network_returns_not_found(
     query = OBS_DBALLE_QUERY.replace(OBSERVED_NETWORK, f"missing_{uuid4().hex}")
 
     # act
-    with observed_dballe_override(test_runtime):
+    with dballe_window_override(test_runtime):
         response = client.get(fields_url(q=query), headers=auth_headers)
 
     # assert
@@ -153,16 +155,25 @@ def test_fields_observed_private_network_returns_unauthorized_without_local_orac
     client: FlaskClient,
     cleanup_registry,
     test_runtime,
+    monkeypatch,
 ) -> None:
-    """Costruisce un 401 portabile rendendo temporaneamente agrmet privato."""
+    """Costruisce un 401 portabile con una rete OBS privata sintetica."""
     # arrange
+    # Il dataset reale agrmet non viene modificato: la rete sintetica punta a un dataset
+    # privato creato dal test e l'utente non ha grant su di esso.
     db = sqlalchemy.get_instance()
-    temporarily_make_observed_dataset_private(db, cleanup_registry)
-    user = create_fields_user(client, cleanup_registry, [])
+    private_network = create_private_test_network(
+        db,
+        cleanup_registry,
+        monkeypatch,
+        prefix="fields_ext_private",
+    )
+    user = create_dataset_test_user(client, cleanup_registry, [])
+    query = OBS_DBALLE_QUERY.replace(OBSERVED_NETWORK, private_network)
 
     # act
-    with observed_dballe_override(test_runtime):
-        response = client.get(fields_url(q=OBS_DBALLE_QUERY), headers=user.headers)
+    with dballe_window_override(test_runtime):
+        response = client.get(fields_url(q=query), headers=user.headers)
 
     # assert
     assert response.status_code == 401
@@ -178,7 +189,7 @@ def test_fields_observed_missing_license_group_returns_bad_request(
     endpoint = fields_url(q=OBS_DBALLE_QUERY_WITHOUT_LICENSE)
 
     # act
-    with observed_dballe_override(test_runtime):
+    with dballe_window_override(test_runtime):
         response = client.get(endpoint, headers=auth_headers)
 
     # assert
@@ -195,7 +206,7 @@ def test_fields_observed_unknown_license_group_returns_bad_request(
     query = OBS_DBALLE_QUERY.replace(OBSERVED_LICENSE_GROUP, f"missing_{uuid4().hex}")
 
     # act
-    with observed_dballe_override(test_runtime):
+    with dballe_window_override(test_runtime):
         response = client.get(fields_url(q=query), headers=auth_headers)
 
     # assert
@@ -215,7 +226,7 @@ def test_fields_observed_mismatch_network_license_returns_bad_request(
     )
 
     # act
-    with observed_dballe_override(test_runtime):
+    with dballe_window_override(test_runtime):
         response = client.get(fields_url(q=query), headers=auth_headers)
 
     # assert
@@ -247,7 +258,7 @@ def test_fields_observed_incomplete_bbox_returns_bad_request(
     endpoint = fields_url(q=OBS_DBALLE_QUERY, lonmin=10.0)
 
     # act
-    with observed_dballe_override(test_runtime):
+    with dballe_window_override(test_runtime):
         response = client.get(endpoint, headers=auth_headers)
 
     # assert
@@ -264,7 +275,7 @@ def test_fields_observed_only_summary_stats_returns_stats_only(
     endpoint = fields_url(q=OBS_DBALLE_QUERY, onlySummaryStats="true")
 
     # act
-    with observed_dballe_override(test_runtime):
+    with dballe_window_override(test_runtime):
         response = client.get(endpoint, headers=auth_headers)
 
     # assert
@@ -284,7 +295,7 @@ def test_fields_observed_summary_stats_false_omits_summary_stats(
     endpoint = fields_url(q=OBS_DBALLE_QUERY, SummaryStats="false")
 
     # act
-    with observed_dballe_override(test_runtime):
+    with dballe_window_override(test_runtime):
         response = client.get(endpoint, headers=auth_headers)
 
     # assert
@@ -312,7 +323,7 @@ def test_fields_observed_all_available_products_excludes_unauthorized_private_gr
     user = require_observed_dataset_user(client, cleanup_registry)
 
     # act
-    with observed_dballe_override(test_runtime):
+    with dballe_window_override(test_runtime):
         response = client.get(
             fields_url(q=OBS_DBALLE_QUERY, allAvailableProducts="true"),
             headers=user.headers,
@@ -385,7 +396,7 @@ def test_fields_forecast_multiple_categories_return_bad_request(
         fileformat="bufr",
         dballe_dsn="DBALLE",
     )
-    user = create_fields_user(
+    user = create_dataset_test_user(
         client,
         cleanup_registry,
         [forecast_dataset.id, observed_dataset.id],
@@ -418,7 +429,7 @@ def test_fields_forecast_multiple_license_groups_return_bad_request(
     db = sqlalchemy.get_instance()
     first_dataset = create_fields_synthetic_dataset(db, cleanup_registry)
     second_dataset = create_fields_synthetic_dataset(db, cleanup_registry)
-    user = create_fields_user(
+    user = create_dataset_test_user(
         client,
         cleanup_registry,
         [first_dataset.id, second_dataset.id],
@@ -448,7 +459,7 @@ def test_fields_forecast_multimodel_multi_dataset_returns_bad_request(
     db = sqlalchemy.get_instance()
     multim_dataset = get_or_create_multim_forecast_dataset(db, cleanup_registry)
     companion_dataset = create_fields_synthetic_dataset(db, cleanup_registry)
-    user = create_fields_user(
+    user = create_dataset_test_user(
         client,
         cleanup_registry,
         [multim_dataset.id, companion_dataset.id],

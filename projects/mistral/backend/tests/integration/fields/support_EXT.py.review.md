@@ -35,34 +35,33 @@
 
 | Funzione | Effetti | Note di revisione |
 |---|---|---|
-| `fields_url(**params)` | costruisce URL con `urlencode` | preserva `;`/`>=`/`<=`. |
-| `parse_response(response)` | `BaseTests().get_content(...)` | normalizza il payload restapi. |
-| `observed_dballe_override(test_runtime)` | **override di `BeDballe.LASTDAYS`** | vedi §3 (comportamento nascosto chiave). |
-| `require_dataset(db, name)` | lookup reale; **`pytest.skip`** se assente | skip motivato dalle finestre Prompt 03. |
-| `create_fields_user(...)` | crea utente via API admin + cleanup | permessi `open_dataset`/`allowed_obs_archive`/`datasets`. |
-| `create_fields_synthetic_dataset(...)` | crea `GroupLicense`+`License`+`Datasets` (+ eventuale `Attribution`) e registra `delete_fields_dataset_bundle` | bundle relazionale completo. |
+| `fields_url(**params)` | `api_url(FIELDS_ENDPOINT, ...)` | wrapper di dominio su `helpers/observed_windows.py`. |
+| `OBS_DBALLE_QUERY`, `OBS_DBALLE_QUERY_WITHOUT_LICENSE`, `OBS_ARCHIVE_QUERY` | query `/fields` costruite dalle costanti condivise | finestre e licenze vengono da `helpers/observed_windows.py`. |
+| `create_dataset_test_user(...)` (da `helpers/auth.py`) | crea utente via API admin + cleanup | permessi `open_dataset`/`allowed_obs_archive`/`datasets`; sostituisce il vecchio `create_fields_user` locale. |
+| `create_fields_synthetic_dataset(...)` | crea `GroupLicense`+`License`+`Datasets` (+ eventuale `Attribution`) e registra `delete_test_dataset_bundle` (helpers/datasets.py) | bundle relazionale completo; l'attribution viene eliminata solo se creata dal helper. |
 | `get_or_create_multim_forecast_dataset(...)` | riusa il record reale `multim-forecast` o ne crea uno sintetico | per il ramo multi-dataset 400. |
-| `delete_fields_dataset_bundle(...)` | cleanup difensivo: stacca m2m, elimina dataset/license/group/attribution se presenti | non maschera l'errore originale. |
 | `create_private_observed_dataset_for_all_available_products(...)` | crea gruppo OBS **privato** sintetico (controllo negativo) | ritorna il nome del gruppo. |
-| `require_observed_dataset_user(...)` | `require_dataset(agrmet)` + utente agrmet | **`pytest.skip`** se agrmet assente. |
 | `require_forecast_fields_case(...)` | prova lm5 poi lm2.2, utente autorizzato, verifica `c>0` | **`pytest.skip`** se nessuna finestra forecast espone dati. |
-| `temporarily_make_observed_dataset_private(...)` | **muta `license_id` di agrmet reale** e registra il ripristino in cleanup | costruisce un 401 portabile. |
-| `null_runtime_context()` | `nullcontext()` | simmetria con gli override opzionali. |
+
+Helper non piu definiti qui e spostati in moduli condivisi, riusati anche dalla cartella `observed`:
+
+- [helpers/observed_windows.py](projects/mistral/backend/tests/helpers/observed_windows.py): costanti `OBSERVED_*`/`OBS_*`, `api_url`, `parse_response`, `dballe_window_override` (override di `BeDballe.LASTDAYS`, vedi §3), `require_observed_dataset_user`, `require_dballe_product`;
+- [helpers/datasets.py](projects/mistral/backend/tests/helpers/datasets.py): `require_dataset` (lookup per `name` o `arkimet_id`, **`pytest.skip`** se assente), `create_private_test_network` e `delete_test_dataset_bundle` (cleanup del bundle sintetico, che sostituisce il vecchio `delete_fields_dataset_bundle` locale).
 
 ## 3. Comportamenti nascosti
 
-- **Override di `BeDballe.LASTDAYS` (cuore della portabilità OBS)**: `observed_dballe_override` calcola `LASTDAYS` in modo che il cutoff cada il giorno **prima** del 2020-04-06, così `get_db_type` classifica quella data come **dballe** (recente) invece che archiviata. Riproduce la strategia della suite observed esistente e resta confinato al context manager `test_runtime.override_attr` (ripristino automatico in uscita). Senza, gli OBS happy path otterrebbero 401 (ramo archivio).
-- **Mutazione di dati reali con ripristino garantito**: `temporarily_make_observed_dataset_private` salva `original_license_id`, crea gruppo+licenza privati sintetici, assegna agrmet alla licenza privata e registra `_restore_observed_dataset_license` su `cleanup_registry` (ripristina la licenza reale e poi elimina i record sintetici). Il catalogo reale è alterato per la durata del test.
+- **Override di `BeDballe.LASTDAYS` (cuore della portabilità OBS)**: `dballe_window_override` calcola `LASTDAYS` in modo che il cutoff cada il giorno **prima** del 2020-04-06, così `get_db_type` classifica quella data come **dballe** (recente) invece che archiviata. Riproduce la strategia della suite observed esistente e resta confinato al context manager `test_runtime.override_attr` (ripristino automatico in uscita). Senza, gli OBS happy path otterrebbero 401 (ramo archivio).
+- **Nessuna mutazione del catalogo reale**: il vecchio helper che spostava agrmet su una licenza privata con commit (visibile a tutti per la durata del test e persistente se il teardown saltava) e stato sostituito da `create_private_test_network` in `helpers/datasets.py`: il dataset privato è sintetico (cleanup completo tramite `create_test_dataset`); il `monkeypatch` di `from_network_to_dataset` riguarda solo la rete sintetica e delega ogni altra rete alla funzione reale. `check_dataset_authorization` resta reale.
 - **Skip silenziosi centralizzati**: `require_dataset` e `require_forecast_fields_case` decidono autonomamente di saltare; i test che li usano ereditano lo skip senza un `pytest.skip` esplicito al proprio interno. `require_forecast_fields_case` può skippare **anche** dopo aver ottenuto 200 ma con `summarystats.c <= 0` (continua a provare la finestra successiva e infine skippa).
 - **Dataset sintetici "sufficienti"**: i rami multi-dataset falliscono **prima** del caricamento Arkimet reale; per questo il fake corretto è un catalogo SQL minimo (più, nei test, un monkeypatch del solo `get_datasets_category`). `dballe_dsn="DBALLE"` marca semanticamente un gruppo come OBS senza che alcun dato venga mai interrogato.
-- **Cleanup difensivo e idempotente**: `delete_fields_dataset_bundle` e i restore controllano l'esistenza di ogni riga prima di eliminarla (`query.get(...) is not None`), così un fallimento a metà setup non genera errori secondari che mascherino la causa.
-- **Creazione utente via API admin**: `create_fields_user` usa `create_authenticated_test_user` + `register_test_user_cleanup` ([tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py)); il cleanup elimina utente e cartella output anche in caso di failure.
+- **Cleanup difensivo e idempotente**: `delete_test_dataset_bundle` (helper condiviso di `helpers/datasets.py`) e i restore controllano l'esistenza di ogni riga prima di eliminarla (`query.get(...) is not None`), così un fallimento a metà setup non genera errori secondari che mascherino la causa.
+- **Creazione utente via API admin**: `create_dataset_test_user` ([tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py)) usa `create_authenticated_test_user` + `register_test_user_cleanup`; il cleanup elimina utente e cartella output anche in caso di failure.
 - **Attribution opzionale**: `create_fields_synthetic_dataset` riusa un'`Attribution` reale se esiste, altrimenti ne crea una temporanea e la marca per cleanup (`created_attribution_id`), evitando di toccare attribution reali quando già presenti.
 
 ## 4. Checklist di revisione
 
 - [ ] Confermare che l'override di `LASTDAYS` resti allineato alla logica di `get_db_type` (soglia `LASTDAYS-1` + correzione orari notturni) e non diverga in futuro.
-- [ ] Verificare che `temporarily_make_observed_dataset_private` ripristini sempre agrmet, anche se il test fallisce prima dell'assert (il restore è su `cleanup_registry`, eseguito nel teardown della fixture).
+- [ ] Verificare che `create_private_test_network` (helpers/datasets.py) mappi solo la rete sintetica e deleghi tutte le altre alla mappatura Arkimet reale.
 - [ ] Valutare la robustezza degli `pytest.skip` centralizzati: in CI senza finestre dati, quanti test del modulo diventano no-op?
 - [ ] Confermare che i dataset sintetici non interferiscano con il catalogo reale (nomi `fields_ext_*`/uuid, cleanup relazionale completo).
 - [ ] Verificare che `get_or_create_multim_forecast_dataset` non alteri un eventuale record `multim-forecast` reale (lo riusa in sola lettura, senza cleanup distruttivo).
@@ -72,4 +71,4 @@
 - **Accoppiamento forte alle finestre dati hardcoded**: agrmet/lm5/lm2.2 e le date sono incise nel supporto; qualsiasi variazione del seed o dei dati runtime richiede modifiche qui e propaga skip/fail nei test.
 - **Mutazione condivisa**: l'alterazione della licenza di agrmet è una sorgente di rischio (residui/FK pendenti) se il teardown non viene eseguito; concentrare questa logica nel supporto la rende meno visibile a chi legge solo i test.
 - **Skip "invisibili"**: spostare la decisione di skip nei helper rende i test più leggibili ma nasconde, a livello di singolo test, la condizione che porta al no-op — da tenere presente nei report CI.
-- **Override basato su `datetime.now()`**: `observed_dballe_override` calcola `LASTDAYS` rispetto alla data corrente; è corretto per la finestra fissa 2020-04-06, ma è una dipendenza implicita dall'orologio di sistema (gestita, non eliminata).
+- **Override basato su `datetime.now()`**: `dballe_window_override` calcola `LASTDAYS` rispetto alla data corrente; è corretto per la finestra fissa 2020-04-06, ma è una dipendenza implicita dall'orologio di sistema (gestita, non eliminata).

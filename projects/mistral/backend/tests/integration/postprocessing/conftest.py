@@ -10,6 +10,7 @@ import pytest
 from faker import Faker
 from flask import Flask
 from mistral.services.dballe import BeDballe
+from mistral.tests.helpers.datasets import require_dataset
 from restapi.connectors import sqlalchemy
 from restapi.tests import FlaskClient
 
@@ -18,7 +19,6 @@ from .support import (
     PostprocessingSupport,
     create_postprocessing_user,
     register_user_cleanup,
-    require_dataset,
     require_observed_lastdays,
 )
 
