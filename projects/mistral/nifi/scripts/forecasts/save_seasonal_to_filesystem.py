@@ -14,8 +14,8 @@ expected_tree = {
     "tiff/ano_max_TM",
     "tiff/ano_min_Tm",
     "tiff/ano_P",
-    "tiff/mean_Tm",
-    "tiff/mean_TM",
+    "tiff/mean_Tmin",
+    "tiff/mean_Tmax",
     "tiff/sum_P",
 }
 
