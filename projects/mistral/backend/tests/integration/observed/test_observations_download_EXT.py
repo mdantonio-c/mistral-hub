@@ -39,7 +39,7 @@ from mistral.tests.helpers.observed_windows import (
     require_observed_dataset_user,
 )
 from restapi.connectors import sqlalchemy
-from restapi.tests import FlaskClient
+from restapi.tests import BaseTests, FlaskClient
 
 
 pytestmark = [
@@ -182,39 +182,34 @@ def test_observed_post_reliability_check_smoke_uses_dballe_window(
 def test_observed_post_invalid_output_format_returns_bad_request(
     client: FlaskClient,
     auth_headers,
-    test_runtime,
 ) -> None:
     """Verifica il 400 schema per output_format non ammesso prima del runtime DBALLE."""
-    # arrange
-    product = _require_dballe_product(client, auth_headers, test_runtime)
-
     # act
     response = _post_observations(
         client,
         auth_headers,
-        q=_download_query(product),
+        q=_download_query(),
         networks=OBSERVED_NETWORK,
         output_format="CSV",
     )
 
     # assert
     assert response.status_code == 400
+    assert BaseTests().get_content(response) == {
+        "output_format": ["Must be one of: BUFR, JSON."]
+    }
 
 
 def test_observed_post_incomplete_bbox_returns_bad_request(
     client: FlaskClient,
     auth_headers,
-    test_runtime,
 ) -> None:
     """Verifica il 400 controller per bounding box incompleta su query valida."""
-    # arrange
-    product = _require_dballe_product(client, auth_headers, test_runtime)
-
     # act
     response = _post_observations(
         client,
         auth_headers,
-        q=_download_query(product),
+        q=_download_query(),
         networks=OBSERVED_NETWORK,
         output_format="JSON",
         lonmin=10.0,
@@ -222,6 +217,7 @@ def test_observed_post_incomplete_bbox_returns_bad_request(
 
     # assert
     assert response.status_code == 400
+    assert BaseTests().get_content(response) == "Coordinates for bounding box are missing"
 
 
 def test_observed_post_missing_license_returns_bad_request(

@@ -69,6 +69,6 @@ Helper non piu definiti qui e spostati in moduli condivisi, riusati anche dalla 
 ## 5. Possibili criticità
 
 - **Accoppiamento forte alle finestre dati hardcoded**: agrmet/lm5/lm2.2 e le date sono incise nel supporto; qualsiasi variazione del seed o dei dati runtime richiede modifiche qui e propaga skip/fail nei test.
-- **Mutazione condivisa**: l'alterazione della licenza di agrmet è una sorgente di rischio (residui/FK pendenti) se il teardown non viene eseguito; concentrare questa logica nel supporto la rende meno visibile a chi legge solo i test.
+- **Stato sintetico condiviso**: dataset/rete privati sono sintetici; agrmet e la sua licenza non vengono alterati. Resta il rischio di residui del bundle sintetico se il teardown non viene eseguito; la mappatura della sola rete sintetica è ripristinata da `monkeypatch` (vedi §3).
 - **Skip "invisibili"**: spostare la decisione di skip nei helper rende i test più leggibili ma nasconde, a livello di singolo test, la condizione che porta al no-op — da tenere presente nei report CI.
 - **Override basato su `datetime.now()`**: `dballe_window_override` calcola `LASTDAYS` rispetto alla data corrente; è corretto per la finestra fissa 2020-04-06, ma è una dipendenza implicita dall'orologio di sistema (gestita, non eliminata).

@@ -63,11 +63,13 @@
 ### `test_observed_post_invalid_output_format_returns_bad_request`
 - **Obiettivo**: `output_format=CSV` → **400** (validazione `OneOf` di schema).
 - **Backend coinvolto**: `ObservationsDownloader` rifiuta CSV **prima** del controller.
-- **Nota**: l'`arrange` chiama comunque `_require_dballe_product` → **il test è skippabile** anche se la 400 di schema non richiede dati reali (vedi §6/§8).
+- **Flusso**: POST con `_download_query()` senza prodotto, senza probe `/fields` né fixture `test_runtime`.
+- **Assert**: `400` e payload `{"output_format": ["Must be one of: BUFR, JSON."]}`, specifico della validazione `OneOf`. Non dipende dalla presenza di dati reali e non è skippabile tramite il probe.
 
 ### `test_observed_post_incomplete_bbox_returns_bad_request`
 - **Obiettivo**: solo `lonmin` (bbox incompleta) → **400** del controller ("Coordinates for bounding box are missing").
-- **Nota**: anche qui `arrange` fa il probe → **skippabile** pur essendo una pura validazione.
+- **Flusso**: POST con `_download_query()` senza prodotto, senza probe `/fields` né fixture `test_runtime`.
+- **Assert**: `400` e messaggio esatto `"Coordinates for bounding box are missing"`, dal controllo bbox precedente al parsing di `q` e all'accesso ai dati. Non è skippabile tramite il probe.
 
 ### `test_observed_post_missing_license_returns_bad_request`
 - **Obiettivo**: `q` senza `license` → **400** ("License group parameter is mandatory"). **Nessun** probe → non skippabile.
@@ -134,7 +136,7 @@ probe interno (success path): GET /api/fields?q=<DBALLE_QUERY;network:agrmet>  (
 - **`POST` legge dalla query string, non dal body**: `_post_observations` mette tutto in URL (`urlencode`). Coerente col controller, ma non ovvio per chi si aspetta un body JSON in un POST.
 - **Override `LASTDAYS` (non un mock dei dati)**: `dballe_window_override` patcha solo la **soglia mobile** di `get_db_type` (via `test_runtime.override_attr`), così che `2020-04-06` sia classificata "dballe" anche eseguendo nel 2026. I dati restano quelli reali del runtime. I rami **archived** (test 14–15) **non** usano l'override, perché vogliono `db_type=arkimet`.
 - **Rete privata sintetica (test 10)**: `create_private_test_network` crea un dataset privato sintetico e sostituisce `BeArkimet.from_network_to_dataset` solo per la rete sintetica, delegando ogni altra rete alla funzione reale. `check_dataset_authorization` resta reale. In precedenza il test spostava agrmet su una licenza privata con commit: il catalogo reale era alterato per tutti durante il test e restava privato se il teardown saltava.
-- **Validazioni skippabili senza motivo dato** (test 4 e 5): pur essendo 400 di schema/controller che **non** richiedono dati reali, l'`arrange` chiama `_require_dballe_product` → questi test possono fare `pytest.skip` se la finestra DBALLE non è esposta. La copertura della validazione è quindi legata, inutilmente, alla presenza dei dati.
+- **Validazioni indipendenti dai dati** (test 4 e 5): usano `_download_query()` senza prodotto e senza probe `/fields`; verificano il payload specifico del 400 di schema/controller, senza dipendere dalla disponibilità della finestra DBALLE.
 - **Triplice canale di skip silenzioso** (runtime-sensitive): (1) `require_observed_dataset_user` (via `require_dataset`) se agrmet manca; (2) `_require_dballe_product` se `/fields` non risponde 200 o non espone prodotti; (3) `_require_dballe_product` se `summarystats["c"] <= 0`.
 - **NDJSON nel test JSON**: l'asserzione decodifica **riga per riga** (`splitlines`), perché il downloader DBALLE emette JSON newline-delimited e non un array unico. Un reviewer potrebbe aspettarsi `json.loads(response.data)` su tutto il body.
 - **`allowed_obs_archive` di default True** per gli utenti creati ([customization.py](projects/mistral/backend/customization.py#L33)): il test 15 passa **esplicitamente** `False` per ottenere il 401; senza quell'override l'utente avrebbe accesso archivio.
@@ -142,7 +144,7 @@ probe interno (success path): GET /api/fields?q=<DBALLE_QUERY;network:agrmet>  (
 ## 7. Checklist di revisione
 
 - [ ] Verificare che `create_private_test_network` mappi solo la rete sintetica e deleghi tutte le altre alla mappatura Arkimet reale.
-- [ ] Valutare se i test 4 e 5 (validazioni 400) debbano **evitare** il probe `_require_dballe_product`, per non renderli skippabili senza necessità.
+- [x] I test 4 e 5 (validazioni 400) evitano il probe `_require_dballe_product` e la fixture `test_runtime`, usano `_download_query()` senza prodotto e asseriscono il motivo specifico del 400 del ramo dichiarato nel docstring.
 - [ ] Confermare in CI quanti test risultano `skipped` per assenza di agrmet/finestra DBALLE.
 - [ ] Confermare che `2020-04-06` resti la finestra DBALLE attesa e `2020-03-31/04-01` quella Arkimet nei dati seed.
 - [ ] Confermare che `CCBY-SA_COMPLIANT` sia un gruppo **esistente ma non coerente** con agrmet (per ottenere `NetworkNotInLicenseGroup`, non `UnexistingLicenseGroup`).
@@ -151,7 +153,6 @@ probe interno (success path): GET /api/fields?q=<DBALLE_QUERY;network:agrmet>  (
 ## 8. Possibili criticità
 
 - **Mappatura rete→dataset finta nel test 10**: il 401 non verifica la mappatura Arkimet reale di agrmet, già esercitata dai test positivi e dal 404 di rete inesistente.
-- **Skip inutile su validazioni pure**: la copertura dei 400 di schema/controller (formato, bbox) può svanire se la finestra DBALLE non è inizializzata, pur non dipendendo dai dati.
 - **Copertura "verde per skip"**: tre canali di `pytest.skip` possono annullare silenziosamente i success path (JSON/BUFR/reliability/private/archive-no-perm).
 - **Dipendenza forte dalle date fisse**: l'intero modulo è ancorato a `agrmet 2020-04-06` e `2020-03-31/04-01`; un reseeding con date diverse lo rende inservibile (skip o fallimenti).
 - **`reliabilityCheck` solo smoke**: verifica solo `200`+mime, non il contenuto QC; il ramo `query="attrs"` è esercitato ma non validato nei risultati.
@@ -164,8 +165,8 @@ probe interno (success path): GET /api/fields?q=<DBALLE_QUERY;network:agrmet>  (
 | `..._download_json_..._dballe_window` | `post` dballe + stream | 200 + JSON (NDJSON) | `LASTDAYS` override | `client`,`auth_headers`,`test_runtime` | sì (probe) |
 | `..._download_bufr_..._dballe_window` | `post` dballe + stream | 200 + octet-stream | `LASTDAYS` override | id. | sì (probe) |
 | `..._reliability_check_smoke_...` | `post` + `query=attrs` | 200 + JSON (smoke) | `LASTDAYS` override | id. | sì (probe) |
-| `..._invalid_output_format_...` | schema `OneOf` | 400 (CSV) | — | id. | sì (probe, non necessario) |
-| `..._incomplete_bbox_...` | controller bbox | 400 | — | id. | sì (probe, non necessario) |
+| `..._invalid_output_format_...` | schema `OneOf` | 400 + errore `output_format` (CSV) | — | `client`,`auth_headers` | No |
+| `..._incomplete_bbox_...` | controller bbox | 400 + "Coordinates for bounding box are missing" | — | `client`,`auth_headers` | No |
 | `..._missing_license_...` | "License mandatory" | 400 | — | `client`,`auth_headers` | No |
 | `..._unknown_license_group_...` | `UnexistingLicenseGroup` | 400 | — | id. | No |
 | `..._mismatch_network_license_...` | `NetworkNotInLicenseGroup` | 400 | — | id. | No |
