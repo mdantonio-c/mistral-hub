@@ -8,7 +8,7 @@
 - **Percorso**: [projects/mistral/backend/tests/integration/schedules/test_schedule_validation_EXT.py](projects/mistral/backend/tests/integration/schedules/test_schedule_validation_EXT.py)
 - **Scopo**: coprire gli **edge di validazione** di `POST /schedules`: assenza di setting (400), periodo `< 15 min` (403), opendata per non-admin (403), opendata multidataset (400), opendata su dataset osservato (400), postprocessor senza permesso (401), push senza/with coda inesistente (403×2).
 - **Tipologia**: test di **integrazione HTTP** (controller reale + schema marshmallow reale + DB SQLAlchemy). RabbitMQ **mockato** nei soli rami push; Celery/RedBeat **mai raggiunti** (guardia autouse, vedi §6). Marker di modulo: `pytestmark = [pytest.mark.integration, pytest.mark.deterministic]`. 8 test (classe `TestScheduleValidation`).
-- **Attenzione**: il test `test_opendata_as_non_admin_returns_403` era collegato all'anomalia **SCHEDULES-001** (vedi §8): l'utente "non admin" riceveva un ruolo casuale e a volte l'endpoint rispondeva `202` invece di `403`. Correzione applicata nel test: `schedules_user` ha ora il solo ruolo `Role.USER`. Stato definitivo da confermare con la validazione del Prompt 3.
+- **Attenzione**: il test `test_opendata_as_non_admin_returns_403` era collegato all'anomalia **SCHEDULES-001** (vedi §8): l'utente "non admin" riceveva un ruolo casuale e a volte l'endpoint rispondeva `202` invece di `403`. Correzione applicata nel test: `schedules_user` ha ora il solo ruolo `Role.USER`. **Risolta**: validata il 10/11/2026 su commit `7858231d` con 10 run consecutive verdi del file (8 passed ciascuna) e run completa `--folder custom` verde.
 
 ## 2. Backend realmente testato
 
@@ -64,7 +64,7 @@
 - **Flusso**: body `opendata:True`, dataset `lm5`, `period-settings:{every:1, period:days}` → `POST` con header non-admin.
 - **Setup**: `schedules_user` (solo `Role.USER`); in arrange il test asserisce che i ruoli persistiti dell'utente siano esattamente `[Role.USER.value]`.
 - **Assert**: ruoli persistiti `== [Role.USER.value]`; `status_code == 403`.
-- **Casi coperti**: gate role-based opendata. **SCHEDULES-001 (corretta nel test)**: prima `schedules_user` non passava ruoli e `BaseTests.create_user` ne sceglieva uno a caso, incluso `admin_root`, superando il gate. Prima della guardia la chiamata restituiva `202` e creava una schedule reale con il relativo task RedBeat. Ora il ruolo è fissato e l'assert in arrange rende esplicita la precondizione. Vedi §8.
+- **Casi coperti**: gate role-based opendata. **SCHEDULES-001 (corretta nel test)**: prima `schedules_user` non passava ruoli e `BaseTests.create_user` ne sceglieva uno a caso, incluso `admin_root`, superando il gate. Prima della guardia la chiamata restituiva `202` e creava una schedule reale con il relativo task RedBeat. Ora il ruolo è fissato e l'assert in arrange rende esplicita la precondizione. Risolta e validata (10 run consecutive verdi). Vedi §8.
 
 ### `test_opendata_multidataset_returns_400`
 - **Obiettivo**: `opendata=true` con **due** dataset → **400**.
@@ -139,7 +139,7 @@ POST /api/schedules[?push=…]  → auth.require → use_kwargs(query push) → 
 
 ## 7. Checklist di revisione
 
-- [x] **SCHEDULES-001**: ruoli di `schedules_user` resi espliciti (`Role.USER`), come in `admin/support_EXT.py`, con assert in arrange sui ruoli persistiti. Chiusura definitiva dopo la validazione del Prompt 3.
+- [x] **SCHEDULES-001**: ruoli di `schedules_user` resi espliciti (`Role.USER`), come in `admin/support_EXT.py`, con assert in arrange sui ruoli persistiti. **Risolta**: validata il 10/11/2026 su commit `7858231d` con 10 run consecutive verdi del file (8 passed ciascuna) e run completa `--folder custom` verde.
 - [x] Una validazione superata per errore non crea schedule né task RedBeat reali: la guardia fa fallire il test.
 - [x] `test_opendata_multidataset_returns_400` asserisce il messaggio del ramo "multidataset", escludendo il 400 del controllo `get_license_group` precedente.
 - [ ] Verificare la precondizione runtime di `agrmet=OBS` per `test_opendata_observed_dataset_returns_400`.
@@ -148,7 +148,7 @@ POST /api/schedules[?push=…]  → auth.require → use_kwargs(query push) → 
 
 ## 8. Possibili criticità
 
-- **SCHEDULES-001 — test instabile per ruolo casuale (correzione applicata, in attesa del Prompt 3)**: `test_opendata_as_non_admin_returns_403` falliva circa una volta su cinque quando `schedules_user` riceveva per caso `admin_root`. Ora la fixture passa `roles=[Role.USER]` e il test asserisce in arrange che i ruoli persistiti siano solo `Role.USER`: una regressione nella fixture fallisce sull'assert di precondizione, non sul gate. Nessun `xfail`/`skip`/rerun. Prima della guardia, un'esecuzione con esito `202` aveva lasciato attiva in RedBeat la schedule `test_opendata_non_admin`.
+- **SCHEDULES-001 — test instabile per ruolo casuale (risolta)**: `test_opendata_as_non_admin_returns_403` falliva circa una volta su cinque quando `schedules_user` riceveva per caso `admin_root`. Ora la fixture passa `roles=[Role.USER]` e il test asserisce in arrange che i ruoli persistiti siano solo `Role.USER`: una regressione nella fixture fallisce sull'assert di precondizione, non sul gate. Nessun `xfail`/`skip`/rerun. Prima della guardia, un'esecuzione con esito `202` aveva lasciato attiva in RedBeat la schedule `test_opendata_non_admin`. Validazione: 10 run consecutive verdi del file e run completa verde su commit `7858231d`; i conteggi di chiavi `redbeat:*` (Redis DB 3) e di schedule nel DB sono identici prima e dopo, quindi nessun residuo.
 - **Oracolo del 400 multidataset (risolto)**: license-group e multidataset producono entrambi `400`; il test ora asserisce il messaggio "Multi dataset for opendata schedules is not supported". Se in futuro `lm5`/`lm2.2` finissero in gruppi licenza diversi il test fallirebbe invece di passare per il motivo sbagliato.
 - **Setup che fallisce invece di skippare**: l'`assert` su dataset presenti in `dataset_ids_for_user` rende il modulo fragile in ambienti privi di `agrmet`/`lm5`/`lm2.2`, in contrasto con il marker `deterministic`.
 - **Dipendenza da metadati DB non controllati dal test** (`agrmet`=OBS, gruppi license di `lm5`/`lm2.2`): l'esito di alcuni rami dipende dallo stato del DB runtime, non da dati creati dal test.
@@ -160,7 +160,7 @@ POST /api/schedules[?push=…]  → auth.require → use_kwargs(query push) → 
 |---|---|---|---|---|---|
 | `test_no_schedule_setting_returns_400` | `validate_schedule` | 400 senza setting | — | `schedules_user` | Bassa |
 | `test_period_less_than_15_minutes_returns_403` | `post` (MIN_PERIOD) | 403 periodo `<15min` | — | `schedules_user` | Bassa |
-| `test_opendata_as_non_admin_returns_403` | `post` (opendata role) | ruolo persistito solo `Role.USER` + 403 non-admin (SCHEDULES-001 corretta, verifica Prompt 3) | guardia Celery | `schedules_user` | Bassa |
+| `test_opendata_as_non_admin_returns_403` | `post` (opendata role) | ruolo persistito solo `Role.USER` + 403 non-admin (SCHEDULES-001 risolta, 10 run verdi) | guardia Celery | `schedules_user` | Bassa |
 | `test_opendata_multidataset_returns_400` | `post` (opendata multi) | 400 + messaggio multidataset | — | `admin_user` | Media |
 | `test_opendata_observed_dataset_returns_400` | `post` (opendata OBS) | 400 dataset osservato | — | `admin_user` | Media |
 | `test_postprocessor_unauthorized_returns_401` | `post` (postproc perm) | 401 senza permesso | — | utente inline | Bassa |

@@ -20,6 +20,7 @@ La documentazione mantenuta della suite e concentrata solo in questi file:
 Lo stato corrente e questo:
 
 - il refactor strutturale della suite e validato;
+- per conteggi ed esiti aggiornati dei test fare riferimento al report dell'ultima pipeline del branch, indicando commit e job (ultima validazione locale: 10/11/2026, commit `7858231d`, 351 passed, 10 skipped, 2 xfailed; dettaglio in `TEST_REVIEW_GUIDE.md`);
 - i test reali vivono sotto `integration/` e sono separati per dominio;
 - `helpers/` contiene solo riuso cross-area o infrastruttura di suite;
 - il root della cartella `tests` non contiene piu moduli `test_*.py`: oggi espone solo infrastruttura di suite, documentazione e lo smoke script `test_arpaesimc.sh`;
@@ -214,7 +215,7 @@ Esempi pratici consigliati:
 .mhub-venv/bin/rapydo shell backend "env PYTEST_ADDOPTS='-m async_real -rs' restapi tests --wait --folder custom"
 ```
 
-L'ultimo comando esegue davvero i test `async_real` solo su uno stack avviato con `rapydo --testing`, per esempio con `rapydo --testing init` seguito da `rapydo start`, come nella CI. Su uno stack `development` i test risultano `SKIPPED`, con il motivo indicato da `-rs`.
+L'ultimo comando esegue davvero i test `async_real` solo su uno stack avviato con `rapydo --testing start -f`: `--testing` va passato allo `start`, non solo a `init`, e `-f` forza la ricreazione dei container esistenti, inclusi worker e beat, con il nuovo ambiente. Su uno stack `development` i test risultano `SKIPPED`, con il motivo indicato da `-rs`.
 
 Per selezionare i marker passa `-m` tramite `PYTEST_ADDOPTS` e lancia sempre `restapi tests`, non `pytest` direttamente. Solo `restapi tests` imposta `APP_MODE=test`, che nel processo dei test sostituisce l'SMTP reale con il mock. Con `pytest` diretto, su uno stack `development` partirebbero email reali: per esempio `data_extract` eseguito in-process scrive agli utenti di test, e `/data/ready` avvisa un indirizzo di supporto reale se non riesce ad accodare il launcher.
 

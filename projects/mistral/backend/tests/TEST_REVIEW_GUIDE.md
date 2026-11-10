@@ -5,7 +5,9 @@
 > Generato senza modificare alcun file Python e senza usare `untracked_stuff`.
 
 - **File di test**: 58 moduli `test_*.py` sotto `integration/`
-- **Funzioni di test**: ≈299 `def test_…` (le istanze effettive sono di più per via di `@pytest.mark.parametrize`, soprattutto in `observed/`)
+- **Conteggi ed esiti dei test**: fare riferimento al report dell'ultima pipeline del branch, indicando commit e job; le istanze effettive includono le parametrizzazioni, soprattutto in `observed/`.
+- **Ultima validazione locale** (10/11/2026, commit `7858231d`, stack non `--testing`, `restapi tests --no-destroy --folder custom`): 351 passed, 10 skipped, 2 xfailed, 0 failed/error. Skip: i 5 bug noti (FIELDS-001, EDGE-001, TEMPLATES-001 ×2, TEMPLATES-002) e i 5 `async_real`, che passano solo su stack `rapydo --testing`; xfail: ARCO-001 e Initializer seed.
+- **Validazione aggiuntiva dei worker reali** (10/11/2026, HEAD `7858231d`, stack `--testing` verificato su backend, worker e beat): `rapydo --testing shell backend "env PYTEST_ADDOPTS='-m async_real -vv -rfEs --no-cov -p no:sugar -p no:cacheprovider' restapi tests --wait --no-destroy --folder custom"`: 5 passed, 358 deselected, 0 skipped/failed/error, 4 warnings, in 76.86 s. Non e una nuova run completa. Prima/dopo invariati: 14 chiavi `redbeat:*` in Redis DB 3 (stessi nomi), 12 membri in `redbeat::schedule`, 66 schedule (11 abilitate), 99 utenti e 904 richieste.
 - **File di review prodotti**: 89 (`*.review.md`) — uno accanto a ogni `test_*.py`, `conftest.py`, `support*.py` e helper attivo
 - **File senza review**: solo i marker di package vuoti (`__init__.py`, `.gitkeep`) e il template non eseguibile `helpers/templates/endpoint_template.py` (review presente, ma è documentazione)
 
@@ -235,7 +237,7 @@ Fixture locali rilevanti (con comportamento nascosto da revisionare): `fresh_acc
 | Fake S3 (boto3) | connectors, arco (inline) | connectors/*, arco/* | Nessuna rete; arco fakea anche il DB |
 | Fake SMTP / AMQP / `du` / template | tasks/support_EXT | tasks/quota_and_notifications | **Over-mock**: il test notifiche assembla solo dict (vedi §10) |
 | `MagicMock` Celery RedBeat | schedules/test_scheduled_requests | enable/disable schedule | I conflitti 409 dipendono dal **ritorno del fake**, non dal DB |
-| `monkeypatch` `datetime` | tasks/helpers, tasks/queue_sorting, user_limits/hourly | clock deterministico | In user_limits patcha il modulo `datetime` condiviso (isolamento solo via restore) |
+| `monkeypatch` `datetime` | tasks/helpers, tasks/queue_sorting, user_limits/hourly | clock deterministico | In user_limits sostituisce solo il nome `datetime` nel modulo endpoint con un namespace controllato, senza modificare il modulo `datetime` condiviso |
 | Fake Initializer (SQLAlchemy/Celery/Arkimet) | initializer/test_initializer_smoke | smoke | Asserzioni **tautologiche sui fake** (vedi §10) |
 
 ---
@@ -293,7 +295,7 @@ Questa sezione concentra i punti emersi dalle review che meritano attenzione pri
 ### 10.5 Bug di backend emersi durante la stesura dei test (documentati nelle review e in [docs/problems_and_bugs_discovered_in_extension.md](projects/mistral/backend/tests/docs/problems_and_bugs_discovered_in_extension.md))
 - **ADMIN-001**: il test verifica il contratto HTTP `400` della `OneOf` per `group_license` inesistente, l'errore sul campo e l'assenza di license create, senza skip. Il `NotFound` del controller non è raggiungibile via HTTP; resta separato il bug dei controlli FK con `...first` senza `()` in `admin_licenses.py`/`admin_datasets.py`.
 - **ARCO-001**: il ramo errore-S3-generico del proxy fa un `raise Exception` nudo e restituisce `400` invece di `500`; il test esegue l'assert `500` con `xfail(strict=True, raises=AssertionError)`. Un futuro `500` causa `XPASS(strict)` e richiede la rimozione del marker.
-- **SCHEDULES-001**: `test_opendata_as_non_admin_returns_403` può realmente fallire (202 vs 403). Causa nel test, non nel backend: `schedules_user` non passa ruoli e `BaseTests.create_user` ne estrae uno a caso, quindi a volte l'utente "non admin" è `admin_root`. La guardia `forbid_real_schedule_dispatch_EXT` trasforma il caso in un fallimento esplicito senza creare schedule né task RedBeat reali. Prima della guardia, un'esecuzione aveva lasciato attiva in RedBeat la schedule `test_opendata_non_admin`. Correzione proposta: ruoli espliciti (`Role.USER`), come in `admin/support_EXT.py`.
+- **SCHEDULES-001**: `test_opendata_as_non_admin_returns_403` poteva realmente fallire (202 vs 403). Causa nel test, non nel backend: `schedules_user` non passava ruoli e `BaseTests.create_user` ne estraeva uno a caso, quindi a volte l'utente "non admin" era `admin_root`. La guardia `forbid_real_schedule_dispatch_EXT` trasforma il caso in un fallimento esplicito senza creare schedule né task RedBeat reali. Prima della guardia, un'esecuzione aveva lasciato attiva in RedBeat la schedule `test_opendata_non_admin`. **Risolta** (10 run consecutive verdi del file e run completa verde su commit `7858231d`, 10/11/2026, senza residui `redbeat:*` né schedule nel DB): `schedules_user` passa `roles=[Role.USER]`, come in `admin/support_EXT.py`, e il test asserisce in arrange che i ruoli persistiti siano solo `Role.USER`. Nello stesso file `test_opendata_multidataset_returns_400` asserisce ora il messaggio del ramo multidataset, non solo lo status 400.
 - **EDGE-001 (observed)**: `NotFound("Station data not found")` è codice morto (`parse_obs_maps_response` ritorna sempre dict non vuoto).
 - **TEMPLATES-001/002**: `Template.get` ha la condizione di esistenza **invertita**; estensione di un upload non valido mascherata da `FileNotFoundError`. Mismatch doc/impl (202 dichiarato, 200 reale; refuso `"succesfully deleted"`).
 
