@@ -8,7 +8,7 @@
 - **Percorso**: [projects/mistral/backend/tests/integration/schedules/test_schedule_validation_EXT.py](projects/mistral/backend/tests/integration/schedules/test_schedule_validation_EXT.py)
 - **Scopo**: coprire gli **edge di validazione** di `POST /schedules`: assenza di setting (400), periodo `< 15 min` (403), opendata per non-admin (403), opendata multidataset (400), opendata su dataset osservato (400), postprocessor senza permesso (401), push senza/with coda inesistente (403×2).
 - **Tipologia**: test di **integrazione HTTP** (controller reale + schema marshmallow reale + DB SQLAlchemy). RabbitMQ **mockato** nei soli rami push; Celery/RedBeat **mai raggiunti** (guardia autouse, vedi §6). Marker di modulo: `pytestmark = [pytest.mark.integration, pytest.mark.deterministic]`. 8 test (classe `TestScheduleValidation`).
-- **Attenzione**: il test `test_opendata_as_non_admin_returns_403` è collegato all'anomalia **SCHEDULES-001** (vedi §8). Nel runtime osservato l'endpoint ha risposto `202` invece di `403`. La causa è nel test, non nel backend: l'utente "non admin" riceve un ruolo casuale.
+- **Attenzione**: il test `test_opendata_as_non_admin_returns_403` era collegato all'anomalia **SCHEDULES-001** (vedi §8): l'utente "non admin" riceveva un ruolo casuale e a volte l'endpoint rispondeva `202` invece di `403`. Correzione applicata nel test: `schedules_user` ha ora il solo ruolo `Role.USER`. Stato definitivo da confermare con la validazione del Prompt 3.
 
 ## 2. Backend realmente testato
 
@@ -32,7 +32,7 @@
 | `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L39) | Teardown **LIFO**. |
 | `monkeypatch` | fixture | `pytest` | Patcha `rabbitmq.get_instance` nei test push e il nome `celery` del modulo endpoint (guardia). |
 | `forbid_real_schedule_dispatch_EXT` | fixture **locale autouse** | questo file | Sostituisce `celery` nel solo modulo endpoint con una funzione che chiama `pytest.fail`. |
-| `schedules_user` | fixture **locale** | questo file | Utente non-admin: `allowed_schedule`, `open_dataset`, `datasets=[agrmet, lm5, lm2.2]`. **Shadowa** la fixture omonima del conftest. |
+| `schedules_user` | fixture **locale** | questo file | Utente non-admin con ruolo esplicito `Role.USER` (`roles` nei permessi, come in `admin/support_EXT.py`): `allowed_schedule`, `open_dataset`, `datasets=[agrmet, lm5, lm2.2]`. **Shadowa** la fixture omonima del conftest. |
 | `admin_user` | fixture **locale** | questo file | Utente con ruolo `admin_root` (via `base.create_user(..., ["admin_root"])`) + stessi dataset. |
 | `dataset_ids_for_user` | helper **locale** | questo file | Risolve `arkimet_id → id` e **asserisce** che ogni dataset esista (precondizione runtime hard, vedi §6). |
 | `create_authenticated_test_user`, `register_test_user_cleanup`, `AuthenticatedTestUser` | helper | [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) | Creazione/login/teardown utenti temporanei. |
@@ -62,17 +62,17 @@
 - **Obiettivo**: `opendata=true` con utente **non admin** → **403**.
 - **Backend coinvolto**: ramo `opendata` → `if "admin_root" not in user_roles: raise Forbidden`.
 - **Flusso**: body `opendata:True`, dataset `lm5`, `period-settings:{every:1, period:days}` → `POST` con header non-admin.
-- **Setup**: `schedules_user` (nessun ruolo admin).
-- **Assert**: `status_code == 403`.
-- **Casi coperti**: gate role-based opendata. **Anomalia nota (SCHEDULES-001)**: `schedules_user` non passa ruoli, quindi `BaseTests.create_user` sceglie a caso uno dei ruoli offerti dallo schema admin, incluso `admin_root`. In quel caso il gate viene superato. Prima della guardia la chiamata restituiva `202` e creava una schedule reale con il relativo task RedBeat, che restava attivo dopo la cancellazione dell'utente. Ora il test fallisce con il messaggio della guardia, senza creare nulla. Vedi §8.
+- **Setup**: `schedules_user` (solo `Role.USER`); in arrange il test asserisce che i ruoli persistiti dell'utente siano esattamente `[Role.USER.value]`.
+- **Assert**: ruoli persistiti `== [Role.USER.value]`; `status_code == 403`.
+- **Casi coperti**: gate role-based opendata. **SCHEDULES-001 (corretta nel test)**: prima `schedules_user` non passava ruoli e `BaseTests.create_user` ne sceglieva uno a caso, incluso `admin_root`, superando il gate. Prima della guardia la chiamata restituiva `202` e creava una schedule reale con il relativo task RedBeat. Ora il ruolo è fissato e l'assert in arrange rende esplicita la precondizione. Vedi §8.
 
 ### `test_opendata_multidataset_returns_400`
 - **Obiettivo**: `opendata=true` con **due** dataset → **400**.
 - **Backend coinvolto**: ramo `opendata` → `if len(dataset_names) > 1: raise BadRequest` (preceduto dal controllo license-group).
 - **Flusso**: body `opendata:True`, `dataset_names:[lm5, lm2.2]` → `POST` come `admin_user`.
 - **Setup**: `admin_user` (admin per superare il gate role-based).
-- **Assert**: `status_code == 400`.
-- **Casi coperti**: edge opendata multidataset. **Ambiguità oracolo** (vedi §8): il 400 potrebbe originare dal controllo `get_license_group` precedente se `lm5`/`lm2.2` appartengono a gruppi license diversi.
+- **Assert**: `status_code == 400` e body `== "Multi dataset for opendata schedules is not supported"`.
+- **Casi coperti**: edge opendata multidataset. L'assert sul messaggio distingue il ramo multidataset dal controllo `get_license_group` precedente, che risponde anch'esso `400` ma con "Invalid set of datasets : datasets belongs to different license groups". Nel runtime verificato `lm5` e `lm2.2` sono nello stesso gruppo licenza: non servono dataset sintetici.
 
 ### `test_opendata_observed_dataset_returns_400`
 - **Obiettivo**: `opendata=true` su dataset **osservato** → **400**.
@@ -114,7 +114,7 @@ POST /api/schedules[?push=…]  → auth.require → use_kwargs(query push) → 
     └─ SingleSchedule.post
          ├─ get_user_permissions(allowed_schedule) → 401 se non allowed
          ├─ get_datasets / dataset esiste? → 404 se no
-         ├─ get_license_group(datasets) → 400 se gruppi diversi   ◄─ possibile origine 400 [test 4]
+         ├─ get_license_group(datasets) → 400 se gruppi diversi   (escluso dal test 4 via messaggio)
          ├─ if opendata:
          │     ├─ "admin_root" not in roles → Forbidden 403       [test 3] (SCHEDULES-001)
          │     ├─ len(datasets) > 1 → BadRequest 400              [test 4]
@@ -135,21 +135,21 @@ POST /api/schedules[?push=…]  → auth.require → use_kwargs(query push) → 
 - **RabbitMQ mockato** (test 7-8): `MagicMock.queue_exists → False`; il broker reale non è coinvolto, il ramo è reso deterministico.
 - **Shadowing della fixture `schedules_user`**: come negli altri `*_EXT` del dominio, la fixture locale nasconde quella (super-utente) del conftest.
 - **Guardia sui servizi reali**: `forbid_real_schedule_dispatch_EXT` sostituisce il nome `celery` del modulo endpoint. Tutte le validazioni dell'handler avvengono prima di `celery.get_instance()`, mentre riga `schedules`, task RedBeat e primo `data_extract` vengono dopo. `pytest.fail` solleva un'eccezione che il catch-all di restapi non converte in risposta HTTP, quindi una validazione superata per errore produce un fallimento esplicito anche nei test che si aspettano 400.
-- **Ruolo casuale degli utenti temporanei**: `create_authenticated_test_user` non passa ruoli e `BaseTests.create_user` ne sceglie uno a caso tra quelli dello schema admin. È la causa di SCHEDULES-001.
+- **Ruolo casuale degli utenti temporanei**: `create_authenticated_test_user` non passa ruoli e `BaseTests.create_user` ne sceglie uno a caso tra quelli dello schema admin. Era la causa di SCHEDULES-001; `schedules_user` ora passa `roles=[Role.USER]` nei permessi. L'utente inline di `test_postprocessor_unauthorized_returns_401` mantiene il ruolo casuale, ma il ramo postprocessing non dipende dal ruolo.
 
 ## 7. Checklist di revisione
 
-- [ ] **SCHEDULES-001**: rendere espliciti i ruoli di `schedules_user` (`Role.USER`), come in `admin/support_EXT.py`; la causa è il ruolo casuale, non il gate del backend.
+- [x] **SCHEDULES-001**: ruoli di `schedules_user` resi espliciti (`Role.USER`), come in `admin/support_EXT.py`, con assert in arrange sui ruoli persistiti. Chiusura definitiva dopo la validazione del Prompt 3.
 - [x] Una validazione superata per errore non crea schedule né task RedBeat reali: la guardia fa fallire il test.
-- [ ] Verificare in `test_opendata_multidataset_returns_400` che il 400 derivi davvero dal ramo "multidataset" e non dal controllo `get_license_group` precedente (oracolo ambiguo).
+- [x] `test_opendata_multidataset_returns_400` asserisce il messaggio del ramo "multidataset", escludendo il 400 del controllo `get_license_group` precedente.
 - [ ] Verificare la precondizione runtime di `agrmet=OBS` per `test_opendata_observed_dataset_returns_400`.
 - [ ] Considerare che `dataset_ids_for_user` **fallisce** (non skippa) se i dataset mancano: valutarne la portabilità locale/CI.
 - [ ] Confermare che 401 (postprocessing) vs 403 (push/period/opendata-role) vs 400 (validation/opendata-shape) corrispondano ai contratti voluti.
 
 ## 8. Possibili criticità
 
-- **SCHEDULES-001 — test instabile per ruolo casuale**: `test_opendata_as_non_admin_returns_403` fallisce quando `schedules_user` riceve per caso `admin_root`. Nel runtime locale i ruoli disponibili sono cinque, quindi succede circa una volta su cinque. Con un utente non admin il gate risponde `403`, come nelle esecuzioni di verifica. Non è coperto da `xfail`/`skip`: in CI emerge come failure, che ora riporta il messaggio della guardia. Prima della guardia, un'esecuzione con esito `202` aveva lasciato attiva in RedBeat la schedule `test_opendata_non_admin`, che lanciava `data_extract` ogni giorno.
-- **Oracolo ambiguo sul 400 multidataset**: due rami diversi (license-group vs multidataset) producono lo stesso `400`; il test non distingue quale sia scattato.
+- **SCHEDULES-001 — test instabile per ruolo casuale (correzione applicata, in attesa del Prompt 3)**: `test_opendata_as_non_admin_returns_403` falliva circa una volta su cinque quando `schedules_user` riceveva per caso `admin_root`. Ora la fixture passa `roles=[Role.USER]` e il test asserisce in arrange che i ruoli persistiti siano solo `Role.USER`: una regressione nella fixture fallisce sull'assert di precondizione, non sul gate. Nessun `xfail`/`skip`/rerun. Prima della guardia, un'esecuzione con esito `202` aveva lasciato attiva in RedBeat la schedule `test_opendata_non_admin`.
+- **Oracolo del 400 multidataset (risolto)**: license-group e multidataset producono entrambi `400`; il test ora asserisce il messaggio "Multi dataset for opendata schedules is not supported". Se in futuro `lm5`/`lm2.2` finissero in gruppi licenza diversi il test fallirebbe invece di passare per il motivo sbagliato.
 - **Setup che fallisce invece di skippare**: l'`assert` su dataset presenti in `dataset_ids_for_user` rende il modulo fragile in ambienti privi di `agrmet`/`lm5`/`lm2.2`, in contrasto con il marker `deterministic`.
 - **Dipendenza da metadati DB non controllati dal test** (`agrmet`=OBS, gruppi license di `lm5`/`lm2.2`): l'esito di alcuni rami dipende dallo stato del DB runtime, non da dati creati dal test.
 - **Push verificato solo con fake negativo**: si testa sempre `queue_exists → False`; il ramo positivo (coda esistente) non è coperto qui.
@@ -160,8 +160,8 @@ POST /api/schedules[?push=…]  → auth.require → use_kwargs(query push) → 
 |---|---|---|---|---|---|
 | `test_no_schedule_setting_returns_400` | `validate_schedule` | 400 senza setting | — | `schedules_user` | Bassa |
 | `test_period_less_than_15_minutes_returns_403` | `post` (MIN_PERIOD) | 403 periodo `<15min` | — | `schedules_user` | Bassa |
-| `test_opendata_as_non_admin_returns_403` | `post` (opendata role) | 403 non-admin **(SCHEDULES-001)** | guardia Celery | `schedules_user` | Media (ruolo casuale) |
-| `test_opendata_multidataset_returns_400` | `post` (opendata multi) | 400 multidataset | — | `admin_user` | Media |
+| `test_opendata_as_non_admin_returns_403` | `post` (opendata role) | ruolo persistito solo `Role.USER` + 403 non-admin (SCHEDULES-001 corretta, verifica Prompt 3) | guardia Celery | `schedules_user` | Bassa |
+| `test_opendata_multidataset_returns_400` | `post` (opendata multi) | 400 + messaggio multidataset | — | `admin_user` | Media |
 | `test_opendata_observed_dataset_returns_400` | `post` (opendata OBS) | 400 dataset osservato | — | `admin_user` | Media |
 | `test_postprocessor_unauthorized_returns_401` | `post` (postproc perm) | 401 senza permesso | — | utente inline | Bassa |
 | `test_push_queue_missing_returns_403` | `post` (push) | 403 coda assente | RabbitMQ `MagicMock` | `schedules_user`, `monkeypatch` | Media |

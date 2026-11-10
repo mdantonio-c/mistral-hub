@@ -28,8 +28,10 @@ from typing import Any
 from unittest.mock import MagicMock
 
 import mistral.endpoints.schedules as schedules_endpoint
+import orjson
 import pytest
 from restapi.connectors import sqlalchemy
+from restapi.services.authentication import Role
 from restapi.tests import API_URI, BaseTests, FlaskClient
 
 from mistral.endpoints import DOWNLOAD_DIR
@@ -103,7 +105,8 @@ def schedules_user(
     base = BaseTests()
     db = sqlalchemy.get_instance()
     # Creiamo un utente temporaneo con permessi mirati, cosi il test non dipende da
-    # account preesistenti.
+    # account preesistenti. Il ruolo e fissato a Role.USER: senza, BaseTests.create_user
+    # ne sceglie uno a caso (anche admin_root) e il gate opendata diventa instabile.
     user = create_authenticated_test_user(
         base,
         client,
@@ -111,6 +114,7 @@ def schedules_user(
             "allowed_schedule": True,
             "open_dataset": True,
             "datasets": dataset_ids_for_user(db, ["agrmet", "lm5", "lm2.2"]),
+            "roles": orjson.dumps([Role.USER.value]).decode("UTF8"),
         },
     )
     register_test_user_cleanup(
@@ -253,6 +257,12 @@ class TestScheduleValidation:
         schedules_user: AuthenticatedTestUser,
     ):
         """POST /schedules with opendata=true must reject non-admin users."""
+        # arrange - the temporary user must be a plain user, otherwise the 403 oracle
+        # would depend on the role picked by BaseTests.create_user.
+        db = sqlalchemy.get_instance()
+        persisted_user = db.User.query.get(schedules_user.user_id)
+        assert [role.name for role in persisted_user.roles] == [Role.USER.value]
+
         # arrange - build opendata schedule payload
         # Costruiamo il payload esattamente nel formato atteso dall'endpoint, cosi la
         # verifica riguarda la logica e non dettagli casuali di input.
@@ -306,10 +316,13 @@ class TestScheduleValidation:
             content_type="application/json",
         )
 
-        # assert - bad request
-        # Verifichiamo che la risposta confermi il diniego esplicito prima di usare
-        # il payload.
+        # assert - bad request from the multidataset branch, not from the earlier
+        # license-group check that also returns 400.
         assert response.status_code == 400
+        assert (
+            BaseTests().get_content(response)
+            == "Multi dataset for opendata schedules is not supported"
+        )
 
     def test_opendata_observed_dataset_returns_400(
         self,
