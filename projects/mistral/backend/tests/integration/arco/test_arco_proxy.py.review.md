@@ -17,7 +17,7 @@
 | `validate_access_key_from_request` | [services/access_key_service.py](projects/mistral/backend/services/access_key_service.py#L51) | Legge `request.authorization`, recupera/valida la chiave, solleva `Unauthorized` (→ `401`) se mancante/errata/scaduta. |
 | `access_key_get_by_user` | [services/access_key_service.py](projects/mistral/backend/services/access_key_service.py#L30) | Recupera la `AccessKey` dall'email BasicAuth. |
 | `is_access_key_valid` | [services/access_key_service.py](projects/mistral/backend/services/access_key_service.py#L10) | Confronta chiave fornita/memorizzata e verifica la scadenza. |
-| `guess_mime_type` | [endpoints/arco.py](projects/mistral/backend/endpoints/arco.py) | Deriva il mimetype dal nome file (non asserito qui; coperto in EXT). |
+| `guess_mime_type` | [endpoints/arco.py](projects/mistral/backend/endpoints/arco.py) | Deriva il mimetype dal nome file (non asserito qui; coperto in `test_arco_edge_cases.py`). |
 | `AccessKey` (scope `read:arco`) | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L167) | Record chiave usato dalla validazione. |
 | `s3.get_instance` | [connectors/s3/__init__.py](projects/mistral/backend/connectors/s3/__init__.py) | Connettore S3 — **mockato** nel test autorizzato. |
 
@@ -64,8 +64,8 @@ GET /api/arco/<path:object_path>
         → se mancante/errata/scaduta: raise Unauthorized → 401
     → s3.get_instance()                          [MOCK nel test autorizzato]
     → client.get_object(Bucket="arco", Key=object_path)
-        → botocore ClientError "NoSuchKey" → NotFound(404)        (coperto in EXT)
-        → altro ClientError → raise Exception → 400                (atteso 500: xfail strict in EXT, ARCO-001)
+        → botocore ClientError "NoSuchKey" → NotFound(404)        (coperto in test_arco_edge_cases.py)
+        → altro ClientError → raise Exception → 400                (atteso 500: xfail strict in test_arco_edge_cases.py, ARCO-001)
     → data = body.read(); mime = guess_mime_type(Path(object_path).name)
     → Response(data, mimetype=mime) → 200
 ```
@@ -76,8 +76,8 @@ GET /api/arco/<path:object_path>
 - **Doppio controllo ridondante**: dopo `validate_access_key_from_request()` (che già solleva su errore), il codice fa anche `if not authorized: raise Unauthorized()`. In pratica il secondo ramo è di fatto irraggiungibile (la funzione ritorna sempre un record truthy oppure solleva).
 - **Nel test 401 S3 non è mockato**: poiché la validazione fallisce prima di `s3.get_instance()`, S3 reale non viene mai contattato. Se l'ordine cambiasse, in ambiente di test il connettore reale solleverebbe (nessun S3 disponibile), non un 401 pulito.
 - **Chiave su utente temporaneo**: `fresh_access_key` non tocca la chiave dell'account predefinito.
-- **Mimetype non verificato qui**: il caso autorizzato usa `.zgroup` e asserisce solo il contenuto; la verifica di `guess_mime_type` sul filename è demandata al modulo EXT.
-- **Distinzione errori S3**: il proxy cattura `botocore.exceptions.ClientError` (non `client.exceptions.NoSuchKey` come fa il catalogo). Questo ramo è coperto solo nel modulo EXT.
+- **Mimetype non verificato qui**: il caso autorizzato usa `.zgroup` e asserisce solo il contenuto; la verifica di `guess_mime_type` sul filename è demandata a `test_arco_edge_cases.py`.
+- **Distinzione errori S3**: il proxy cattura `botocore.exceptions.ClientError` (non `client.exceptions.NoSuchKey` come fa il catalogo). Questo ramo è coperto solo in `test_arco_edge_cases.py`.
 
 ## 7. Checklist di revisione
 
@@ -85,13 +85,13 @@ GET /api/arco/<path:object_path>
 - [ ] Valutare se il secondo `if not authorized: raise Unauthorized()` sia codice morto da rimuovere o difesa intenzionale.
 - [ ] Verificare che il test autorizzato asserisca abbastanza (oggi: status + sottostringa nel body; nessun assert su mimetype/Content-Type).
 - [ ] Confermare che il proxy debba restituire il body S3 **invariato** (nessuna trasformazione).
-- [ ] Notare che i rami 404 (NoSuchKey) e l'errore S3 generico sono coperti nel file `*_EXT.py`, non qui.
+- [ ] Notare che i rami 404 (NoSuchKey) e l'errore S3 generico sono coperti in `test_arco_edge_cases.py`, non qui.
 
 ## 8. Possibili criticità
 
-- **Assert deboli nel caso autorizzato**: si verifica solo `status_code == 200` e `b"zarr_format" in response.data`; non si controlla il `Content-Type`/mimetype né l'uguaglianza esatta del body. Una regressione sul mimetype o una trasformazione indebita del payload potrebbe non emergere (mitigato dal modulo EXT).
+- **Assert deboli nel caso autorizzato**: si verifica solo `status_code == 200` e `b"zarr_format" in response.data`; non si controlla il `Content-Type`/mimetype né l'uguaglianza esatta del body. Una regressione sul mimetype o una trasformazione indebita del payload potrebbe non emergere (mitigato da `test_arco_edge_cases.py`).
 - **Over-mock di S3**: il caso happy path non prova l'integrazione reale con il bucket; verifica solo la propagazione del body fornito dal mock.
-- **Copertura parziale dei rami**: in questo file sono coperti solo 401 (no auth) e 200; i rami 404/500 e il caso "BasicAuth con chiave errata" sono altrove (`*_EXT.py`). Letto da solo, il file dà un quadro incompleto del contratto del proxy.
+- **Copertura parziale dei rami**: in questo file sono coperti solo 401 (no auth) e 200; i rami 404/500 e il caso "BasicAuth con chiave errata" sono in `test_arco_edge_cases.py`. Letto da solo, il file dà un quadro incompleto del contratto del proxy.
 
 ## 9. Riassunto finale
 

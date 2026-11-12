@@ -81,7 +81,7 @@ GET /api/observations   (anonimo, nessun q)
 
 - **Accoppiamento implicito alla pubblicità del gruppo licenza**: il primo test assume che `CCBY_COMPLIANT` sia pubblico; se diventasse privato, `check_access_authorization` solleverebbe `UnAuthorizedUser` → **401**, e il test fallirebbe pur restando "corretto" sul piano reftime. Il contratto verificato è quindi un po' più fragile di quanto sembri.
 - **Marker fuorviante**: `runtime_sensitive` su test deterministici può confondere chi filtra la suite per marker.
-- **Copertura volutamente minimale**: il modulo copre solo due rami di `BadRequest`; tutti gli altri (bbox incompleta, network inesistente, ecc.) sono coperti altrove (filters / edge cases EXT).
+- **Copertura volutamente minimale**: il modulo copre solo due rami di `BadRequest`; tutti gli altri (bbox incompleta, network inesistente, ecc.) sono coperti altrove (filters / `test_observations_edge_cases.py`).
 
 ## 9. Riassunto finale
 

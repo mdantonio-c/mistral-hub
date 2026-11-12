@@ -69,9 +69,9 @@ GET /api/arco/datasets
 
 ## 6. Comportamenti nascosti
 
-- **Endpoint catalogo pubblico**: `ArcoDatasetsResource.get` **non ha** `@decorators.auth.require()` né valida l'access key; il test chiama `GET /arco/datasets` **senza** header, come i test EXT del catalogo. La chiave dell'account predefinito, prima creata inutilmente, non viene più toccata.
+- **Endpoint catalogo pubblico**: `ArcoDatasetsResource.get` **non ha** `@decorators.auth.require()` né valida l'access key; il test chiama `GET /arco/datasets` **senza** header, come i test del catalogo in `test_arco_edge_cases.py`. La chiave dell'account predefinito, prima creata inutilmente, non viene più toccata.
 - **Mock totale di S3 e DB**: il test esercita la sola logica di trasformazione del controller; non tocca né S3 reale né il DB di test. Il marker `integration` è quindi "ottimistico".
-- **`MagicMock` per S3 e `client.exceptions.NoSuchKey`**: `mock_s3.client.exceptions.NoSuchKey` è un attributo auto-generato (non una classe eccezione reale). Qui non è un problema perché `get_object` non solleva mai (il body `.zmetadata` è sempre presente), ma sarebbe inadatto a simulare il ramo "metadata mancante" (coperto invece nel modulo EXT con un fake dedicato).
+- **`MagicMock` per S3 e `client.exceptions.NoSuchKey`**: `mock_s3.client.exceptions.NoSuchKey` è un attributo auto-generato (non una classe eccezione reale). Qui non è un problema perché `get_object` non solleva mai (il body `.zmetadata` è sempre presente), ma sarebbe inadatto a simulare il ramo "metadata mancante" (coperto invece in `test_arco_edge_cases.py` con un fake dedicato).
 - **`get_object` con `return_value` fisso**: il mock ritorna lo **stesso** body per qualunque `Key`. Funziona perché c'è un solo prefisso `.zarr/`.
 - **`monkeypatch` globale del connettore**: `mistral.endpoints.arco.sqlalchemy.get_instance` è la funzione del modulo `restapi.connectors.sqlalchemy`, quindi il DB finto vale per tutto il processo durante il test. pytest-flask ripristina il patch dopo `cleanup_registry`: un cleanup via API (es. `access_key_owner`) riceverebbe `401`.
 - **`DatasetSchema` importata da `mistral.endpoints.arco`**: è un re-export dello schema definito in [endpoints/schemas.py](projects/mistral/backend/endpoints/schemas.py).
@@ -80,15 +80,15 @@ GET /api/arco/datasets
 ## 7. Checklist di revisione
 
 - [ ] Confermare che il catalogo **debba** essere pubblico (il test ora lo chiama senza credenziali): se no, è un buco di sicurezza da correggere nel backend.
-- [ ] Valutare se aggiungere un assert esplicito sul fatto che il catalogo risponde **anche senza** header (oggi lo dimostrano solo i test EXT).
+- [ ] Valutare se aggiungere un assert esplicito sul fatto che il catalogo risponde **anche senza** header (oggi lo dimostrano solo i test in `test_arco_edge_cases.py`).
 - [ ] Verificare che il test sia consapevolmente un *controller test* (S3+DB mockati) e non venga scambiato per copertura dell'integrazione S3/DB reale.
 - [ ] Rafforzare l'assert finale di `DatasetSchema().load(...)`: oggi confronta solo `id`, pur essendo una valida verifica di conformità schema.
 - [ ] Confermare che il filtro `endswith(".zarr/")` (scarto di `logs/`) sia il contratto desiderato.
 
 ## 8. Possibili criticità
 
-- **Setup di autenticazione fuorviante / inefficace**: l'endpoint è pubblico ma il test fornisce comunque BasicAuth valida. Conseguenza: un'eventuale **regressione che introduce un gate auth sul catalogo non verrebbe rilevata** da questo test (la chiamata ha credenziali valide), mentre verrebbe colta dai test EXT che chiamano senza header. Falso senso di copertura sull'accesso.
-- **Over-mocking**: S3 e DB sono completamente sostituiti; il test non prova alcuna integrazione reale (paginazione, errori S3, query DB). La copertura "vera" degli edge è demandata al modulo `*_EXT.py`.
+- **Setup di autenticazione fuorviante / inefficace**: l'endpoint è pubblico ma il test fornisce comunque BasicAuth valida. Conseguenza: un'eventuale **regressione che introduce un gate auth sul catalogo non verrebbe rilevata** da questo test (la chiamata ha credenziali valide), mentre verrebbe colta dai test in `test_arco_edge_cases.py` che chiamano senza header. Falso senso di copertura sull'accesso.
+- **Over-mocking**: S3 e DB sono completamente sostituiti; il test non prova alcuna integrazione reale (paginazione, errori S3, query DB). La copertura "vera" degli edge è demandata al modulo `test_arco_edge_cases.py`.
 - **Assert di schema debole**: `DatasetSchema().load(dataset)` validerebbe i `required`, ma l'unico assert è su `id`; un drift su altri campi serializzati potrebbe non emergere dal `load`.
 - **Fragilità del WKT stringa**: `bounding` è confrontato come stringa esatta (formattazione/decimali). Un cambio di formato (es. numero di decimali, spazi) romperebbe il test pur restando un poligono valido.
 

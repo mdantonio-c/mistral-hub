@@ -54,7 +54,7 @@
 - **Backend coinvolto**: ramo `networks` (loop autorizzazione) → `from_network_to_dataset(None)` → `NotFound` **prima** della logica stazione.
 - **Flusso**: `fetch_station_sample` (per ottenere lat/lon realistici) → chiamata con `networks="network_does_not_exist"`, `stationDetails=true`, lat/lon → 404.
 - **Assert**: `404`.
-- **Nota**: il 404 nasce dal **network** sconosciuto, non dalla stazione mancante (quel ramo è coperto — e problematico — nel modulo edge cases EXT).
+- **Nota**: il 404 nasce dal **network** sconosciuto, non dalla stazione mancante (quel ramo è coperto — e problematico — in `test_observations_edge_cases.py`).
 
 ### `test_station_details_without_coordinates_returns_bad_request` — `ALL_CASES` (×3)
 - **Obiettivo**: `stationDetails` senza `lat`/`lon` (né `ident`) dà **400**.
@@ -99,7 +99,7 @@ test → request.getfixturevalue(<case_fixture>)  → ObservedCase  [può pytest
 
 - **Copertura condizionata dal runtime**: come per filters, molte istanze possono `skip` se mancano dati `dballe`/`arkimet`/`mixed`.
 - **Assert nel setup di `fetch_station_sample`**: i fallimenti dell'endpoint nella prima query appaiono come errori di fixture, più difficili da triagare.
-- **Il 404 "stazione inesistente" NON è qui**: la modalità dettaglio con stazione assente (ma network valido) è demandata al modulo edge cases EXT, dove emerge un problema di backend (ramo `NotFound` di fatto irraggiungibile).
+- **Il 404 "stazione inesistente" NON è qui**: la modalità dettaglio con stazione assente (ma network valido) è demandata a `test_observations_edge_cases.py`, dove emerge un problema di backend (ramo `NotFound` di fatto irraggiungibile).
 
 ## 9. Riassunto finale
 

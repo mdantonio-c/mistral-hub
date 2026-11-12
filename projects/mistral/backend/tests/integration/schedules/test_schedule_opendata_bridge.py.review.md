@@ -1,7 +1,7 @@
 # Review — `test_schedule_opendata_bridge.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo **baseline** (non `*_EXT`): copre il ponte storico *schedule → request opendata → listing/download*.
+> Modulo **baseline**: copre il ponte storico *schedule → request opendata → listing/download*.
 > **Due percorsi in un solo file**: un test `deterministic` (fake Celery inline) e un test `async_real` (catena reale beat → broker → worker). Documentati separatamente in §6.
 
 ## 1. Informazioni generali

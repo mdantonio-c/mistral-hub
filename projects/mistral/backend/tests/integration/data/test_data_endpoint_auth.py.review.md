@@ -1,7 +1,7 @@
 # Review — `test_data_endpoint_auth.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo **baseline (NON `_EXT`)**: è il test legacy di autenticazione del dominio `data`. I moduli `*_EXT` del dominio dichiarano esplicitamente di **non** modificarlo e di non spostarne le fixture.
+> Modulo **baseline**: è il test legacy di autenticazione del dominio `data`. Le coperture aggiuntive sono separate e non ne spostano le fixture.
 
 ## 1. Informazioni generali
 
@@ -26,7 +26,7 @@
 | `API_URI` | costante | `restapi.tests` | Prefisso `/api`. |
 | `pytest.mark.integration` / `deterministic` | marker | `pytest` (registrati in [tests/conftest.py](projects/mistral/backend/tests/conftest.py)) | Classificazione della suite. |
 
-- **Nessun** uso di `support_EXT.py`, `cleanup_registry`, `monkeypatch`, utenti temporanei o fake: il test è volutamente autosufficiente e senza side effect.
+- **Nessun** uso di `support.py`, `cleanup_registry`, `monkeypatch`, utenti temporanei o fake: il test è volutamente autosufficiente e senza side effect.
 
 ## 4. Analisi dettagliata di ogni test
 
@@ -49,13 +49,13 @@ POST /api/data  (nessuna credenziale)
 ## 6. Comportamenti nascosti
 
 - **Stop pre-schema**: il `401` precede la deserializzazione di `DataExtraction`; inviare body assente o malformato è irrilevante per questo test.
-- **Baseline preservata**: i moduli `test_data_endpoint_submission_EXT.py` e `test_data_endpoint_validation_EXT.py` dichiarano in testata di non toccare questo file; è il punto di ancoraggio della copertura auth del dominio.
+- **Baseline preservata**: i moduli `test_data_endpoint_submission.py` e `test_data_endpoint_validation.py` dichiarano in testata di non toccare questo file; è il punto di ancoraggio della copertura auth del dominio.
 - **Nessun cleanup**: non crea utenti, request o file → nessuna registrazione in `cleanup_registry`.
 
 ## 7. Checklist di revisione
 
 - [ ] Confermare che `401` (e non `403`) sia il contratto atteso per richiesta **anonima** all'endpoint di estrazione.
-- [ ] Verificare che il test resti volutamente minimale (solo gate auth) e che la copertura del corpo `Data.post` sia demandata ai moduli `*_EXT`.
+- [ ] Verificare che il test resti volutamente minimale (solo gate auth) e che la copertura del corpo `Data.post` sia demandata a `test_data_endpoint_submission.py` e `test_data_endpoint_validation.py`.
 
 ## 8. Possibili criticità
 

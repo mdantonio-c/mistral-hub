@@ -2,7 +2,7 @@
 
 ## Scopo
 
-Rendere disponibile `admin_headers_EXT` ai quattro moduli admin tramite la discovery
+Rendere disponibile `admin_headers` ai quattro moduli admin tramite la discovery
 automatica di pytest, senza import della fixture nei test.
 
 ## Comportamento
@@ -12,10 +12,10 @@ automatica di pytest, senza import della fixture nei test.
 - Il login resta `BaseTests().do_login(client, None, None)`: usa l'admin di default,
   senza creare utenti o ruoli alternativi.
 - `assert headers is not None` preserva il controllo sul risultato del login.
-- I test continuano a richiedere `admin_headers_EXT` come parametro; non dipendono
+- I test continuano a richiedere `admin_headers` come parametro; non dipendono
   piu' da import che un auto-fix potrebbe considerare inutilizzati.
 - Payload builder, creazione di record sintetici e cleanup rimangono in
-  [support_EXT.py](support_EXT.py), descritti nella [review del supporto](support_EXT.py.review.md).
+  [support.py](support.py), descritti nella [review del supporto](support.py.review.md).
 
 ## Limite invariato
 

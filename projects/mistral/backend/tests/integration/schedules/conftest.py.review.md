@@ -7,7 +7,7 @@
 - **Percorso**: [projects/mistral/backend/tests/integration/schedules/conftest.py](projects/mistral/backend/tests/integration/schedules/conftest.py)
 - **Scopo**: fornire le fixture che abilitano lo scenario *ponte data-ready → opendata*: abilitazione dei dataset on-data-ready, header admin per `POST /data/ready`, e un utente schedule-capable per il dataset forecast del bridge.
 - **Tipologia**: `conftest.py` di dominio (fixture locali, visibili a `integration/schedules/**`).
-- **Nota cruciale**: la fixture `schedules_user` definita qui è **consumata di fatto solo da** [test_schedule_opendata_bridge.py](projects/mistral/backend/tests/integration/schedules/test_schedule_opendata_bridge.py) e [test_schedule_on_data_ready_real_worker.py](projects/mistral/backend/tests/integration/schedules/test_schedule_on_data_ready_real_worker.py). Gli altri tre moduli del dominio (`test_schedule_api_contracts_EXT.py`, `test_schedule_validation_EXT.py`, `test_scheduled_requests_EXT.py`) **ridefiniscono** una propria `schedules_user` a livello di modulo, che **shadowa** questa (vedi §4).
+- **Nota cruciale**: la fixture `schedules_user` definita qui è **consumata di fatto solo da** [test_schedule_opendata_bridge.py](projects/mistral/backend/tests/integration/schedules/test_schedule_opendata_bridge.py) e [test_schedule_on_data_ready_real_worker.py](projects/mistral/backend/tests/integration/schedules/test_schedule_on_data_ready_real_worker.py). Gli altri tre moduli del dominio (`test_schedule_api_contracts.py`, `test_schedule_validation.py`, `test_scheduled_requests.py`) **ridefiniscono** una propria `schedules_user` a livello di modulo, che **shadowa** questa (vedi §4).
 
 ## 2. Backend realmente esercitato
 
@@ -37,7 +37,7 @@
 
 - **Shadowing di `schedules_user`**: pytest dà precedenza alle fixture definite nel modulo di test rispetto a quelle del `conftest.py` della stessa cartella. Quindi:
   - `test_schedule_opendata_bridge.py` e `test_schedule_on_data_ready_real_worker.py` → usano **questa** `schedules_user` (super-utente `admin_root`, nessuna email reale, con `pytest.skip` su `lm5` mancante);
-  - `test_schedule_api_contracts_EXT.py`, `test_schedule_validation_EXT.py`, `test_scheduled_requests_EXT.py` → usano la **propria** `schedules_user` locale (utente semplice via `create_authenticated_test_user`), e **non** vedono questa.
+  - `test_schedule_api_contracts.py`, `test_schedule_validation.py`, `test_scheduled_requests.py` → usano la **propria** `schedules_user` locale (utente semplice via `create_authenticated_test_user`), e **non** vedono questa.
   Una lettura superficiale del conftest può far credere che tutti i test del dominio condividano lo stesso utente: **non è così**.
 - **Override di attributo di classe a runtime**: `schedules_base` modifica `SingleSchedule.ON_DATA_READY_DATASETS` (stato di classe condiviso). Il ripristino è garantito dal `with` di `override_attr` (thread-safe, `finally`); un uso non-context-manager non ripristinerebbe.
 - **Skip silenzioso ereditato**: chi usa `schedules_user` (il bridge) viene **saltato** se `lm5` non è disponibile, senza eseguire assert.
@@ -54,7 +54,7 @@
 
 ## 6. Possibili criticità
 
-- **Fixture omonima ma semanticamente diversa** tra conftest (admin_root) e moduli `*_EXT` (utente semplice): fonte di confusione; lo stesso nome `schedules_user` indica utenti con privilegi opposti a seconda del file.
+- **Fixture omonima ma semanticamente diversa** tra conftest (admin_root) e moduli con fixture locali (utente semplice): fonte di confusione; lo stesso nome `schedules_user` indica utenti con privilegi opposti a seconda del file.
 - **Stato di classe mutato** (`ON_DATA_READY_DATASETS`): pur ripristinato, è uno stato globale condiviso; un fallimento fuori dal `with` lascerebbe l'attributo alterato (mitigato dal `finally` del context manager).
 - **Super-utente di default nel bridge**: il ponte opendata gira come `admin_root`, quindi non esercita restrizioni di ruolo/quota (coerente con `data_ready.py`, ma da tenere presente leggendo SCHEDULES-001 sul gate opendata).
 - **Skip mascherante**: in ambienti privi di `lm5`, il bridge non verifica nulla pur risultando non fallito.

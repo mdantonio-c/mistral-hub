@@ -1,7 +1,7 @@
 # Review - `helpers/observed_windows.py`
 
 > Modulo di supporto condiviso. Non contiene test. Raccoglie le finestre osservate
-> reali e i piccoli helper HTTP che prima erano duplicati nei test `_EXT` di
+> reali e i piccoli helper HTTP che prima erano duplicati nei test di
 > `/fields` e `/observations`.
 
 ## 1. Informazioni generali
@@ -9,8 +9,8 @@
 - **Percorso**: [projects/mistral/backend/tests/helpers/observed_windows.py](projects/mistral/backend/tests/helpers/observed_windows.py)
 - **Scopo**: fissare in un solo punto le slice reali di agrmet usate dai test osservati (DBALLE 2020-04-06 00:00-01:00, Arkimet 2020-03-31/2020-04-01), l'override di `BeDballe.LASTDAYS` che fa apparire "recente" la slice DBALLE storica, e gli helper di URL, parsing e prerequisiti runtime.
 - **Consumatori attuali**:
-  - `integration/fields/support_EXT.py` e `integration/fields/test_fields_api_EXT.py`;
-  - `integration/observed/test_observations_download_EXT.py` e `integration/observed/test_observations_edge_cases_EXT.py`;
+  - `integration/fields/support.py` e `integration/fields/test_fields_api.py`;
+  - `integration/observed/test_observations_download.py` e `integration/observed/test_observations_edge_cases.py`;
   - `integration/observed/support.py`, solo per `lastdays_for_dballe_window` (sostituisce la funzione privata `_lastdays_override_for_dballe_window`).
 - **Dipendenze runtime**: connettore SQLAlchemy inizializzato, fixture `cleanup_registry` e `test_runtime`, dataset `agrmet` presente nel catalogo e dati reali DBALLE/Arkimet nelle finestre fissate.
 - **Dipendenze tra helper**: `create_dataset_test_user` da [helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py), `require_dataset` da [helpers/datasets.py](projects/mistral/backend/tests/helpers/datasets.py).
@@ -35,8 +35,8 @@
 | `OBS_DBALLE_FROM` / `OBS_DBALLE_TO` | `2020-04-06 00:00` / `01:00` | Finestra DBALLE "recente" (con override). |
 | `OBS_ARKIMET_FROM` / `OBS_ARKIMET_TO` | `2020-03-31 00:00` / `2020-04-01 23:59` | Finestra archiviata servita da Arkimet. |
 
-Prima queste costanti erano ricopiate in `fields/support_EXT.py`,
-`test_observations_download_EXT.py` e `test_observations_edge_cases_EXT.py`, con
+Prima queste costanti erano ricopiate in `fields/support.py`,
+`test_observations_download.py` e `test_observations_edge_cases.py`, con
 nomi leggermente diversi (`OBSERVED_ENDPOINT` contro `OBSERVATIONS_ENDPOINT`).
 
 ### Funzioni

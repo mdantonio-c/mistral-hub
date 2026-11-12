@@ -7,7 +7,7 @@
 - **Percorso**: [projects/mistral/backend/tests/integration/requests/conftest.py](projects/mistral/backend/tests/integration/requests/conftest.py)
 - **Scopo**: fornire le fixture specifiche del dominio *pending-request* — un utente temporaneo dedicato e una coppia di richieste con età diverse — così che [test_delete_pending_request.py](projects/mistral/backend/tests/integration/requests/test_delete_pending_request.py) si concentri sulle regole del grace period invece che sul setup grezzo delle righe.
 - **Tipologia**: `conftest.py` di dominio (solo fixture locali, visibili a `integration/requests/**`).
-- **Consumatori**: i tre test di [test_delete_pending_request.py](projects/mistral/backend/tests/integration/requests/test_delete_pending_request.py). **Non** usato dal modulo `*_EXT` (che definisce in proprio `requests_user`/`seed_request_row`).
+- **Consumatori**: i tre test di [test_delete_pending_request.py](projects/mistral/backend/tests/integration/requests/test_delete_pending_request.py). **Non** usato dal modulo `test_requests_listing_archive_clone.py` (che definisce in proprio `requests_user`/`seed_request_row`).
 
 ## 2. Backend realmente esercitato
 

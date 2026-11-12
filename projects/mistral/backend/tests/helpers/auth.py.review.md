@@ -25,7 +25,7 @@
 | `create_authenticated_test_user(base, client, permissions)` | funzione | Crea utente, login, legge `id` dal DB, ritorna il record. |
 | `delete_test_user(base, client, uuid)` | funzione | Login admin + `DELETE /admin/users/<uuid>` (assert `204`). |
 | `register_test_user_cleanup(...)` | funzione | Registra nel `cleanup_registry` la rimozione della dir e la cancellazione utente. |
-| `create_dataset_test_user(client, cleanup_registry, dataset_ids=None, *, allowed_obs_archive=False, open_dataset=True)` | funzione | Crea utente con grant dataset espliciti (lista vuota = nessun grant) e flag archive, e registra il cleanup standard. Usato da `fields/*_EXT` e `observed/test_observations_download_EXT.py`. |
+| `create_dataset_test_user(client, cleanup_registry, dataset_ids=None, *, allowed_obs_archive=False, open_dataset=True)` | funzione | Crea utente con grant dataset espliciti (lista vuota = nessun grant) e flag archive, e registra il cleanup standard. Usato da `fields/support.py`, `fields/test_fields_api.py` e `observed/test_observations_download.py`. |
 | `make_basic_auth(email, access_key)` | funzione | Header HTTP Basic `base64(email:key)`. |
 
 ## 4. Comportamenti nascosti

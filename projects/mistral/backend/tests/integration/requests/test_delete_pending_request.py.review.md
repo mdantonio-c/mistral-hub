@@ -1,7 +1,7 @@
 # Review — `test_delete_pending_request.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo *baseline* (non `*_EXT`): copre il contratto di **cancellazione** delle richieste e il **cleanup automatico** delle richieste stagnanti.
+> Modulo *baseline*: copre il contratto di **cancellazione** delle richieste e il **cleanup automatico** delle richieste stagnanti.
 
 ## 1. Informazioni generali
 

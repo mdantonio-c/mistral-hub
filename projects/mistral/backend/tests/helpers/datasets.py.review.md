@@ -7,7 +7,7 @@
 
 - **Percorso**: [projects/mistral/backend/tests/helpers/datasets.py](projects/mistral/backend/tests/helpers/datasets.py)
 - **Scopo**: creare un dataset sintetico completo, pubblico o privato, per i test di integrazione, ed eventualmente una rete sintetica che punta a un dataset privato.
-- **Consumatori attuali**: i test `integration/dataset`, `integration/opendata/test_download.py`, gli environment builder in `integration/opendata/support.py`, e (per la rete privata) `integration/fields/test_fields_api_EXT.py` e `integration/observed/test_observations_download_EXT.py`.
+- **Consumatori attuali**: i test `integration/dataset`, `integration/opendata/test_download.py`, gli environment builder in `integration/opendata/support.py`, e (per la rete privata) `integration/fields/test_fields_api.py` e `integration/observed/test_observations_download.py`.
 - **Dipendenze runtime**: connettore SQLAlchemy gia inizializzato e fixture `cleanup_registry`.
 
 ## 2. Elementi definiti
@@ -39,7 +39,7 @@ il bundle dal `cleanup_registry`.
 ### `delete_test_dataset_bundle(...)`
 
 Callback pubblica registrata in `cleanup_registry` da `create_test_dataset` e da
-`create_fields_synthetic_dataset` di `integration/fields/support_EXT.py`, che prima
+`create_fields_synthetic_dataset` di `integration/fields/support.py`, che prima
 aveva una copia locale (`delete_fields_dataset_bundle`). Esegue prima un rollback
 difensivo della sessione, poi:
 

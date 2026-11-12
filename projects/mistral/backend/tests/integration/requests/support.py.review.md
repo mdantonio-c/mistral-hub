@@ -7,7 +7,7 @@
 - **Percorso**: [projects/mistral/backend/tests/integration/requests/support.py](projects/mistral/backend/tests/integration/requests/support.py)
 - **Scopo**: fornire gli helper di **seeding** e **cleanup** delle righe `Request` usati dalle fixture di [requests/conftest.py](projects/mistral/backend/tests/integration/requests/conftest.py) per costruire lo scenario "una richiesta cancellabile + una protetta" dei test sul grace period.
 - **Tipologia**: modulo di supporto puramente di dominio (nessuna chiamata HTTP, solo `db.session`).
-- **Consumatori**: [requests/conftest.py](projects/mistral/backend/tests/integration/requests/conftest.py) (`pending_delete_requests`). **Non** importato dal modulo `*_EXT`.
+- **Consumatori**: [requests/conftest.py](projects/mistral/backend/tests/integration/requests/conftest.py) (`pending_delete_requests`). **Non** importato dal modulo `test_requests_listing_archive_clone.py`.
 
 ## 2. Backend realmente esercitato
 
