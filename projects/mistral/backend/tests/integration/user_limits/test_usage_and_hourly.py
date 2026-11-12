@@ -1,6 +1,5 @@
-# EXTENSION TRACEABILITY - Prompt 05, contratti /usage e /hourly.
-# Origine: questo modulo aggiunge copertura per endpoints user-facing di quota disco e
-# limite richieste orarie non coperti dalla suite legacy rifattorizzata.
+# Test di GET /usage e GET /hourly: quota disco e limite di richieste orarie dell'utente
+# (endpoints/usage.py, endpoints/request_hourly_report.py).
 # Ambito: copre auth richiesta, usage con directory utente assente, usage con file fisico,
 # quota restituita dal profilo utente, hourly senza limite e hourly con richieste nella
 # finestra dell'ora corrente.
@@ -10,7 +9,6 @@
 # per rendere deterministica la finestra temporale; non usa worker, broker o sleep.
 # Cleanup: utenti, directory /data/<uuid> e request DB vengono registrati nel
 # cleanup_registry prima degli assert che dipendono da essi.
-# Baseline non toccata: il file e un nuovo modulo di estensione nel dominio integration/user_limits.
 
 from __future__ import annotations
 

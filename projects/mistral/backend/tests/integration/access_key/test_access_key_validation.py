@@ -1,8 +1,9 @@
-"""Integration tests for the access-key validation endpoint.
+"""Test di integrazione dell'endpoint di validazione delle access key.
 
-These scenarios check which combinations of email and access key are accepted or
-rejected when credentials are presented through HTTP Basic authentication. Keys
-are issued to the temporary ``access_key_owner``, never to the default account.
+Gli scenari verificano quali combinazioni di email e access key vengono accettate
+o rifiutate da GET /api/access-key/validate (endpoints/access_key.py) quando le
+credenziali arrivano tramite autenticazione HTTP Basic. Le chiavi sono emesse per
+l'utente temporaneo ``access_key_owner``, mai per l'account predefinito.
 """
 
 import pytest
@@ -19,35 +20,25 @@ pytestmark = [pytest.mark.integration, pytest.mark.deterministic]
 
 
 class TestAccessKeyValidationAPI:
-    """Group scenarios that verify which credentials the validation endpoint accepts."""
+    """Raggruppa gli scenari su quali credenziali accetta l'endpoint di validazione."""
 
     def test_01_missing_credentials(self, client: FlaskClient):
-        """Reject a validation request that does not carry any credentials."""
+        """Verifica che GET /api/access-key/validate risponda 401 senza credenziali."""
         # act
-        # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-        # verifica dal setup.
         resp = client.get(ACCESS_KEY_VALIDATE_ENDPOINT)
 
         # assert
-        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-        # questo test vuole proteggere.
         assert resp.status_code == 401
 
     def test_02_invalid_email(self, client: FlaskClient):
-        """Reject a validation request when the user email does not exist."""
+        """Verifica che la validazione risponda 401 se l'email non esiste."""
         # arrange
-        # Prepariamo lo scenario access-key con dati minimi e controllati, cosi la
-        # verifica successiva resta legata a un comportamento preciso.
         headers = make_basic_auth("nonexistent@example.com", "whatever")
 
         # act
-        # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-        # verifica dal setup.
         resp = client.get(ACCESS_KEY_VALIDATE_ENDPOINT, headers=headers)
 
         # assert
-        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-        # questo test vuole proteggere.
         assert resp.status_code == 401
 
     def test_03_invalid_access_key(
@@ -56,22 +47,16 @@ class TestAccessKeyValidationAPI:
         access_key_owner: AuthenticatedTestUser,
         fresh_access_key,
     ):
-        """Reject a validation request when the presented key does not match the user."""
+        """Verifica che la validazione risponda 401 se la chiave non e dell'utente."""
         # arrange
-        # Prepariamo lo scenario access-key con dati minimi e controllati, cosi la
-        # verifica successiva resta legata a un comportamento preciso.
         _, _ = fresh_access_key
         email = access_key_owner.email
         headers = make_basic_auth(email, "WRONG-KEY")
 
         # act
-        # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-        # verifica dal setup.
         resp = client.get(ACCESS_KEY_VALIDATE_ENDPOINT, headers=headers)
 
         # assert
-        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-        # questo test vuole proteggere.
         assert resp.status_code == 401
 
     def test_04_valid_access_key(
@@ -80,40 +65,30 @@ class TestAccessKeyValidationAPI:
         access_key_owner: AuthenticatedTestUser,
         fresh_access_key,
     ):
-        """Accept a validation request when email and access key match."""
+        """Verifica che la validazione risponda 200 se email e chiave corrispondono."""
         # arrange
-        # Prepariamo lo scenario access-key con dati minimi e controllati, cosi la
-        # verifica successiva resta legata a un comportamento preciso.
         _, valid_key = fresh_access_key
         email = access_key_owner.email
         headers = make_basic_auth(email, valid_key)
 
         # act
-        # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-        # verifica dal setup.
         resp = client.get(ACCESS_KEY_VALIDATE_ENDPOINT, headers=headers)
 
         # assert
-        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-        # questo test vuole proteggere.
         assert resp.status_code == 200
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert resp.json["status"] == "OK"
 
     def test_05_validate_access_key_without_expiration(
         self, client: FlaskClient, access_key_owner: AuthenticatedTestUser
     ):
-        """Verify that a key created without expiration remains acceptable.
+        """Verifica che una chiave creata senza scadenza venga accettata.
 
-        This complements the creation-side test by checking the user-facing
-        behavior of the validation endpoint, not just the shape of the creation
-        response.
+        Completa il test sulla creazione (test_access_key_api.py) controllando il
+        comportamento di GET /api/access-key/validate, non solo la forma della
+        risposta di POST /api/access-key.
         """
 
         # arrange
-        # Prepariamo lo scenario access-key con dati minimi e controllati, cosi la
-        # verifica successiva resta legata a un comportamento preciso.
         resp = client.post(
             ACCESS_KEY_ENDPOINT,
             headers=access_key_owner.headers,
@@ -124,14 +99,8 @@ class TestAccessKeyValidationAPI:
         headers = make_basic_auth(email, token)
 
         # act
-        # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-        # verifica dal setup.
         resp = client.get(ACCESS_KEY_VALIDATE_ENDPOINT, headers=headers)
 
         # assert
-        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-        # questo test vuole proteggere.
         assert resp.status_code == 200
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert resp.json["status"] == "OK"

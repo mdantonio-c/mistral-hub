@@ -1,7 +1,6 @@
 # Review — `test_admin_licenses.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** sopra la baseline legacy.
 
 ## 1. Informazioni generali
 
@@ -27,7 +26,7 @@
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L39) | Teardown **LIFO**; non ingoia eccezioni. |
+| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO**; non ingoia eccezioni. |
 | `admin_headers` | fixture | [admin/conftest.py](conftest.py) | Scoperta automaticamente da pytest; login admin di **default**. |
 | `license_payload` | helper | [admin/support.py](projects/mistral/backend/tests/integration/admin/support.py) | Payload license; `group_license` inviato come **stringa** (per la `OneOf`); `url` opzionale (`""`/`None`). |
 | `create_license_group_via_api` | helper | [admin/support.py](projects/mistral/backend/tests/integration/admin/support.py) | POST gruppo (asserisce 200) + cleanup; necessario perché la `OneOf` di `group_license` esista. |

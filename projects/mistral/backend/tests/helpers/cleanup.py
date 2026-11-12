@@ -1,8 +1,9 @@
-"""Deterministic teardown helpers for resources created during tests.
+"""Helper di teardown deterministico per le risorse create durante i test.
 
-The modularized suite creates temporary users, schedules, requests, files, and
-directories. This registry gives every test a simple place to register cleanup
-actions so teardown happens in reverse order even when assertions fail midway.
+La suite crea utenti, schedule, richieste, file e directory temporanei. Questo
+registro offre a ogni test un unico punto dove registrare le azioni di cleanup,
+cosi il teardown avviene in ordine inverso anche quando un'asserzione fallisce a
+meta test.
 """
 
 from __future__ import annotations
@@ -13,51 +14,44 @@ from typing import Callable
 
 
 class CleanupRegistry:
-    """Collect cleanup actions and execute them in last-in, first-out order.
+    """Raccoglie le azioni di cleanup e le esegue in ordine LIFO (dall'ultima).
 
-    LIFO teardown matters because tests often create dependent resources. For
-    example, files may need to be deleted before their parent directory, and
-    requests may need to disappear before the owning user is removed.
+    Il teardown LIFO conta perche i test creano spesso risorse dipendenti tra loro:
+    per esempio i file vanno cancellati prima della directory che li contiene, e
+    le richieste devono sparire prima che venga rimosso l'utente proprietario.
+    Usato dalla fixture ``cleanup_registry`` (tests/conftest.py).
     """
 
     def __init__(self) -> None:
-        """Start with an empty cleanup stack for the current test."""
-        # Memorizziamo nello stato dell'oggetto i valori che i metodi successivi
-        # useranno durante il test.
+        """Parte con uno stack di cleanup vuoto per il test corrente."""
         self._actions: list[Callable[[], None]] = []
 
     def add(self, fn: Callable[[], None]) -> None:
-        """Append one teardown callback to the registry for the current test.
+        """Aggiunge al registro una callback di teardown per il test corrente.
 
-        Tests use this method for cleanup steps that cannot be expressed as a
-        simple filesystem path, such as deleting API resources or restoring a
-        monkeypatched global setting.
+        I test usano questo metodo per i passi di cleanup che non si riducono a un
+        semplice percorso su filesystem, come cancellare risorse via API o
+        ripristinare un'impostazione globale modificata con monkeypatch.
         """
-        # Entriamo nel blocco operativo dell'helper condiviso, mantenendo
-        # esplicito quale stato viene letto o prodotto.
         self._actions.append(fn)
 
     def add_path(self, path: str | Path) -> None:
-        """Register a filesystem path for best-effort recursive removal.
+        """Registra un percorso su filesystem da rimuovere ricorsivamente (best-effort).
 
-        Tests often create user output directories or extracted templates. This
-        helper wraps those paths into a cleanup callback so callers do not need to
-        repeat the same ``shutil.rmtree`` pattern.
+        I test creano spesso directory di output degli utenti o template estratti.
+        Questo helper incapsula quei percorsi in una callback di cleanup, cosi i
+        chiamanti non devono ripetere lo stesso schema con ``shutil.rmtree``.
         """
-        # Entriamo nel blocco operativo dell'helper condiviso, mantenendo
-        # esplicito quale stato viene letto o prodotto.
         p = Path(path)
         self.add(lambda: shutil.rmtree(p, ignore_errors=True) if p.exists() else None)
 
     def run(self) -> None:
-        """Execute all registered cleanup actions in reverse order and clear them.
+        """Esegue tutte le azioni di cleanup registrate in ordine inverso e le svuota.
 
-        The registry deliberately does not swallow exceptions here: if teardown is
-        broken, the failure should be visible so the suite can be fixed instead of
-        silently accumulating dirty state.
+        Qui il registro volutamente non ingoia le eccezioni: se il teardown e rotto,
+        il fallimento deve essere visibile, cosi la suite viene corretta invece di
+        accumulare in silenzio stato sporco.
         """
-        # Entriamo nel blocco operativo dell'helper condiviso, mantenendo
-        # esplicito quale stato viene letto o prodotto.
         for action in reversed(self._actions):
             action()
         self._actions.clear()

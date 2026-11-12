@@ -1,6 +1,4 @@
-# EXTENSION TRACEABILITY - Prompt 06, customizer utente.
-# Origine: questo modulo copre direttamente projects/mistral/backend/customization.py,
-# superficie emersa dal blueprint ma non coperta dalla suite legacy rifattorizzata.
+# Test diretti del Customizer utente (projects/mistral/backend/customization.py).
 # Ambito: verifica custom_user_properties_pre, custom_user_properties_post,
 # manipulate_profile, get_custom_input_fields e get_custom_output_fields.
 # Finestra dati: nessun dataset reale viene usato; il solo dataset necessario a
@@ -9,7 +7,6 @@
 # o DB-locali del customizer con oggetti dummy controllati.
 # Cleanup: il dataset sintetico e le sue relazioni license/group/attribution sono
 # eliminati in teardown via cleanup_registry.
-# Baseline non toccata: il file e un nuovo modulo di estensione nel dominio integration/customizer.
 
 from __future__ import annotations
 
@@ -151,7 +148,7 @@ def delete_customizer_dataset(
 
 
 def test_custom_user_properties_pre_sets_defaults_and_extracts_datasets() -> None:
-    """Verifica default utente e separazione del campo datasets.
+    """Verifica default utente e separazione di datasets in custom_user_properties_pre.
 
     Il pre hook deve togliere `datasets` dai campi utente diretti, conservarlo in
     extra_properties e riempire i default custom senza sovrascrivere valori espliciti.
@@ -179,7 +176,7 @@ def test_custom_user_properties_pre_sets_defaults_and_extracts_datasets() -> Non
 def test_custom_user_properties_post_associates_valid_datasets(
     cleanup_registry,
 ) -> None:
-    """Verifica che il post hook risolva id dataset validi e li assegni all'utente.
+    """Verifica che custom_user_properties_post risolva id dataset validi e li assegni.
 
     Il dataset e sintetico e DB-only: serve a esercitare la query del customizer senza
     usare finestre meteo reali o passare dall'API admin users.
@@ -206,7 +203,7 @@ def test_custom_user_properties_post_missing_dataset_raises_notfound() -> None:
     """Verifica NotFound quando extra_properties cita un dataset inesistente.
 
     Il test usa un id alto non presente nel DB e non crea dati, cosi l'eccezione misura
-    solo il ramo di validazione del customizer.
+    solo il ramo di validazione di custom_user_properties_post.
     """
     # arrange - utente dummy e id dataset sicuramente assente.
     db = sqlalchemy.get_instance()
@@ -256,6 +253,7 @@ def test_manipulate_profile_includes_all_custom_fields() -> None:
 def test_custom_input_and_output_fields_by_scope() -> None:
     """Verifica gli schema custom per ADMIN, PROFILE, REGISTRATION e output.
 
+    Esercita Customizer.get_custom_input_fields e Customizer.get_custom_output_fields.
     Passare request=None evita query a startup e rispetta il ramo previsto dal codice;
     qui interessa la presenza dei campi per scope, non la lista runtime dei dataset.
     """

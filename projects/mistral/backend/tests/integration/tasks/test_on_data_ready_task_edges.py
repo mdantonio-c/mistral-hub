@@ -1,19 +1,19 @@
-# EXTENSION TRACEABILITY: added by coverage extension prompt 04
-# EXTENSION SCOPE: integrates the refactored suite without modifying legacy baseline
-# EXTENSION DATA WINDOW: no real runtime data required; uses DB-seeded rows and fake Celery
-# EXTENSION RUNTIME: deterministic fake schedule rows and fake Celery send; the task
-# only sees the schedule seeded by each test (confine_data_ready_schedules)
-# EXTENSION CLEANUP: schedule rows cleaned via cleanup_registry
+# Finestra dati: nessun dato runtime reale; usa righe schedule inserite nel DB e un
+# fake Celery.
+# Runtime: righe schedule deterministiche e invio Celery fake; il task vede solo la
+# schedule inserita da ciascun test (confine_data_ready_schedules).
+# Cleanup: le righe schedule vengono rimosse tramite cleanup_registry.
 #
-# This module extends the tasks integration area with tests for:
-# - launch_all_on_data_ready_extractions skips schedule with zero datasets
-# - launch_all_on_data_ready_extractions skips schedule with multiple datasets
-# - launch_all_on_data_ready_extractions skips schedule with invalid run filter decode
-# - launch_all_on_data_ready_extractions raises SystemError on Celery send failure
+# Il modulo verifica i casi limite del task launch_all_on_data_ready_extractions
+# (tasks/on_data_ready_extractions.py):
+# - salta la schedule con zero dataset
+# - salta la schedule con piu dataset
+# - salta la schedule con un filtro run non decodificabile
+# - solleva SystemError se l'invio del task a Celery fallisce
 #
-# The baseline test_schedule_opendata_bridge.py already covers the happy path data-ready
-# flow inline. This extension focuses on the edge cases inside the task function that
-# skip or fail schedules without sending an extraction request.
+# test_schedule_opendata_bridge.py copre gia il caso di successo del flusso data-ready.
+# Questo modulo si concentra sui casi limite interni al task, che saltano o fanno
+# fallire le schedule senza inviare una richiesta di estrazione.
 
 from __future__ import annotations
 
@@ -41,7 +41,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.deterministic]
 
 
 # =============================================================================
-# Local helper: seed schedule rows with controlled args for edge cases
+# Helper locali: righe schedule con args controllati per i casi limite
 # =============================================================================
 
 
@@ -55,9 +55,11 @@ def seed_schedule_for_data_ready(
     datasets: list[str],
     run_filter: list[dict[str, Any]] | None = None,
 ) -> int:
-    """Seed one schedule row configured for data-ready task edge cases."""
-    # Costruiamo lo stato controllato richiesto dal test, usando un DB seed diretto
-    # quando l'endpoint POST richiederebbe troppo contesto esterno.
+    """Inserisce nel DB una schedule data-ready con i dataset e il filtro run indicati.
+
+    Il seed diretto evita l'endpoint di creazione schedule, che richiederebbe troppo
+    contesto esterno. Restituisce l'id della schedule creata.
+    """
     schedule_row = db.Schedule(
         user_id=user_id,
         name=faker.pystr(),
@@ -74,25 +76,15 @@ def seed_schedule_for_data_ready(
         on_data_ready=on_data_ready,
         opendata=False,
     )
-    # Persistiamo la modifica nel database di test, altrimenti le chiamate successive
-    # non vedrebbero lo scenario preparato.
     db.session.add(schedule_row)
     db.session.commit()
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return schedule_row.id
 
 
 def delete_schedule_row(db: Any, schedule_id: int) -> None:
-    """Delete one seeded schedule row from the database if still present."""
-    # Rimuoviamo lo stato creato dal test per non lasciare dati che possano influenzare
-    # gli scenari successivi.
+    """Rimuove dal DB una schedule inserita dal test, se esiste ancora (cleanup)."""
     schedule = db.Schedule.query.get(schedule_id)
-    # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve succedere
-    # quando lo stato non e quello ideale.
     if schedule is not None:
-        # Persistiamo la modifica nel database di test, altrimenti le chiamate
-        # successive non vedrebbero lo scenario preparato.
         db.session.delete(schedule)
         db.session.commit()
 
@@ -102,9 +94,11 @@ def data_ready_task_user(
     client: FlaskClient,
     cleanup_registry,
 ) -> AuthenticatedTestUser:
-    """Create a temporary user used as schedule owner by task-edge scenarios."""
-    # Prepariamo un utente reale del DB di test invece di dipendere da account seedati:
-    # il task legge `user_id` dalla schedule e non richiede privilegi speciali qui.
+    """Crea un utente temporaneo proprietario delle schedule usate negli scenari.
+
+    L'utente e creato tramite l'API admin di restapi e rimosso nel cleanup.
+    """
+    # Il task legge solo `user_id` dalla schedule: non servono privilegi speciali.
     base = BaseTests()
     user = create_authenticated_test_user(base, client, {"allowed_schedule": True})
     register_test_user_cleanup(
@@ -118,12 +112,12 @@ def data_ready_task_user(
 
 
 # =============================================================================
-# Tests: launch_all_on_data_ready_extractions edge cases
+# Test: casi limite di launch_all_on_data_ready_extractions
 # =============================================================================
 
 
 class TestOnDataReadyTaskEdges:
-    """Verify the data-ready task skips or fails schedules with invalid configurations."""
+    """Verifica che il task data-ready salti o fallisca le schedule non valide."""
 
     def test_skip_schedule_with_zero_datasets(
         self,
@@ -132,10 +126,12 @@ class TestOnDataReadyTaskEdges:
         monkeypatch: pytest.MonkeyPatch,
         data_ready_task_user: AuthenticatedTestUser,
     ):
-        """launch_all_on_data_ready_extractions must skip schedules with empty dataset list."""
-        # arrange - seed schedule with zero datasets
-        # Costruiamo lo stato controllato richiesto dal test, usando un DB seed diretto
-        # quando l'endpoint POST richiederebbe troppo contesto esterno.
+        """Verifica che il task salti le schedule senza dataset.
+
+        launch_all_on_data_ready_extractions viene eseguito con Celery sostituito da un
+        MagicMock: nessun send_task deve essere invocato.
+        """
+        # arrange - schedule con zero dataset
         db = sqlalchemy.get_instance()
         schedule_id = seed_schedule_for_data_ready(
             db,
@@ -143,29 +139,21 @@ class TestOnDataReadyTaskEdges:
             data_ready_task_user.user_id,
             datasets=[],
         )
-        # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta
-        # affidabile anche in caso di fallimento.
         cleanup_registry.add(lambda: delete_schedule_row(db, schedule_id))
 
-        # Sostituiamo temporaneamente la dipendenza esterna con un fake controllato, cosi il
-        # test resta deterministico.
         fake_celery = MagicMock()
         from restapi.connectors import celery
         monkeypatch.setattr(celery, "get_instance", lambda: fake_celery)
         # Il task legge tutte le schedule: il perimetro lascia visibile solo questa.
         confine_data_ready_schedules(monkeypatch, [schedule_id])
 
-        # act - run task with model matching the empty dataset schedule
-        # Eseguiamo l'helper direttamente per verificare che gestisca correttamente il
-        # caso limite.
+        # act - esegue il task per il modello lm5 con la schedule senza dataset
         launch_all_on_data_ready_extractions.run(
             "lm5",
             datetime(2021, 10, 19, 0, 0, 0),
         )
 
-        # assert - Celery send_task was never called
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il
-        # codice sia arrivato fin qui senza eccezioni.
+        # assert - send_task di Celery non viene mai chiamato
         assert fake_celery.celery_app.send_task.call_count == 0
 
     def test_skip_schedule_with_multiple_datasets(
@@ -175,10 +163,12 @@ class TestOnDataReadyTaskEdges:
         monkeypatch: pytest.MonkeyPatch,
         data_ready_task_user: AuthenticatedTestUser,
     ):
-        """launch_all_on_data_ready_extractions must skip schedules with multiple datasets."""
-        # arrange - seed schedule with multiple datasets
-        # Costruiamo lo stato controllato richiesto dal test, usando un DB seed diretto
-        # quando l'endpoint POST richiederebbe troppo contesto esterno.
+        """Verifica che il task salti le schedule con piu dataset.
+
+        launch_all_on_data_ready_extractions viene eseguito con Celery sostituito da un
+        MagicMock: nessun send_task deve essere invocato.
+        """
+        # arrange - schedule con piu dataset
         db = sqlalchemy.get_instance()
         schedule_id = seed_schedule_for_data_ready(
             db,
@@ -186,29 +176,21 @@ class TestOnDataReadyTaskEdges:
             data_ready_task_user.user_id,
             datasets=["lm5", "lm2.2"],
         )
-        # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta
-        # affidabile anche in caso di fallimento.
         cleanup_registry.add(lambda: delete_schedule_row(db, schedule_id))
 
-        # Sostituiamo temporaneamente la dipendenza esterna con un fake controllato, cosi il
-        # test resta deterministico.
         fake_celery = MagicMock()
         from restapi.connectors import celery
         monkeypatch.setattr(celery, "get_instance", lambda: fake_celery)
         # Il task legge tutte le schedule: il perimetro lascia visibile solo questa.
         confine_data_ready_schedules(monkeypatch, [schedule_id])
 
-        # act - run task with model matching the multi-dataset schedule
-        # Eseguiamo l'helper direttamente per verificare che gestisca correttamente il
-        # caso limite.
+        # act - esegue il task per il modello lm5, presente nella schedule multi-dataset
         launch_all_on_data_ready_extractions.run(
             "lm5",
             datetime(2021, 10, 19, 0, 0, 0),
         )
 
-        # assert - Celery send_task was never called
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il
-        # codice sia arrivato fin qui senza eccezioni.
+        # assert - send_task di Celery non viene mai chiamato
         assert fake_celery.celery_app.send_task.call_count == 0
 
     def test_skip_schedule_with_invalid_run_filter_decode(
@@ -218,10 +200,12 @@ class TestOnDataReadyTaskEdges:
         monkeypatch: pytest.MonkeyPatch,
         data_ready_task_user: AuthenticatedTestUser,
     ):
-        """launch_all_on_data_ready_extractions must skip schedules with malformed run filter."""
-        # arrange - seed schedule with invalid run filter
-        # Costruiamo lo stato controllato richiesto dal test, usando un DB seed diretto
-        # quando l'endpoint POST richiederebbe troppo contesto esterno.
+        """Verifica che il task salti le schedule con un filtro run non decodificabile.
+
+        Il filtro non valido fa fallire ``arki.decode_run`` dentro
+        launch_all_on_data_ready_extractions; nessun send_task deve essere invocato.
+        """
+        # arrange - schedule con filtro run non valido
         db = sqlalchemy.get_instance()
         schedule_id = seed_schedule_for_data_ready(
             db,
@@ -230,29 +214,21 @@ class TestOnDataReadyTaskEdges:
             datasets=["lm5"],
             run_filter=[{"invalid_arkimet_run": "broken"}],
         )
-        # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta
-        # affidabile anche in caso di fallimento.
         cleanup_registry.add(lambda: delete_schedule_row(db, schedule_id))
 
-        # Sostituiamo temporaneamente la dipendenza esterna con un fake controllato, cosi il
-        # test resta deterministico.
         fake_celery = MagicMock()
         from restapi.connectors import celery
         monkeypatch.setattr(celery, "get_instance", lambda: fake_celery)
         # Il task legge tutte le schedule: il perimetro lascia visibile solo questa.
         confine_data_ready_schedules(monkeypatch, [schedule_id])
 
-        # act - run task with model matching the schedule with broken run filter
-        # Eseguiamo l'helper direttamente per verificare che gestisca correttamente il
-        # caso limite.
+        # act - esegue il task per il modello lm5 con la schedule dal filtro run rotto
         launch_all_on_data_ready_extractions.run(
             "lm5",
             datetime(2021, 10, 19, 0, 0, 0),
         )
 
-        # assert - Celery send_task was never called
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il
-        # codice sia arrivato fin qui senza eccezioni.
+        # assert - send_task di Celery non viene mai chiamato
         assert fake_celery.celery_app.send_task.call_count == 0
 
     def test_celery_send_failure_raises_system_error(
@@ -262,10 +238,12 @@ class TestOnDataReadyTaskEdges:
         monkeypatch: pytest.MonkeyPatch,
         data_ready_task_user: AuthenticatedTestUser,
     ):
-        """launch_all_on_data_ready_extractions must raise SystemError when Celery send fails."""
-        # arrange - seed valid schedule
-        # Costruiamo lo stato controllato richiesto dal test, usando un DB seed diretto
-        # quando l'endpoint POST richiederebbe troppo contesto esterno.
+        """Verifica che il task sollevi SystemError se l'invio a Celery fallisce.
+
+        Il MagicMock di Celery fa fallire send_task e
+        launch_all_on_data_ready_extractions deve trasformare l'errore in SystemError.
+        """
+        # arrange - schedule valida
         db = sqlalchemy.get_instance()
         schedule_id = seed_schedule_for_data_ready(
             db,
@@ -273,12 +251,8 @@ class TestOnDataReadyTaskEdges:
             data_ready_task_user.user_id,
             datasets=["lm5"],
         )
-        # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta
-        # affidabile anche in caso di fallimento.
         cleanup_registry.add(lambda: delete_schedule_row(db, schedule_id))
 
-        # Sostituiamo temporaneamente la dipendenza esterna con un fake controllato, cosi il
-        # test resta deterministico.
         fake_celery = MagicMock()
         fake_celery.celery_app.send_task.side_effect = Exception("Celery broker unreachable")
         from restapi.connectors import celery
@@ -287,13 +261,13 @@ class TestOnDataReadyTaskEdges:
         confine_data_ready_schedules(monkeypatch, [schedule_id])
 
         def raise_original_task_error(*args: Any, exception: Exception, **kwargs: Any):
-            """Expose the task error without sending Celery failure events.
+            """Rilancia l'errore del task senza inviare eventi di failure a Celery.
 
-            Directly calling a decorated Celery task in a deterministic test still
-            goes through the restapi failure hook. The production hook emits a
-            Celery event through the broker; here that would test broker reachability
-            instead of the on-data-ready branch. Re-raising the original exception
-            keeps the assertion on the backend contract requested by this module.
+            Anche chiamato direttamente in un test deterministico, un task Celery
+            decorato passa dall'hook di failure di restapi. In produzione l'hook
+            emette un evento Celery tramite il broker; qui finirebbe per verificare
+            la raggiungibilita del broker invece del ramo on-data-ready. Rilanciare
+            l'eccezione originale mantiene l'asserzione sul comportamento del backend.
             """
             # Manteniamo il fake confinato al test: il monkeypatch verra ripristinato
             # da pytest e non nasconde altri failure hook della suite.
@@ -305,9 +279,7 @@ class TestOnDataReadyTaskEdges:
             raise_original_task_error,
         )
 
-        # act & assert - task raises SystemError on Celery send failure
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il
-        # codice sia arrivato fin qui senza eccezioni.
+        # act & assert - il task solleva SystemError se l'invio a Celery fallisce
         with pytest.raises(SystemError, match="Unable to submit the data ready request extraction"):
             launch_all_on_data_ready_extractions.run(
                 "lm5",

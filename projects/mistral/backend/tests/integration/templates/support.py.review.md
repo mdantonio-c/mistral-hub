@@ -79,4 +79,4 @@
 - **Affidamento all'admin customizer**: `disk_quota`/`max_templates` sono applicati dall'endpoint admin, non forzati su DB; un'eventuale normalizzazione lato customizer cambierebbe i valori attesi dai test di quota/limite.
 - **Accoppiamento a `restapi.config.DATA_PATH`**: assunzione (non verificabile dal workspace) che la radice dei file coincida con `/data`; un mismatch romperebbe sia il seeding sia il cleanup.
 - **Builder con effetti su disco reali**: ogni seeding crea cartelle e file sotto `/data`; la robustezza dipende dal `CleanupRegistry` (best-effort, LIFO).
-- **Nessuna fixture/`conftest` locale**: l'estensione resta confinata al dominio templates (positivo), ma i due moduli di test devono importare esplicitamente ciascun helper.
+- **Nessuna fixture/`conftest` locale**: il supporto resta confinato al dominio templates (positivo), ma i due moduli di test devono importare esplicitamente ciascun helper.

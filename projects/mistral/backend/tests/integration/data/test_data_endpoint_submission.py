@@ -1,7 +1,3 @@
-# EXTENSION TRACEABILITY - Prompt 02, contratto POST /data lato submission.
-# Origine: questo modulo estende la copertura del dominio integration/data senza
-# modificare il baseline auth test_data_endpoint_auth.py e senza introdurre fixture
-# globali; usa solo helper locali di support.py.
 # Ambito: copre happy path con fake Celery, rami push con queue utente assente o
 # non esistente, persistenza della pushing_queue nel record Request e ramo quota OBS
 # vietato tramite fake locali.
@@ -12,7 +8,6 @@
 # evitare worker reali, DBALLE reale e AMQP reale.
 # Cleanup: utenti temporanei, dataset sintetici, request create dall'endpoint e file
 # eventuali sono registrati nel cleanup_registry o rimossi da helper dedicati.
-# Baseline non toccata: il file aggiunge solo casi EXT e non cambia i test legacy.
 
 """Test di submission per POST /data con fake locali e stato sintetico controllato."""
 
@@ -58,8 +53,6 @@ def test_post_data_happy_path_creates_request_and_records_celery_routing(
     identificativi osservabili dal client HTTP.
     """
     # arrange
-    # Prepariamo uno scenario minimale ma completo: dataset sintetico, utente temporaneo,
-    # cleanup della request prodotta dall'endpoint e fake Celery che registra send_task.
     db = sqlalchemy.get_instance()
     dataset = create_synthetic_dataset(cleanup_registry=cleanup_registry, db=db)
     user = create_data_endpoint_user(client, cleanup_registry, dataset_ids=[dataset.id])
@@ -82,13 +75,9 @@ def test_post_data_happy_path_creates_request_and_records_celery_routing(
     )
 
     # act
-    # Eseguiamo la singola chiamata HTTP reale che deve attraversare auth, schema,
-    # validazione endpoint, repository layer e submit sintetica verso Celery.
     response = client.post(DATA_ENDPOINT, headers=user.headers, json=payload)
 
     # assert
-    # Colleghiamo prima il payload HTTP alla request persistita, poi al task sintetico
-    # registrato dal fake, cosi il contratto viene verificato da piu lati osservabili.
     content = BaseTests().get_content(response)
     request = latest_request_for_user(db, user.user_id)
     assert response.status_code == 202
@@ -122,8 +111,6 @@ def test_post_data_push_requires_user_queue_before_contacting_rabbit(
     profilo utente non espone nessuna queue di notifica.
     """
     # arrange
-    # Prepariamo solo il minimo indispensabile: dataset sintetico valido, utente senza
-    # queue AMQP e fake runtime locale per evitare che il test dipenda da servizi esterni.
     db = sqlalchemy.get_instance()
     dataset = create_synthetic_dataset(cleanup_registry=cleanup_registry, db=db)
     user = create_data_endpoint_user(client, cleanup_registry, dataset_ids=[dataset.id])
@@ -131,11 +118,9 @@ def test_post_data_push_requires_user_queue_before_contacting_rabbit(
     payload = build_data_payload([dataset.arkimet_id], request_name="missing-push-queue")
 
     # act
-    # La chiamata forza il ramo push tramite query string, come farebbe un client reale.
     response = client.post(f"{DATA_ENDPOINT}?push=true", headers=user.headers, json=payload)
 
     # assert
-    # Il backend deve rispondere con 403 e non deve lasciare alcuna request persistita.
     assert response.status_code == 403
     assert latest_request_for_user(db, user.user_id) is None
 
@@ -152,8 +137,6 @@ def test_post_data_push_rejects_missing_rabbit_queue(
     contratto senza infrastruttura AMQP reale.
     """
     # arrange
-    # Costruiamo un utente con queue salvata nel DB e un fake Rabbit configurato per
-    # negare l'esistenza della queue, mantenendo invariato il resto del runtime.
     db = sqlalchemy.get_instance()
     dataset = create_synthetic_dataset(cleanup_registry=cleanup_registry, db=db)
     user = create_data_endpoint_user(
@@ -171,12 +154,9 @@ def test_post_data_push_rejects_missing_rabbit_queue(
     payload = build_data_payload([dataset.arkimet_id], request_name="rabbit-negative")
 
     # act
-    # Eseguiamo una sola submit push per verificare il ramo 403 guidato da Rabbit fake.
     response = client.post(f"{DATA_ENDPOINT}?push=true", headers=user.headers, json=payload)
 
     # assert
-    # Il backend deve riportare il rifiuto e lasciare visibile quale queue e stata
-    # controllata dal fake, senza creare request persistite.
     assert response.status_code == 403
     assert rabbit_fake.checked_queues == ["queue.data.endpoint.ext"]
     assert latest_request_for_user(db, user.user_id) is None
@@ -194,8 +174,6 @@ def test_post_data_push_positive_persists_pushing_queue(
     request args e argomenti inviati al fake Celery.
     """
     # arrange
-    # Prepariamo dataset e utente con queue nota, registriamo cleanup delle request e
-    # usiamo fake Rabbit/Celery per ispezionare l'intero flusso senza side effect esterni.
     db = sqlalchemy.get_instance()
     dataset = create_synthetic_dataset(cleanup_registry=cleanup_registry, db=db)
     user = create_data_endpoint_user(
@@ -216,13 +194,10 @@ def test_post_data_push_positive_persists_pushing_queue(
     payload = build_data_payload([dataset.arkimet_id], request_name="push-positive")
 
     # act
-    # La chiamata attiva il ramo push reale dell'endpoint, ma tutta la parte di broker e
-    # task dispatch resta confinata nei fake locali.
     response = client.post(f"{DATA_ENDPOINT}?push=true", headers=user.headers, json=payload)
 
     # assert
-    # Verifichiamo che queue_exists sia stato consultato, che la request sia persistita e
-    # che la pushing_queue sia passata sia al DB sia agli argomenti del task sintetico.
+    # args[8] di data_extract e la pushing_queue passata al task.
     request = latest_request_for_user(db, user.user_id)
     assert response.status_code == 202
     assert rabbit_fake.checked_queues == ["queue.push.ok.ext"]
@@ -243,8 +218,6 @@ def test_post_data_observed_quota_forbidden_uses_fake_size_and_quota_checks(
     contratto HTTP 403 in modo deterministico e leggero.
     """
     # arrange
-    # Creiamo un dataset OBS sintetico e sostituiamo i due punti variabili del runtime:
-    # stima dimensione e controllo quota. Nessun worker o estrazione reale deve partire.
     db = sqlalchemy.get_instance()
     dataset = create_synthetic_dataset(
         cleanup_registry=cleanup_registry,
@@ -281,8 +254,6 @@ def test_post_data_observed_quota_forbidden_uses_fake_size_and_quota_checks(
     )
 
     # act
-    # La richiesta usa il percorso HTTP reale ma forza il ramo quota attraverso fake
-    # locali, evitando qualsiasi accesso a DBALLE o a dati osservativi esterni.
     response = client.post(DATA_ENDPOINT, headers=user.headers, json=payload)
 
     # assert

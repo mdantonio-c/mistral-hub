@@ -1,1 +1,1 @@
-"""Local support package for postprocessing integration tests."""
+"""Package locale dei test di integrazione sul postprocessing dei dati."""

@@ -1,1 +1,1 @@
-"""Local support package for observed integration tests."""
+"""Package dei test di integrazione sui dati osservati."""

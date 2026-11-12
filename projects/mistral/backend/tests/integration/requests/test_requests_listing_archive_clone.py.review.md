@@ -1,12 +1,12 @@
 # Review — `test_requests_listing_archive_clone.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** sopra la baseline. La baseline ([test_delete_pending_request.py](projects/mistral/backend/tests/integration/requests/test_delete_pending_request.py)) copre già `DELETE /requests/<id>`; questo modulo copre listing, archiviazione e clone.
+> Modulo: [test_delete_pending_request.py](projects/mistral/backend/tests/integration/requests/test_delete_pending_request.py) copre già `DELETE /requests/<id>`; questo modulo copre listing, archiviazione e clone.
 
 ## 1. Informazioni generali
 
 - **Percorso**: [projects/mistral/backend/tests/integration/requests/test_requests_listing_archive_clone.py](projects/mistral/backend/tests/integration/requests/test_requests_listing_archive_clone.py)
-- **Scopo**: verificare le superfici di gestione delle richieste rimaste fuori dalla baseline — forma e filtri di `GET /requests` (paginazione, `get_total`, `archived`), `PUT /requests/<id>` (archiviazione, request pendente vietata, owner mismatch) e `GET /requests/<id>/clone` (clone con espansione dataset, request mancante, request altrui).
+- **Scopo**: verificare le superfici di gestione delle richieste rimaste fuori da `test_delete_pending_request.py` — forma e filtri di `GET /requests` (paginazione, `get_total`, `archived`), `PUT /requests/<id>` (archiviazione, request pendente vietata, owner mismatch) e `GET /requests/<id>/clone` (clone con espansione dataset, request mancante, request altrui).
 - **Tipologia**: test di **integrazione HTTP** (controller reale + DB SQLAlchemy), con **seeding diretto delle righe `Request`** per evitare la dipendenza dai worker di estrazione. Marker: `integration`, `deterministic`.
 - **Numero di test**: 10, in tre classi: `TestRequestsListing` (4), `TestRequestsArchive` (3), `TestRequestsClone` (3).
 - **Helper/fixture locali al modulo**: `seed_request_row`, `dataset_ids_for_user`, `delete_request_row` e la fixture `requests_user` (definiti **nel file stesso**, non in `conftest.py`).
@@ -32,7 +32,7 @@
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
 | `faker` | fixture | plugin `faker` | `faker.pystr()` per i nomi delle richieste. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L37) | Teardown **LIFO**; ogni riga seed registra la propria delete. |
+| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO**; ogni riga seed registra la propria delete. |
 | `requests_user` | fixture **locale al modulo** | [questo file](projects/mistral/backend/tests/integration/requests/test_requests_listing_archive_clone.py) | Utente temporaneo con `open_dataset=True` e accesso esplicito al dataset `agrmet`; cleanup utente/cartelle. |
 | `seed_request_row` | helper **locale** | [questo file](projects/mistral/backend/tests/integration/requests/test_requests_listing_archive_clone.py) | Inserisce una `Request` con età/stato/archived controllati; `args = {"datasets": [...]}`. |
 | `dataset_ids_for_user` | helper **locale** | [questo file](projects/mistral/backend/tests/integration/requests/test_requests_listing_archive_clone.py) | Traduce `arkimet_id`→`Datasets.id` (JSON) per i permessi utente; **asserisce** che il dataset esista. |

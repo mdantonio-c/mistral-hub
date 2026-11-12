@@ -1,9 +1,9 @@
-"""Deterministic tests of the cleanup used by the real-worker tests.
+"""Test deterministici del cleanup usato dai test con worker reali.
 
-``register_wait_for_user_requests`` must never delete data under a task that a
-worker may still run. Here the Celery control of the helper module is replaced
-by a fake that plays the workers, so the waiting and timeout paths run without
-real workers; request rows, users and API calls are real.
+``register_wait_for_user_requests`` non deve mai cancellare dati sotto un task che
+un worker potrebbe ancora eseguire. Qui il controllo Celery del modulo helper e
+sostituito da un fake che fa la parte dei worker, cosi i rami di attesa e di
+timeout girano senza worker reali; righe request, utenti e chiamate API sono reali.
 """
 
 from __future__ import annotations
@@ -32,7 +32,12 @@ pytestmark = [pytest.mark.integration, pytest.mark.deterministic]
 
 
 class FakeWorkers:
-    """Celery control that plays the workers: it holds tasks and records revokes."""
+    """Fake del controllo Celery che simula i worker.
+
+    Trattiene i task mostrati da ``inspect`` e registra le ``revoke`` ricevute. Le
+    opzioni simulano worker che ignorano la revoke, che non rispondono o che finiscono
+    i task da soli dopo ``finish_after`` ispezioni.
+    """
 
     def __init__(
         self,
@@ -72,7 +77,7 @@ class FakeWorkers:
 
 
 def _install(monkeypatch: pytest.MonkeyPatch, workers: FakeWorkers) -> None:
-    """Make the helper module talk to the fake workers."""
+    """Fa parlare il modulo helper ``real_workers`` con i worker fake."""
     # Sostituiamo solo il nome usato dall'helper, non il connettore condiviso.
     monkeypatch.setattr(
         real_workers,
@@ -86,11 +91,15 @@ def _install(monkeypatch: pytest.MonkeyPatch, workers: FakeWorkers) -> None:
 
 
 def _data_extract_task(user_id: int) -> dict[str, Any]:
-    """Return a task as reported by Celery inspect; the user id is the first argument."""
+    """Restituisce un task ``data_extract`` nel formato di Celery inspect.
+
+    Come nel task reale, il primo argomento e l'id dell'utente.
+    """
     return {"id": f"fake-{uuid4().hex}", "name": "data_extract", "args": [user_id]}
 
 
 def _temporary_user(client: FlaskClient, cleanup_registry) -> AuthenticatedTestUser:
+    """Crea e autentica un utente temporaneo via API e ne registra il cleanup."""
     base = BaseTests()
     user = create_authenticated_test_user(base, client)
     register_test_user_cleanup(
@@ -104,7 +113,10 @@ def _temporary_user(client: FlaskClient, cleanup_registry) -> AuthenticatedTestU
 
 
 def _pending_request(cleanup_registry, user: AuthenticatedTestUser) -> tuple[int, str]:
-    """Insert a pending request of ``user``; the cleanup removes it if still there."""
+    """Inserisce una request PENDING di ``user`` con un task_id fittizio.
+
+    Usa ``SqlApiDbManager.create_request_record``; il cleanup la rimuove se c'e ancora.
+    """
     db = sqlalchemy.get_instance()
     request = SqlApiDbManager.create_request_record(
         db,
@@ -129,6 +141,7 @@ def _pending_request(cleanup_registry, user: AuthenticatedTestUser) -> tuple[int
 
 
 def _request_status(request_id: int) -> str | None:
+    """Rilegge dal DB lo stato della request, o None se e stata cancellata."""
     db = sqlalchemy.get_instance()
     row = db.Request.query.filter_by(id=request_id).populate_existing().first()
     return None if row is None else row.status
@@ -139,7 +152,7 @@ def test_cleanup_waits_while_workers_hold_a_task_of_the_user(
     cleanup_registry,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Verify that the cleanup waits for a queued task that has no request yet."""
+    """Verifica che il cleanup attenda un task in coda che non ha ancora una request."""
     # arrange
     base = BaseTests()
     user = _temporary_user(client, cleanup_registry)
@@ -164,7 +177,10 @@ def test_cleanup_timeout_stops_only_the_user_tasks_before_deleting_its_requests(
     cleanup_registry,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Verify that a timeout revokes the user's tasks and then deletes its requests."""
+    """Verifica che al timeout il cleanup revochi solo i task dell'utente.
+
+    Solo dopo le revoche cancella le request dell'utente; quelle di altri restano.
+    """
     # arrange
     base = BaseTests()
     owner = _temporary_user(client, cleanup_registry)
@@ -206,7 +222,7 @@ def test_cleanup_timeout_deletes_nothing_without_worker_confirmation(
     monkeypatch: pytest.MonkeyPatch,
     workers_behaviour: dict[str, bool],
 ) -> None:
-    """Verify that the cleanup fails and keeps the requests if the workers do not confirm."""
+    """Verifica che senza conferma dei worker il cleanup fallisca e tenga le request."""
     # arrange
     base = BaseTests()
     user = _temporary_user(client, cleanup_registry)

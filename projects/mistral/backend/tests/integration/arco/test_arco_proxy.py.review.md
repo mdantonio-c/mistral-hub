@@ -29,7 +29,7 @@
 | `access_key_owner` | fixture | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | Utente temporaneo proprietario della chiave; fornisce l'email per la BasicAuth e revoca chiave + utente in teardown. |
 | `fresh_access_key` | fixture | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | `POST /access-key` per `access_key_owner`, asserisce `200` + `key`; ritorna `(headers, key)`. |
 | `monkeypatch` | fixture | `pytest` | Sostituisce `mistral.connectors.s3.get_instance` con un `MagicMock`; teardown automatico. |
-| `make_basic_auth` | helper | [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py#L114) | Codifica `email:access_key` in header `Authorization: Basic ...` (formato richiesto dal proxy). |
+| `make_basic_auth` | helper | [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py#L130) | Codifica `email:access_key` in header `Authorization: Basic ...` (formato richiesto dal proxy). |
 | `mock_s3` (`MagicMock`) | mock locale | nel file di test | `client.get_object` → body con `read()` = `b'{"zarr_format": 2}'`. |
 
 ## 4. Analisi dettagliata di ogni test

@@ -1,7 +1,7 @@
 # Review — `test_observations_edge_cases.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** (Prompt 03) sui rami **controller-only** di `GET /api/observations` non già coperti dalla baseline.
+> Modulo: copertura dei rami **controller-only** di `GET /api/observations` non già coperti dagli altri test del dominio.
 
 ## 1. Informazioni generali
 
@@ -26,11 +26,11 @@
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
 | `auth_headers` | fixture | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | Utente DEFAULT (`allowed_obs_archive=True` via [customization.py](projects/mistral/backend/customization.py#L33)). |
-| `test_runtime` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L31) | `override_attr(BeDballe, "LASTDAYS", ...)`. |
+| `test_runtime` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L49) | `override_attr(BeDballe, "LASTDAYS", ...)`. |
 | `dballe_window_override` | helper condiviso | [helpers/observed_windows.py](projects/mistral/backend/tests/helpers/observed_windows.py) | Classifica `2020-04-06` come dballe per i soli test positivi. |
 | `_require_dballe_product` | helper locale | (file) | Wrapper su `require_dballe_product` di `helpers/observed_windows.py`: probe `/fields`; **`pytest.skip`** se non 200 o nessun prodotto. |
 | `_require_station_coordinates` | helper locale | (file) | Esegue una query reale e ricava `lat`/`lon`; **`pytest.skip`** se nessuna stazione. |
-| `extract_products` | helper di dominio | [observed/support.py](projects/mistral/backend/tests/integration/observed/support.py) | Estrae i `var` dei prodotti dalla struttura annidata (stesso helper della baseline). |
+| `extract_products` | helper di dominio | [observed/support.py](projects/mistral/backend/tests/integration/observed/support.py) | Estrae i `var` dei prodotti dalla struttura annidata (stesso helper degli altri test del dominio). |
 | `_get_observations` | helper locale | (file) | GET `/observations`; usa `api_url` e, nei test, `parse_response` da `helpers/observed_windows.py`. |
 
 Nessun mock dei dati; l'unica patch è la soglia `LASTDAYS`. Nessuna scrittura DB.

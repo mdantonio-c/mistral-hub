@@ -1,7 +1,7 @@
 # Review — `test_data_endpoint_submission.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** del contratto `POST /data` lato submission, sopra il baseline auth.
+> Modulo: copertura del contratto `POST /data` lato submission.
 
 ## 1. Informazioni generali
 
@@ -29,7 +29,7 @@
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `cleanup_registry` | fixture | [tests/conftest.py#L39](projects/mistral/backend/tests/conftest.py#L39) | Teardown **LIFO** (utenti, dataset, request, file). |
+| `cleanup_registry` | fixture | [tests/conftest.py#L59](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO** (utenti, dataset, request, file). |
 | `monkeypatch` | fixture | `pytest` | Applica i fake runtime; rollback automatico a fine test. |
 | `create_synthetic_dataset` | helper | [data/support.py](projects/mistral/backend/tests/integration/data/support.py) | Dataset/licenza/attribution sintetici + cleanup. |
 | `create_data_endpoint_user` | helper | [data/support.py](projects/mistral/backend/tests/integration/data/support.py) | Utente temporaneo con permessi + `amqp_queue` forzata sul DB. |

@@ -1,7 +1,7 @@
 # Review — `test_data_endpoint_validation.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** delle validazioni HTTP di `POST /data`, sopra il baseline auth.
+> Modulo: copertura delle validazioni HTTP di `POST /data`.
 
 ## 1. Informazioni generali
 
@@ -28,7 +28,7 @@
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `cleanup_registry` | fixture | [tests/conftest.py#L39](projects/mistral/backend/tests/conftest.py#L39) | Teardown LIFO di utenti e dataset. |
+| `cleanup_registry` | fixture | [tests/conftest.py#L59](projects/mistral/backend/tests/conftest.py#L59) | Teardown LIFO di utenti e dataset. |
 | `monkeypatch` | fixture | `pytest` | Presente **solo** nei test che fakeano Arkimet (assente nei test 1 e 4). |
 | `create_synthetic_dataset` | helper | [data/support.py](projects/mistral/backend/tests/integration/data/support.py) | Dataset/licenza/gruppo/attribution sintetici. |
 | `create_data_endpoint_user` | helper | [data/support.py](projects/mistral/backend/tests/integration/data/support.py) | Utente temporaneo (senza `allowed_postprocessing` di default). |
@@ -86,7 +86,7 @@
 - **Flusso**: utente **senza** `allowed_postprocessing` → payload con postprocessor `derived_variables` (variabile `B12194`, valida per schema `AVProcessor`) → `POST /data`.
 - **Setup**: `patch_data_endpoint_runtime(format="grib", category="FOR")`; il postprocessor passa la validazione schema per **raggiungere** il controllo autorizzativo.
 - **Assert**: `401`; nessuna request.
-- **Casi coperti**: error path / autorizzazione applicativa (distinta dal `401` di autenticazione del baseline).
+- **Casi coperti**: error path / autorizzazione applicativa (distinta dal `401` di autenticazione di `test_data_endpoint_auth.py`).
 
 ### `test_post_data_returns_400_when_only_reliable_is_not_supported`
 - **Obiettivo**: `only_reliable` su dataset non `OBS`/non `multim-forecast` → `400`.

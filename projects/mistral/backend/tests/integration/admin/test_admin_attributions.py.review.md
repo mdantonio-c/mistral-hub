@@ -1,7 +1,6 @@
 # Review — `test_admin_attributions.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** aggiunta sopra la baseline legacy, senza rinominare né toccare i test storici.
 
 ## 1. Informazioni generali
 
@@ -27,7 +26,7 @@
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` (framework) | `FlaskClient` di test; richieste reali contro l'app Flask. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L39) | Stack di teardown **LIFO**; esegue i callback dopo lo `yield`. **Non** ingoia eccezioni (un teardown rotto fa fallire il test). |
+| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L59) | Stack di teardown **LIFO**; esegue i callback dopo lo `yield`. **Non** ingoia eccezioni (un teardown rotto fa fallire il test). |
 | `admin_headers` | fixture | [admin/conftest.py](conftest.py) | Scoperta automaticamente da pytest. Fa `BaseTests().do_login(client, None, None)` → header dell'utente **admin di default** (stato condiviso). |
 | `attribution_payload` | helper | [admin/support.py](projects/mistral/backend/tests/integration/admin/support.py) | Costruisce payload `AttributionInput` con nome uuid; `url` opzionale (passabile `""` o `None`). |
 | `create_dataset_bundle_via_api` | helper | [admin/support.py](projects/mistral/backend/tests/integration/admin/support.py) | Crea via API attribution+group+license+dataset e registra cleanup per ognuno (contiene `assert 200` interni). |

@@ -1,13 +1,11 @@
-# EXTENSION TRACEABILITY - Prompt 06, endpoint admin datasets.
-# Origine: questo modulo aggiunge copertura per
-# projects/mistral/backend/endpoints/admin_datasets.py senza toccare test dataset legacy.
+# Test CRUD dell'endpoint admin /api/admin/datasets
+# (projects/mistral/backend/endpoints/admin_datasets.py).
 # Ambito: verifica create/list/update/delete, relazioni license/attribution, sort_index
 # vuoto normalizzato a None, 404 su dataset mancante e conflict su vincoli unique.
 # Finestra dati: nessun dato meteorologico reale viene usato; il dataset e un record di
 # catalogo sintetico con arkimet_id uuid e senza file di runtime.
 # Runtime fake: nessun fake; il test attraversa Flask, schema dinamiche e SQLAlchemy.
 # Cleanup: dataset sintetici rimossi prima delle relative license/group/attribution.
-# Baseline non toccata: il file e un nuovo modulo di estensione nel dominio integration/admin.
 
 from __future__ import annotations
 
@@ -42,6 +40,8 @@ def test_admin_dataset_create_list_update_delete(
     Il test crea due coppie license/attribution per verificare sia la creazione sia il
     cambio relazione in PUT. Il payload di update invia `sort_index=""`, coprendo il
     pre_load DatasetInput.null_sort_index senza dipendere da dati reali.
+    Endpoint esercitati: GET/POST /api/admin/datasets e PUT/DELETE
+    /api/admin/datasets/<id>.
     """
     # arrange - dipendenze relazionali valide, tutte sintetiche e con cleanup registrato.
     first_attribution_id = create_attribution_via_api(
@@ -137,6 +137,7 @@ def test_admin_dataset_duplicate_unique_fields_return_conflict(
 
     A differenza di license group e license, i dataset hanno arkimet_id e name unici da
     migration. Il test crea un record e reinvia lo stesso payload, aspettandosi Conflict.
+    Endpoint esercitato: POST /api/admin/datasets.
     """
     # arrange - dipendenze valide e primo dataset creato via API.
     attribution_id = create_attribution_via_api(
@@ -181,6 +182,7 @@ def test_admin_dataset_missing_update_delete_return_404(
 
     License e attribution valide servono solo a superare la schema dinamica del PUT;
     l'id path resta mancante e deve attivare il controllo NotFound del controller.
+    Endpoint esercitati: PUT e DELETE /api/admin/datasets/<id>.
     """
     # arrange - dipendenze valide e id dataset assente.
     db = sqlalchemy.get_instance()

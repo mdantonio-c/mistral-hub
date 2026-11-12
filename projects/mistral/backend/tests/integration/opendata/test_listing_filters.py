@@ -1,4 +1,8 @@
-"""Integration tests for opendata listing filters on dataset-specific file catalogs."""
+"""Test di integrazione sui filtri dell'elenco opendata di un dataset.
+
+Esercitano GET /api/datasets/<id>/opendata (endpoints/opendata.py) con i filtri
+``q=run:...`` e ``q=reftime:...``.
+"""
 
 from datetime import timedelta
 from uuid import uuid4
@@ -17,21 +21,18 @@ pytestmark = [
 
 
 def test_listing_unknown_dataset_returns_404(client: FlaskClient) -> None:
-    """Verify that listing opendata for an unknown dataset id returns 404."""
+    """Verifica che l'elenco opendata di un dataset inesistente risponda 404.
+
+    Esercita GET /api/datasets/<id>/opendata.
+    """
     # arrange
-    # Prepariamo lo scenario opendata con dati minimi e controllati, cosi la verifica
-    # successiva resta legata a un comportamento preciso.
     dataset_name = f"missing_{uuid4().hex}"
     endpoint = f"{API_URI}/datasets/{dataset_name}/opendata"
 
     # act
-    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-    # verifica dal setup.
     response = client.get(endpoint)
 
     # assert
-    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-    # questo test vuole proteggere.
     assert response.status_code == 404
 
 
@@ -39,32 +40,23 @@ def test_listing_filters_by_run_returns_matching_package(
     client: FlaskClient,
     cleanup_registry,
 ) -> None:
-    """Verify that a run filter returns only the package generated for that run."""
+    """Verifica che il filtro sul run restituisca solo il pacchetto di quel run.
+
+    Esercita GET /api/datasets/<id>/opendata con ``q=run:MINUTE,00:00``.
+    """
     # arrange
-    # Prepariamo lo scenario opendata con dati minimi e controllati, cosi la verifica
-    # successiva resta legata a un comportamento preciso.
     dataset, seeded_results = create_listing_env(client, cleanup_registry)
     endpoint = (
         f"{API_URI}/datasets/{dataset.arkimet_id}/opendata?q=run:MINUTE,00:00"
     )
 
     # act
-    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-    # verifica dal setup.
     response = client.get(endpoint)
 
     # assert
-    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-    # questo test vuole proteggere.
     content = BaseTests().get_content(response)
-    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
-    # usare il payload.
     assert response.status_code == 200
-    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
-    # arrivato fin qui senza eccezioni.
     assert len(content) == 1
-    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
-    # arrivato fin qui senza eccezioni.
     assert content[0]["filename"] == seeded_results[0].filename
 
 
@@ -72,10 +64,11 @@ def test_listing_filters_by_reftime_returns_matching_package(
     client: FlaskClient,
     cleanup_registry,
 ) -> None:
-    """Verify that a reftime window returns only the package inside that window."""
+    """Verifica che una finestra di reftime restituisca solo il pacchetto interno.
+
+    Esercita GET /api/datasets/<id>/opendata con ``q=reftime:>=...,<=...``.
+    """
     # arrange
-    # Prepariamo lo scenario opendata con dati minimi e controllati, cosi la verifica
-    # successiva resta legata a un comportamento preciso.
     dataset, seeded_results = create_listing_env(client, cleanup_registry)
     query_from = (seeded_results[0].reftime + timedelta(minutes=1)).strftime(
         "%Y-%m-%d %H:%M"
@@ -87,22 +80,12 @@ def test_listing_filters_by_reftime_returns_matching_package(
     )
 
     # act
-    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-    # verifica dal setup.
     response = client.get(endpoint)
 
     # assert
-    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-    # questo test vuole proteggere.
     content = BaseTests().get_content(response)
-    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
-    # usare il payload.
     assert response.status_code == 200
-    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
-    # arrivato fin qui senza eccezioni.
     assert len(content) == 1
-    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
-    # arrivato fin qui senza eccezioni.
     assert content[0]["filename"] == seeded_results[1].filename
 
 
@@ -110,10 +93,12 @@ def test_listing_filters_by_reftime_and_run_can_exclude_results(
     client: FlaskClient,
     cleanup_registry,
 ) -> None:
-    """Verify that combined reftime and run filters can legitimately return an empty listing."""
+    """Verifica che reftime e run combinati possano restituire un elenco vuoto.
+
+    Esercita GET /api/datasets/<id>/opendata con filtri reftime e run insieme: la
+    risposta e 200 con lista vuota, non 404.
+    """
     # arrange
-    # Prepariamo lo scenario opendata con dati minimi e controllati, cosi la verifica
-    # successiva resta legata a un comportamento preciso.
     dataset, seeded_results = create_listing_env(client, cleanup_registry)
     query_from = seeded_results[0].reftime.strftime("%Y-%m-%d %H:%M")
     query_to = (seeded_results[1].reftime - timedelta(minutes=1)).strftime(
@@ -125,17 +110,9 @@ def test_listing_filters_by_reftime_and_run_can_exclude_results(
     )
 
     # act
-    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-    # verifica dal setup.
     response = client.get(endpoint)
 
     # assert
-    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-    # questo test vuole proteggere.
     content = BaseTests().get_content(response)
-    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
-    # usare il payload.
     assert response.status_code == 200
-    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
-    # arrivato fin qui senza eccezioni.
     assert content == []

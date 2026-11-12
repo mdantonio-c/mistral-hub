@@ -1,16 +1,18 @@
-"""Small Celery stand-ins used by integration tests that must stay fully local.
+"""Fake minimali di Celery per i test di integrazione che devono restare locali.
 
-These helpers are intentionally simple. They let a test call the real Flask
-endpoint or the real task function while replacing only the Celery transport
-layer that would normally talk to the broker and to external workers.
+Questi helper sono volutamente semplici. Permettono a un test di chiamare il vero
+endpoint Flask o la vera funzione del task, sostituendo solo lo strato di trasporto
+Celery che normalmente parlerebbe con il broker e con i worker esterni (l'oggetto
+restituito da ``celery.get_instance()`` del connettore restapi).
 
-In practice they are useful when a test wants to prove:
+In pratica servono quando un test vuole dimostrare che:
 
-- the application accepts a task submission,
-- the scheduling logic decides whether a task should be submitted,
-- a request row is created with the expected content,
+- l'applicazione accetta l'invio di un task,
+- la logica di scheduling decide se un task va inviato oppure no,
+- viene creata una riga di richiesta con il contenuto atteso,
 
-without also depending on RabbitMQ, worker timing, or heavy extraction code.
+senza dipendere anche da RabbitMQ, dai tempi dei worker o dal codice di estrazione
+pesante.
 """
 
 from __future__ import annotations
@@ -24,17 +26,15 @@ from mistral.services.sqlapi_db_manager import SqlApiDbManager
 
 
 class AcceptTasksWithoutRunningCelery:
-    """Record Celery submissions but never forward them to the real broker.
+    """Registra gli invii di task Celery senza mai inoltrarli al broker reale.
 
-    Tests use this fake when they want the surrounding application code to
-    behave as if a task submission succeeded, while keeping the execution fully
-    in-process. The fake stores every submission in ``sent_tasks`` so a test can
-    inspect what would have been sent to Celery.
+    I test usano questo fake quando vogliono che il codice applicativo si comporti
+    come se l'invio del task fosse riuscito, mantenendo l'esecuzione tutta nello
+    stesso processo. Il fake salva ogni invio in ``sent_tasks``, cosi il test puo
+    ispezionare cosa sarebbe stato inviato a Celery.
     """
 
     def __init__(self, *accepted_task_names: str) -> None:
-        # Memorizziamo nello stato dell'oggetto i valori che i metodi successivi
-        # useranno durante il test.
         self.sent_tasks: list[dict[str, Any]] = []
         self.celery_app = _AcceptingCeleryApp(
             accepted_task_names=set(accepted_task_names),
@@ -42,19 +42,17 @@ class AcceptTasksWithoutRunningCelery:
         )
 
     def delete_periodic_task(self, *args: Any, **kwargs: Any) -> bool:
-        """Mimic successful cleanup of a periodic Celery entry.
+        """Simula la rimozione riuscita di una voce periodica di Celery.
 
-        Some code paths expect the Celery wrapper to expose this method. The
-        fake always returns ``True`` because there is no real periodic task to
-        remove during the test.
+        Alcuni percorsi del codice si aspettano che il wrapper Celery esponga
+        questo metodo. Il fake restituisce sempre ``True`` perche durante il test
+        non esiste un vero task periodico da rimuovere.
         """
-        # Rimuoviamo lo stato creato dal test per non lasciare dati che possano
-        # influenzare gli scenari successivi.
         return True
 
 
 class _AcceptingCeleryApp:
-    """Minimal ``celery_app`` replacement used by ``AcceptTasksWithoutRunningCelery``."""
+    """Facade minimale di ``celery_app`` per ``AcceptTasksWithoutRunningCelery``."""
 
     def __init__(
         self,
@@ -62,88 +60,69 @@ class _AcceptingCeleryApp:
         accepted_task_names: set[str],
         sent_tasks: list[dict[str, Any]],
     ) -> None:
-        # Memorizziamo nello stato dell'oggetto i valori che i metodi successivi
-        # useranno durante il test.
         self.accepted_task_names = accepted_task_names
         self.sent_tasks = sent_tasks
 
     def send_task(self, name: str, *args: Any, **kwargs: Any) -> None:
-        """Store one task submission instead of sending it to Celery.
+        """Salva l'invio di un task invece di mandarlo a Celery.
 
-        When ``accepted_task_names`` is not empty, the fake also checks that the
-        code under test is submitting only the task names expected by the test.
+        Se ``accepted_task_names`` non e vuoto, il fake controlla anche che il codice
+        sotto test invii solo i nomi di task attesi dal test.
         """
-        # Entriamo nel blocco operativo dell'helper condiviso, mantenendo
-        # esplicito quale stato viene letto o prodotto.
         if self.accepted_task_names:
-            # Controlliamo il contratto specifico dello scenario, non soltanto che il
-            # codice sia arrivato fin qui senza eccezioni.
             assert name in self.accepted_task_names
         self.sent_tasks.append({"name": name, "args": args, "kwargs": kwargs})
-        # Non c'e un risultato da consegnare al chiamante: il segnale utile e
-        # l'effetto gia prodotto o l'assenza esplicita di dati.
         return None
 
 
 class InlineDataReadyExtractionCelery:
-    """Replace ``data_extract`` worker execution with a direct database effect.
+    """Sostituisce l'esecuzione di ``data_extract`` nel worker con un effetto sul DB.
 
-    The periodic data-ready tests want to verify the scheduler decision itself:
-    should a new extraction request be generated or not? They do not need to run
-    the real extraction worker. This fake translates the Celery submission into
-    the same request row that the rest of the test expects to observe in the DB.
+    I test periodici data-ready vogliono verificare la decisione dello scheduler:
+    va generata o no una nuova richiesta di estrazione? Non serve eseguire il vero
+    worker di estrazione. Questo fake traduce l'invio del task Celery nella stessa
+    riga ``Request`` che il resto del test si aspetta di trovare nel DB.
     """
 
     def __init__(self, db: Any) -> None:
-        # Memorizziamo nello stato dell'oggetto i valori che i metodi successivi
-        # useranno durante il test.
         self.celery_app = _InlineDataReadyExtractionApp(db)
 
     def delete_periodic_task(self, *args: Any, **kwargs: Any) -> bool:
-        """Pretend that periodic-task cleanup succeeded.
+        """Finge che la rimozione del task periodico sia riuscita.
 
-        The data-ready code path may call this method on the Celery wrapper. For
-        this fake there is nothing to clean up, so the method simply reports
-        success.
+        Il percorso data-ready puo chiamare questo metodo sul wrapper Celery. Per
+        questo fake non c'e nulla da rimuovere, quindi il metodo segnala solo
+        successo.
         """
-        # Rimuoviamo lo stato creato dal test per non lasciare dati che possano
-        # influenzare gli scenari successivi.
         return True
 
 
 class InlineDataExtractCelery:
-    """Execute ``data_extract`` immediately in-process.
+    """Esegue ``data_extract`` subito, nello stesso processo del test.
 
-    Some integration tests need the real extraction side effects, such as file
-    creation and opendata publication, but they still want to avoid depending on
-    RabbitMQ and external Celery workers. This fake keeps the task transport
-    local by calling ``data_extract.run(...)`` directly.
+    Alcuni test di integrazione hanno bisogno dei veri effetti dell'estrazione,
+    come la creazione di file e la pubblicazione opendata, ma vogliono comunque
+    evitare di dipendere da RabbitMQ e da worker Celery esterni. Questo fake tiene
+    locale il trasporto del task chiamando direttamente ``data_extract.run(...)``.
     """
 
     def __init__(self) -> None:
-        # Memorizziamo nello stato dell'oggetto i valori che i metodi successivi
-        # useranno durante il test.
         self.celery_app = _InlineDataExtractApp()
 
     def delete_periodic_task(self, *args: Any, **kwargs: Any) -> bool:
-        """Report success for periodic-task cleanup even though nothing is scheduled.
+        """Segnala successo nella rimozione del task periodico anche se non esiste.
 
-        The inline fake never registers real periodic tasks with Celery, but the
-        production-facing wrapper still expects this method to exist. Returning
-        ``True`` keeps those code paths satisfied without introducing extra test
-        setup.
+        Il fake inline non registra mai veri task periodici in Celery, ma il wrapper
+        usato in produzione deve comunque esporre questo metodo. Restituire ``True``
+        soddisfa quei percorsi del codice senza aggiungere altro setup al test.
         """
-        # Rimuoviamo lo stato creato dal test per non lasciare dati che possano
-        # influenzare gli scenari successivi.
         return True
 
 
 class _InlineDataReadyExtractionApp:
-    """Minimal ``celery_app`` facade that emulates ``data_extract`` side effects."""
+    """Facade minimale di ``celery_app`` che emula gli effetti di ``data_extract``."""
 
     def __init__(self, db: Any) -> None:
-        # Memorizziamo nello stato dell'oggetto i valori che i metodi successivi
-        # useranno durante il test.
         self.db = db
 
     def send_task(
@@ -152,18 +131,14 @@ class _InlineDataReadyExtractionApp:
         args: tuple[Any, ...] | None = None,
         **kwargs: Any,
     ) -> None:
-        """Convert a ``data_extract`` submission into a synthetic request row.
+        """Converte l'invio di ``data_extract`` in una riga di richiesta sintetica.
 
-        The method validates that the code under test is really trying to submit
-        ``data_extract`` in ``data_ready`` mode. It then either skips duplicate
-        submissions for the same reftime or inserts a new successful request row
-        so the caller can assert on the resulting schedule state.
+        Il metodo verifica che il codice sotto test stia davvero inviando
+        ``data_extract`` in modalita ``data_ready``. Poi salta gli invii duplicati
+        per lo stesso reftime oppure inserisce una nuova richiesta riuscita, cosi
+        il chiamante puo fare asserzioni sullo stato risultante della schedule.
         """
-        # Entriamo nel blocco operativo dell'helper condiviso, mantenendo
-        # esplicito quale stato viene letto o prodotto.
         assert name == "data_extract"
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert args is not None
         (
             user_id,
@@ -179,8 +154,6 @@ class _InlineDataReadyExtractionApp:
             data_ready,
             opendata,
         ) = args
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert data_ready is True
 
         last_request = (
@@ -191,11 +164,7 @@ class _InlineDataReadyExtractionApp:
             .order_by(self.db.Request.submission_date.desc())
             .first()
         )
-        # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve
-        # succedere quando lo stato non e quello ideale.
         if last_request and last_request.args.get("reftime") == reftime:
-            # Non c'e un risultato da consegnare al chiamante: il segnale utile e
-            # l'effetto gia prodotto o l'assenza esplicita di dati.
             return None
 
         request_name = SqlApiDbManager.get_schedule_name(self.db, schedule_id)
@@ -214,19 +183,13 @@ class _InlineDataReadyExtractionApp:
             opendata=opendata,
         )
         request.status = states.SUCCESS
-        # Persistiamo la modifica nel database di test, altrimenti le chiamate
-        # successive non vedrebbero lo scenario preparato.
         self.db.session.add(request)
-        # Persistiamo la modifica nel database di test, altrimenti le chiamate
-        # successive non vedrebbero lo scenario preparato.
         self.db.session.commit()
-        # Non c'e un risultato da consegnare al chiamante: il segnale utile e
-        # l'effetto gia prodotto o l'assenza esplicita di dati.
         return None
 
 
 class _InlineDataExtractApp:
-    """Minimal ``celery_app`` facade that runs ``data_extract`` inline."""
+    """Facade minimale di ``celery_app`` che esegue ``data_extract`` inline."""
 
     def send_task(
         self,
@@ -234,16 +197,8 @@ class _InlineDataExtractApp:
         args: tuple[Any, ...] | list[Any] | None = None,
         **kwargs: Any,
     ) -> None:
-        """Execute the real extraction task instead of enqueuing it."""
-        # Entriamo nel blocco operativo dell'helper condiviso, mantenendo
-        # esplicito quale stato viene letto o prodotto.
+        """Esegue il vero task di estrazione invece di metterlo in coda."""
         assert name == "data_extract"
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert args is not None
-        # Intercettiamo l'invio del task per controllare quale lavoro asincrono sarebbe
-        # stato richiesto dal backend.
         data_extraction_task.data_extract.run(*args)
-        # Non c'e un risultato da consegnare al chiamante: il segnale utile e
-        # l'effetto gia prodotto o l'assenza esplicita di dati.
         return None

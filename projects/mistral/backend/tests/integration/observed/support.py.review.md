@@ -61,7 +61,6 @@
 - **Assert nel setup di `fetch_station_sample`**: `assert response.status_code == 200` e `assert isinstance(content, dict)` avvengono **dentro l'helper**; un problema dell'endpoint si manifesta come errore in fase di arrange del test che lo usa.
 - **`extract_station_coordinates` indicizza `data[0]` senza guard**: presuppone almeno una stazione; combinato con `fetch_station_sample`, un payload vuoto darebbe `IndexError` invece di uno skip leggibile.
 - **`network=""`, `product_1=""` iniziali**: durante la scoperta i `params` sono costruiti prima con campi vuoti e poi **ri-creati** con `network`/`product` reali presi da `response_data["items"]`; la versione "vuota" è solo intermedia per la chiamata `/fields`.
-- **Commenti decorativi uniformi**: i commenti italiani sono auto-generati e ripetitivi; non vanno letti come documentazione puntuale della logica.
 
 ## 5. Checklist di revisione
 

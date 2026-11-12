@@ -1,1 +1,1 @@
-"""Backend test package for the modularized Meteo-Hub custom suite."""
+"""Pacchetto che contiene la suite di test del backend MeteoHub."""

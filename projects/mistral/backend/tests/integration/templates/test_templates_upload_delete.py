@@ -1,6 +1,5 @@
-# EXTENSION TRACEABILITY - Prompt 05, contratti POST/GET/DELETE /templates.
-# Origine: questo modulo aggiunge copertura per upload, recupero e cancellazione dei
-# template utente senza alterare la baseline legacy o helper globali.
+# Test di POST, GET e DELETE /templates: upload, lettura e cancellazione dei template
+# utente (endpoints/templates.py).
 # Ambito: copre upload grib, upload zip shapefile completo, validazioni su zip incompleto,
 # estensione non ammessa, quota disco superata, limite max_templates, get/delete di file
 # esistenti o mancanti e rimozione dei sidecar con lo stesso stem.
@@ -10,7 +9,6 @@
 # nomi e byte minimi sufficienti al controller, senza conversione geojson.
 # Cleanup: utenti e directory /data/<uuid>/uploads sono registrati con cleanup_registry;
 # anche i rami di errore vengono confinati alla directory utente temporanea.
-# Baseline non toccata: il file e un nuovo modulo di estensione nel dominio integration/templates.
 
 from __future__ import annotations
 
@@ -50,8 +48,6 @@ def test_template_upload_accepts_valid_grib_file(
     filename = "valid_grib_ext.grib"
 
     # act
-    # Attraversiamo il vero upload multipart, lasciando al controller la scelta del
-    # sottofolder e la serializzazione della risposta.
     response = client.post(
         TEMPLATES_ENDPOINT,
         headers=user.headers,
@@ -59,8 +55,6 @@ def test_template_upload_accepts_valid_grib_file(
     )
 
     # assert
-    # Il file deve esistere fisicamente nella cartella grib e il payload deve esporre
-    # formato ed endpoint path riferiti al file appena caricato.
     assert response.status_code == 200
     content = BaseTests().get_content(response)
     assert content["format"] == "grib"
@@ -93,8 +87,6 @@ def test_template_upload_accepts_complete_shapefile_zip(
     )
 
     # assert
-    # Verifichiamo il contratto osservabile stabile: HTTP 200 e presenza dei tre sidecar
-    # nella cartella shapefile dell'utente temporaneo.
     assert response.status_code == 200
     shp_folder = template_folder(user, "shp")
     assert shp_folder.joinpath("complete_zip_ext.shp").exists()
@@ -163,7 +155,6 @@ def test_template_upload_rejects_wrong_extension(
     user = create_templates_user(client, cleanup_registry, max_templates=5)
 
     # act
-    # L'upload multipart contiene un nome file non ammesso dalla whitelist del controller.
     response = client.post(
         TEMPLATES_ENDPOINT,
         headers=user.headers,
@@ -207,7 +198,6 @@ def test_template_upload_returns_403_when_disk_quota_is_exceeded(
     archive = build_shapefile_zip("quota_zip_ext")
 
     # act
-    # La richiesta e formalmente valida ma deve fallire sul controllo quota finale.
     response = client.post(
         TEMPLATES_ENDPOINT,
         headers=user.headers,
@@ -215,8 +205,6 @@ def test_template_upload_returns_403_when_disk_quota_is_exceeded(
     )
 
     # assert
-    # Il contratto user-facing richiede 403 Disk quota exceeded quando il file eccede la
-    # quota configurata sull'utente.
     assert response.status_code == 403
     assert BaseTests().get_content(response) == "Disk quota exceeded"
 
@@ -238,7 +226,6 @@ def test_template_upload_returns_401_when_max_templates_is_reached(
     seed_template_file(cleanup_registry, user, "already_present_ext.grib")
 
     # act
-    # Tentiamo un secondo grib: il backend deve fermarsi sul limite e non scrivere il file.
     response = client.post(
         TEMPLATES_ENDPOINT,
         headers=user.headers,
@@ -272,8 +259,6 @@ def test_template_get_existing_file_returns_filepath_and_format(
     filepath = seed_template_file(cleanup_registry, user, "get_existing_ext.grib")
 
     # act
-    # La GET attraversa il controller reale e permette di rilevare se il bug noto e stato
-    # corretto nel backend applicativo.
     response = client.get(
         f"{TEMPLATES_ENDPOINT}/{filepath.name}",
         headers=user.headers,
@@ -310,7 +295,6 @@ def test_template_get_missing_file_returns_404(
     missing_name = "missing_template_ext.grib"
 
     # act
-    # La GET su file mancante deve essere osservata attraverso HTTP reale.
     response = client.get(
         f"{TEMPLATES_ENDPOINT}/{missing_name}",
         headers=user.headers,
@@ -337,18 +321,15 @@ def test_template_delete_missing_file_returns_404(
     l'assenza del path prima di tentare la cancellazione dei sidecar.
     """
     # arrange
-    # Nessun file viene creato: il test prepara solo un utente autenticato.
     user = create_templates_user(client, cleanup_registry, max_templates=5)
 
     # act
-    # La DELETE deve fallire in modo esplicito sul template non trovato.
     response = client.delete(
         f"{TEMPLATES_ENDPOINT}/missing_delete_ext.shp",
         headers=user.headers,
     )
 
     # assert
-    # Il contratto osservabile e il 404 NotFound.
     assert response.status_code == 404
     assert BaseTests().get_content(response) == "The template doesn't exist"
 
@@ -378,7 +359,6 @@ def test_template_delete_removes_shapefile_sidecars_with_same_stem(
     )
 
     # assert
-    # Controlliamo sia la risposta HTTP sia l'effetto fisico sui sidecar preparati.
     assert response.status_code == 200
     assert BaseTests().get_content(response) == f"File {target_name} succesfully deleted"
     assert all(not path.exists() for path in sidecar_paths)

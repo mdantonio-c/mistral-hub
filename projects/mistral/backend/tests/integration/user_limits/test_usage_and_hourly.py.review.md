@@ -1,7 +1,6 @@
 # Review — `test_usage_and_hourly.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** sopra la baseline legacy.
 
 ## 1. Informazioni generali
 
@@ -35,7 +34,7 @@
 | `delete_hourly_request` | cleanup DB | Rimozione **idempotente** della `Request` (no-op se già assente). |
 | `FixedHourlyDateTime` | fake | Sottoclasse di `datetime` con `utcnow()` fisso a **2026-05-29 10:30:00** (lontano dai bordi dell'ora). |
 | `client` | fixture | `FlaskClient` (`restapi.tests`). |
-| `cleanup_registry` | fixture | Teardown **LIFO** ([tests/conftest.py#L39](projects/mistral/backend/tests/conftest.py#L39)). |
+| `cleanup_registry` | fixture | Teardown **LIFO** ([tests/conftest.py#L59](projects/mistral/backend/tests/conftest.py#L59)). |
 | `monkeypatch` | fixture | Sostituisce il solo nome `datetime` del modulo endpoint hourly (vedi §6). |
 
 > Helper di auth riusati: `create_authenticated_test_user`, `register_test_user_cleanup`, `AuthenticatedTestUser` da [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py).

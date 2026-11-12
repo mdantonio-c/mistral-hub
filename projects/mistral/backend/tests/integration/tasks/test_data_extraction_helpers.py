@@ -1,14 +1,12 @@
-# EXTENSION TRACEABILITY: questo modulo e stato aggiunto dal piano di estensione
-# della copertura backend, fase quick wins, per coprire helper puri del task di data
-# extraction senza toccare i test legacy ne il codice applicativo.
-# EXTENSION SCOPE: i test verificano `human_size`, `adapt_reftime` e
-# `package_data_license`, cioe funzioni con contratto locale e input controllabili.
-# EXTENSION DATA WINDOW: nessun dataset reale viene letto. Le date usate sono valori
+# Ambito: i test verificano `human_size`, `adapt_reftime` e `package_data_license`
+# di tasks/data_extraction.py, cioe helper puri del task di estrazione dati con
+# contratto locale e input controllabili.
+# Finestra dati: nessun dataset reale viene letto. Le date usate sono valori
 # sintetici fissati nel test e non rappresentano finestre runtime meteorologiche.
-# EXTENSION RUNTIME: non vengono eseguiti Celery, SMTP, Rabbit o tool meteo. Il fake
+# Runtime: non vengono eseguiti Celery, SMTP, Rabbit o tool meteo. Il fake
 # dell'orologio basta perche `adapt_reftime` dipende solo da `utcnow`, dalla schedule
 # sintetica e dal reftime iniziale salvato nella schedule.
-# EXTENSION CLEANUP: `tmp_path` isola i file creati dal test tar.gz; il file dati
+# Cleanup: `tmp_path` isola i file creati dal test tar.gz; il file dati
 # cancellato da `package_data_license` e intenzionalmente verificato, mentre pytest
 # rimuove la directory temporanea a fine test.
 
@@ -29,6 +27,8 @@ pytestmark = [pytest.mark.integration, pytest.mark.deterministic]
 # con un orologio stabile. Non viene promosso in `helpers/` perche serve solo ai test
 # deterministici di `adapt_reftime` in questo file.
 class _FixedDataExtractionDateTime(dt.datetime):
+    """Sottoclasse di ``datetime`` con ``utcnow`` e ``now`` fissi a 2026-05-28 12:30."""
+
     @classmethod
     def utcnow(cls):
         return cls(2026, 5, 28, 12, 30, 0)
@@ -43,7 +43,10 @@ class _FixedDataExtractionDateTime(dt.datetime):
 
 @pytest.fixture
 def frozen_data_extraction_clock(monkeypatch):
-    """Expose a deterministic datetime namespace to the data extraction helper."""
+    """Congela l'orologio visto da tasks/data_extraction.py e restituisce l'ora fissa.
+
+    Serve ai test di ``adapt_reftime``, che calcola la finestra partendo da ``utcnow``.
+    """
     # arrange
     # `data_extraction` importa il modulo datetime completo. Sostituiamo solo il
     # namespace del modulo target con un oggetto minimale che offre `datetime` e
@@ -58,7 +61,7 @@ def frozen_data_extraction_clock(monkeypatch):
 
 
 class TestDataExtractionHelpers:
-    """Verify pure helper contracts used by data extraction tasks."""
+    """Raggruppa i test sugli helper puri usati dal task di estrazione dati."""
 
     @pytest.mark.parametrize(
         ("byte_count", "expected"),
@@ -70,7 +73,7 @@ class TestDataExtractionHelpers:
         ],
     )
     def test_human_size_formats_existing_thresholds(self, byte_count, expected):
-        """The recursive formatter keeps the existing integer unit contract."""
+        """Verifica che ``human_size`` formatti le soglie byte/KB/MB come interi."""
         # arrange
         # I valori scelti attraversano il limite byte/KB/MB senza introdurre decimali:
         # questo documenta il comportamento storico dell'helper invece di imporre un
@@ -85,7 +88,10 @@ class TestDataExtractionHelpers:
     def test_package_data_license_archives_license_and_removes_source_file(
         self, tmp_path
     ):
-        """The package helper tars data plus LICENSE and deletes the raw output."""
+        """Verifica che ``package_data_license`` crei un tar.gz con dati e LICENSE.
+
+        Il file dati originale deve essere cancellato dopo l'archiviazione.
+        """
         # arrange
         # Creiamo due file temporanei sintetici: non hanno contenuto meteorologico reale,
         # perche il contratto qui e solo filesystem/tar. Il cleanup e affidato a tmp_path.
@@ -117,7 +123,10 @@ class TestDataExtractionHelpers:
     def test_adapt_reftime_daily_periodic_schedule_moves_window_forward(
         self, frozen_data_extraction_clock
     ):
-        """A daily periodic schedule preserves the original request offset."""
+        """Verifica che ``adapt_reftime`` su schedule giornaliera mantenga l'offset.
+
+        La nuova finestra conserva la distanza originale tra submission e reftime.
+        """
         # arrange
         # La schedule fake rappresenta una richiesta giornaliera nata un giorno dopo il
         # proprio reftime iniziale. Con l'orologio congelato al 2026-05-28 12:30, il
@@ -145,7 +154,10 @@ class TestDataExtractionHelpers:
     def test_adapt_reftime_hourly_periodic_schedule_moves_window_forward(
         self, frozen_data_extraction_clock
     ):
-        """An hourly periodic schedule advances by elapsed hourly intervals."""
+        """Verifica che ``adapt_reftime`` su schedule oraria avanzi la finestra.
+
+        La finestra si sposta in avanti del numero di intervalli orari trascorsi.
+        """
         # arrange
         # Il fake mantiene minuti e secondi allineati tra submission, reftime iniziale e
         # now. Questo evita ambiguita di arrotondamento e isola il ramo `hours` della
@@ -172,7 +184,10 @@ class TestDataExtractionHelpers:
     def test_adapt_reftime_base_crontab_schedule_uses_daily_interval(
         self, frozen_data_extraction_clock
     ):
-        """A simple crontab without weekly/monthly keys behaves as a daily schedule."""
+        """Verifica che ``adapt_reftime`` tratti una crontab semplice come giornaliera.
+
+        Senza chiavi settimanali o mensili l'intervallo usato e di un giorno.
+        """
         # arrange
         # Il ramo crontab viene coperto con settings minimi e JSON valido. Non serve un
         # vero scheduler RedBeat per questo contratto: l'helper legge solo il JSON della

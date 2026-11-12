@@ -1,7 +1,7 @@
-"""Integration tests for early validation failures on the observed-data endpoint.
+"""Test di integrazione sugli errori di validazione precoce di GET /api/observations.
 
-This module focuses on requests that should fail before any meaningful observed
-data lookup happens because required inputs are incomplete or malformed.
+Il modulo verifica le richieste che devono fallire prima di qualsiasi lettura dei
+dati osservati, perche mancano input obbligatori o sono incompleti.
 """
 
 import pytest
@@ -18,38 +18,32 @@ pytestmark = [
 def test_observations_without_complete_reftime_returns_bad_request(
     client: FlaskClient,
 ) -> None:
-    """Verify that the endpoint rejects queries missing one side of the reftime range."""
+    """Verifica che una query senza reftime completo riceva 400.
+
+    Esercita GET /api/observations (MapsObservations.get, ramo "Reftime is missing").
+    """
     # arrange
-    # Prepariamo lo scenario osservazioni con dati minimi e controllati, cosi la
-    # verifica successiva resta legata a un comportamento preciso.
     endpoint = f"{API_URI}/observations?q=license:CCBY_COMPLIANT"
 
     # act
-    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-    # verifica dal setup.
     response = client.get(endpoint)
 
     # assert
-    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-    # questo test vuole proteggere.
     assert response.status_code == 400
 
 
 def test_observations_without_license_returns_bad_request(
     client: FlaskClient,
 ) -> None:
-    """Verify that the endpoint rejects observed queries without a license clause."""
+    """Verifica che una query senza clausola license riceva 400.
+
+    Esercita GET /api/observations (MapsObservations.get, controllo del gruppo licenza).
+    """
     # arrange
-    # Prepariamo lo scenario osservazioni con dati minimi e controllati, cosi la
-    # verifica successiva resta legata a un comportamento preciso.
     endpoint = f"{API_URI}/observations"
 
     # act
-    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-    # verifica dal setup.
     response = client.get(endpoint)
 
     # assert
-    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-    # questo test vuole proteggere.
     assert response.status_code == 400

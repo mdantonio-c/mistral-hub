@@ -1,12 +1,12 @@
 # Review — `test_requests_cleanup_expiration.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** (prompt 07) sui rami di expiration/orphan di `automatic_cleanup`.
+> Modulo: copertura dei rami di expiration/orphan di `automatic_cleanup`.
 
 ## 1. Informazioni generali
 
 - **Percorso**: [projects/mistral/backend/tests/integration/tasks/test_requests_cleanup_expiration.py](projects/mistral/backend/tests/integration/tasks/test_requests_cleanup_expiration.py)
-- **Scopo**: verificare i rami di `automatic_cleanup` **non** coperti dal pending-stale legacy: archiviazione/cancellazione di request completate **scadute** secondo la policy utente, esclusione di request recenti / già archiviate / di utenti con expiration disabilitata, e rimozione dei **file orfani** oltre il grace period.
+- **Scopo**: verificare i rami di `automatic_cleanup` **non** coperti dal test pending-stale di `requests/test_delete_pending_request.py`: archiviazione/cancellazione di request completate **scadute** secondo la policy utente, esclusione di request recenti / già archiviate / di utenti con expiration disabilitata, e rimozione dei **file orfani** oltre il grace period.
 - **Tipologia**: test di **integrazione task** (DB di test + filesystem reale, task invocato in-process con `.run()`). Marker dichiarati: `integration`, `deterministic`.
 - **Conteggio**: 3 test in `TestAutomaticCleanupExpirationEXT`. Nessun `pytest.skip`.
 
@@ -78,7 +78,7 @@ automatic_cleanup.run()
   → users_settings/users = { u.id: timedelta(days=exp) for u in utenti registrati if exp truthy }   # TEST 2: exp=0 escluso
   → per ogni Request registrata (per id, ricaricata):
        → r is None? skip
-       → not r.end_date? (pending) → grace-period check (legacy, non target qui)
+       → not r.end_date? (pending) → grace-period check (coperto altrove, non target qui)
        → users_settings.get(r.user_id) falsy? continue                                              # TEST 2
        → r.archived? continue                                                                       # TEST 1 (già archiviata)
        → r.end_date > now - exp? continue                                                           # TEST 1 (recente)

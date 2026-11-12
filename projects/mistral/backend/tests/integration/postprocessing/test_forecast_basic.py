@@ -1,4 +1,8 @@
-"""Integration tests for basic forecast extraction and single-step forecast postprocessors."""
+"""Test di integrazione sull'estrazione forecast e sui postprocessori singoli.
+
+Esercitano il task Celery ``data_extract`` (tasks/data_extraction.py) sul
+dataset ``lm5`` e leggono i GRIB prodotti.
+"""
 
 import pytest
 
@@ -22,38 +26,33 @@ pytestmark = [
 
 
 class TestForecastBasic:
-    """Verify the simplest successful forecast postprocessing scenarios."""
+    """Verifica gli scenari forecast di successo piu semplici."""
 
     def test_simple_forecast_extraction_creates_output(self, pp_forecast_env) -> None:
-        """Verify that a plain forecast extraction produces an output file."""
+        """Verifica che un'estrazione forecast senza postprocessori produca un file.
+
+        Esercita il task ``data_extract`` con estrazione Arkimet reale.
+        """
         # arrange
-        # Prepariamo lo scenario post-processing con dati minimi e controllati, cosi la
-        # verifica successiva resta legata a un comportamento preciso.
         request_id = pp_forecast_env.create_request()
 
         # act
-        # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-        # verifica dal setup.
         pp_forecast_env.execute(request_id)
 
         # assert
-        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-        # questo test vuole proteggere.
         output_path = pp_forecast_env.assert_success(request_id)
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert output_path.exists()
 
     def test_derived_variables_emit_relhum_2m(self, pp_forecast_env) -> None:
-        """Verify that derived-variable postprocessing emits `relhum_2m` while preserving other fields."""
+        """Verifica che le variabili derivate producano `relhum_2m`.
+
+        Anche gli altri campi devono restare nel file. Esercita
+        ``tools/derived_variables.py`` dentro il task ``data_extract``.
+        """
         # arrange
-        # Prepariamo lo scenario post-processing con dati minimi e controllati, cosi la
-        # verifica successiva resta legata a un comportamento preciso.
         request_id = pp_forecast_env.create_request()
 
         # act
-        # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-        # verifica dal setup.
         pp_forecast_env.execute(
             request_id,
             filters=forecast_derived_variable_filters(),
@@ -61,22 +60,19 @@ class TestForecastBasic:
         )
 
         # assert
-        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-        # questo test vuole proteggere.
         output_path = pp_forecast_env.assert_success(request_id)
         assert_grib_contains_short_name(output_path, "relhum_2m")
         assert_grib_preserves_independent_fields(output_path, "relhum_2m")
 
     def test_statistic_elaboration_emits_tp_step_range(self, pp_forecast_env) -> None:
-        """Verify that statistic elaboration emits the expected precipitation step range."""
+        """Verifica che la statistica produca la precipitazione con lo stepRange atteso.
+
+        Esercita ``tools/statistic_elaboration.py`` dentro il task ``data_extract``.
+        """
         # arrange
-        # Prepariamo lo scenario post-processing con dati minimi e controllati, cosi la
-        # verifica successiva resta legata a un comportamento preciso.
         request_id = pp_forecast_env.create_request()
 
         # act
-        # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-        # verifica dal setup.
         pp_forecast_env.execute(
             request_id,
             filters=forecast_statistic_elaboration_filters(),
@@ -84,8 +80,6 @@ class TestForecastBasic:
         )
 
         # assert
-        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-        # questo test vuole proteggere.
         output_path = pp_forecast_env.assert_success(request_id)
         assert_grib_contains_step_range(output_path, "tp", "3-6")
         assert_grib_contains_short_name_other_than(output_path, "tp", "sp")

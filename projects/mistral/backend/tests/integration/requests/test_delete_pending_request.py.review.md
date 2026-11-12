@@ -1,7 +1,7 @@
 # Review — `test_delete_pending_request.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo *baseline*: copre il contratto di **cancellazione** delle richieste e il **cleanup automatico** delle richieste stagnanti.
+> Modulo: copre il contratto di **cancellazione** delle richieste e il **cleanup automatico** delle richieste stagnanti.
 
 ## 1. Informazioni generali
 
@@ -28,7 +28,7 @@
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
 | `app` | fixture | `restapi.tests` | App Flask di test; passata a `send_task` per il task di cleanup. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L37) | Teardown **LIFO**; usata **transitivamente** dalle fixture locali. |
+| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO**; usata **transitivamente** dalle fixture locali. |
 | `pending_request_user` | fixture **locale** | [requests/conftest.py](projects/mistral/backend/tests/integration/requests/conftest.py) | Utente temporaneo autenticato (senza permessi speciali) + cleanup utente/cartelle. |
 | `pending_delete_requests` | fixture **locale** | [requests/conftest.py](projects/mistral/backend/tests/integration/requests/conftest.py) | Crea **due** `Request` (una vecchia/`STARTED`, una recente/`PENDING`) e registra il cleanup; ritorna `(deletable_id, undeletable_id)`. |
 | `create_pending_delete_requests` / `delete_request_rows` | helper | [requests/support.py](projects/mistral/backend/tests/integration/requests/support.py) | Seeding/cleanup diretto delle righe `Request` (usati dalla fixture locale). |
@@ -91,7 +91,6 @@ send_task(app, "automatic_cleanup")  → CeleryExt task automatic_cleanup (perim
 - **`delete_request_record` non cancella la `Request`**: rimuove solo l'eventuale `fileoutput`; la `db.session.delete(request)` è nell'endpoint. Sulle righe seed (senza `fileoutput`) il ramo file è no-op.
 - **Il task di cleanup è globale, ma qui è confinato**: in produzione itera tutte le `Request` e tutte le cartelle sotto `DOWNLOAD_DIR`; nel test `requests_cleanup_perimeter` gli espone solo le righe registrate e una root download temporanea, quindi dati non legati allo scenario restano fuori portata.
 - **`send_task` esegue il task nel runtime di test**: recupera il task registrato e lo invoca in-process, quindi gli assert leggono subito gli effetti.
-- **Commento fuorviante** sul wrapper `delete_pending_request`: il commento "Rimuoviamo lo stato creato dal test…" descrive un cleanup, ma la funzione **chiama l'endpoint** sotto test (non pulisce nulla).
 - **Login dell'owner**: i test usano `pending_request_user.headers` (utente temporaneo dedicato), non il default user condiviso.
 
 ## 7. Checklist di revisione

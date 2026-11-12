@@ -1,7 +1,7 @@
 # Review — `test_file_download.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** del contratto `GET /data/<filename>` (download output), sopra il baseline.
+> Modulo: copertura del contratto `GET /data/<filename>` (download output).
 
 ## 1. Informazioni generali
 
@@ -25,7 +25,7 @@
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `cleanup_registry` | fixture | [tests/conftest.py#L39](projects/mistral/backend/tests/conftest.py#L39) | Teardown LIFO: utenti, directory output, request sintetiche. |
+| `cleanup_registry` | fixture | [tests/conftest.py#L59](projects/mistral/backend/tests/conftest.py#L59) | Teardown LIFO: utenti, directory output, request sintetiche. |
 | `create_data_endpoint_user` | helper | [data/support.py](projects/mistral/backend/tests/integration/data/support.py) | Utente temporaneo autenticato (qui senza dataset). |
 | `create_file_download_record` | helper | [data/support.py](projects/mistral/backend/tests/integration/data/support.py) | Crea `Request(SUCCESS, opendata=False)` + `FileOutput` e — se `content` non è `None` — scrive il file fisico in `DOWNLOAD_DIR/<uuid>/outputs/<filename>`. |
 | `API_URI` | costante | `restapi.tests` | Prefisso `/api`. |

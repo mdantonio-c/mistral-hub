@@ -1,7 +1,5 @@
-# EXTENSION TRACEABILITY - Prompt 06, endpoint admin attributions.
-# Origine: questo modulo estende la suite backend con copertura CRUD per
-# projects/mistral/backend/endpoints/admin_attributions.py, senza modificare i test
-# legacy o aggiungere fixture globali.
+# Test CRUD dell'endpoint admin /api/admin/attributions
+# (projects/mistral/backend/endpoints/admin_attributions.py).
 # Ambito: verifica auth admin, creazione, listing con dataset collegati, update,
 # delete, 404 su record mancanti e normalizzazione di url vuota a None.
 # Finestra dati: nessun dato meteorologico reale viene usato; i dataset collegati sono
@@ -10,7 +8,6 @@
 # SQLAlchemy restano reali in tutti i test.
 # Cleanup: ogni attribution, license group, license e dataset creato viene registrato
 # nel cleanup_registry tramite support, con ordine relazionale sicuro.
-# Baseline non toccata: il file e un nuovo modulo di estensione nel dominio integration/admin.
 
 from __future__ import annotations
 
@@ -69,7 +66,12 @@ def test_regular_user_overrides_generated_admin_role(
     cleanup_registry,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Il helper deve creare un utente normale anche se buildData genera admin."""
+    """Il helper deve creare un utente normale anche se buildData genera admin.
+
+    Forza `BaseTests.buildData` a generare il ruolo admin e verifica che
+    `create_regular_user` salvi nel DB solo il ruolo normal_user e che
+    GET /api/admin/attributions risponda 401 a quell'utente.
+    """
     build_data = BaseTests.buildData
 
     def build_admin_user_data(schema):
@@ -105,7 +107,8 @@ def test_admin_attribution_create_list_update_delete(
 
     La creazione passa `url=""` per attraversare il pre_load AttributionInput.null_url;
     il listing successivo deve esporre None, poi l'update cambia nome, descrizione e URL
-    prima della cancellazione finale via endpoint.
+    prima della cancellazione finale via endpoint. Endpoint esercitati: GET/POST
+    /api/admin/attributions e PUT/DELETE /api/admin/attributions/<id>.
     """
     # arrange - payload sintetico senza dipendenze esterne e con URL vuota intenzionale.
     db = sqlalchemy.get_instance()
@@ -183,6 +186,7 @@ def test_admin_attribution_list_includes_related_datasets(
     Il bundle viene creato via API admin per coprire relazioni reali senza usare dati
     meteo. L'assert controlla il contratto di serializzazione: id dataset esposto come
     arkimet_id e nome dataset leggibile.
+    Endpoint esercitato: GET /api/admin/attributions.
     """
     # arrange - crea attribution, license group, license e dataset sintetici.
     bundle = create_dataset_bundle_via_api(
@@ -213,6 +217,7 @@ def test_admin_attribution_missing_update_delete_return_404(
 
     Il test non crea dati: usa un id alto e controlla prima che non esista nel DB, cosi
     i 404 misurano il contratto applicativo e non un conflitto con stato residuo.
+    Endpoint esercitati: PUT e DELETE /api/admin/attributions/<id>.
     """
     # arrange - precondizione DB chiara per l'id inesistente.
     db = sqlalchemy.get_instance()

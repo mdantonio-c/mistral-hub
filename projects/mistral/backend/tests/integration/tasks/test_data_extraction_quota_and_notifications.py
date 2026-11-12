@@ -1,17 +1,17 @@
-# EXTENSION TRACEABILITY: questo modulo e stato aggiunto dal prompt 07 del piano di
-# estensione copertura backend per coprire rami ad alto rischio di
-# `tasks.data_extraction` non esercitati dagli happy path postprocessing esistenti.
-# EXTENSION SCOPE: i test proteggono quota utente, disabilitazione schedule su quota,
+# Test dei rami ad alto rischio di `tasks.data_extraction` (tasks/data_extraction.py)
+# non esercitati dagli happy path di postprocessing.
+# Ambito: i test proteggono quota utente, disabilitazione schedule su quota,
 # duplicate data-ready, notification email/AMQP e package license. Non rieseguono
 # estrazioni meteorologiche reali e non duplicano i flussi `integration/postprocessing`.
-# EXTENSION DATA WINDOW: nessun dataset runtime reale viene usato. Le reftime sono
+# Finestra dati: nessun dataset runtime reale viene usato. Le reftime sono
 # dizionari sintetici per confronti duplicate data-ready e non rappresentano finestre
 # meteo reali.
-# EXTENSION RUNTIME: Arkimet size estimation, SMTP, RabbitMQ, Celery periodic deletion
-# e sleep retry sono fake locali via monkeypatch. Il DB di test viene usato solo dove
-# il task legge o scrive User/Schedule/Request/FileOutput. Il rendering email usa i
-# template reali con header/footer e conversione plain text, non prova consegna end-to-end.
-# EXTENSION CLEANUP: utenti temporanei, request, schedule e directory output sono
+# Runtime: stima dimensioni Arkimet, SMTP, RabbitMQ, cancellazione periodic task
+# Celery e sleep dei retry sono fake locali via monkeypatch. Il DB di test viene usato
+# solo dove il task legge o scrive User/Schedule/Request/FileOutput. Il rendering
+# email usa i template reali con header/footer e conversione plain text, non prova
+# consegna end-to-end.
+# Cleanup: utenti temporanei, request, schedule e directory output sono
 # registrati nel cleanup_registry; i file package vivono in tmp_path e sono rimossi dal
 # registry oltre che dal cleanup pytest.
 
@@ -464,7 +464,7 @@ class TestDataExtractionNotificationsEXT:
 
 
 class TestPackageDataLicenseEXT:
-    """Mantiene nel prompt 07 il controllo filesystem del package license."""
+    """Verifica gli effetti su filesystem di ``package_data_license``."""
 
     def test_package_data_license_archives_license_and_removes_original(
         self,
@@ -473,10 +473,10 @@ class TestPackageDataLicenseEXT:
     ) -> None:
         """Il tar contiene output e LICENSE, mentre il file output originale sparisce.
 
-        Questo helper era gia coperto nei quick wins, ma il prompt 07 richiede di
-        mantenerne il contratto accanto ai side effect data_extraction. Usiamo tmp_path
-        e lo registriamo anche nel cleanup_registry per documentare esplicitamente il
-        teardown filesystem.
+        Questo helper e coperto anche in test_data_extraction_helpers.py; qui il
+        contratto resta accanto agli altri side effect di data_extraction. Usiamo
+        tmp_path e lo registriamo anche nel cleanup_registry per documentare
+        esplicitamente il teardown filesystem.
         """
         # arrange
         # I file sono contenuto sintetico puro: nessun output meteo reale o postprocessor

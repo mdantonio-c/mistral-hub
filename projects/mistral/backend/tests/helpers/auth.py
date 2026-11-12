@@ -1,9 +1,9 @@
-"""Authentication and temporary-user helpers shared across the test suite.
+"""Helper per autenticazione e utenti temporanei condivisi dalla suite di test.
 
-Many integration scenarios need a throwaway user with known permissions, plus
-the HTTP headers required to call the API as that user. This module centralizes
-that setup so the individual tests can declare intent without manually dealing
-with user creation, login, output directories, or teardown wiring.
+Molti scenari di integrazione hanno bisogno di un utente usa e getta con permessi
+noti e degli header HTTP necessari per chiamare l'API come quell'utente. Questo
+modulo centralizza quel setup, cosi i singoli test dichiarano solo l'intento senza
+gestire a mano creazione dell'utente, login, directory di output e teardown.
 """
 
 from __future__ import annotations
@@ -21,12 +21,12 @@ from restapi.tests import API_URI, BaseTests, FlaskClient
 
 @dataclass(frozen=True)
 class AuthenticatedTestUser:
-    """Small immutable record describing one temporary authenticated test user.
+    """Record immutabile che descrive un utente di test temporaneo autenticato.
 
-    The object groups together the values that tests commonly need after user
-    creation: the UUID used by filesystem paths, the numeric database id, the
-    authenticated HTTP headers, the expected output directory on disk and, when
-    known, the login email used for BasicAuth scenarios.
+    Raggruppa i valori che servono di solito ai test dopo la creazione dell'utente:
+    l'UUID usato nei percorsi su filesystem, l'id numerico nel database, gli header
+    HTTP autenticati, la directory di output attesa su disco e, se nota, l'email di
+    login usata negli scenari BasicAuth.
     """
 
     uuid: str
@@ -41,32 +41,21 @@ def create_authenticated_test_user(
     client: FlaskClient,
     permissions: dict[str, Any] | None = None,
 ) -> AuthenticatedTestUser:
-    """Create a temporary API user, log it in, and return the reusable metadata.
+    """Crea un utente API temporaneo, esegue il login e ne restituisce i metadati.
 
-    The helper accepts an optional permissions dictionary exactly like the admin
-    user-creation endpoint. It then logs in with the generated credentials and
-    packages the result into ``AuthenticatedTestUser`` so callers can reuse the
-    same object across setup, assertions, and cleanup.
+    Accetta un dizionario opzionale di permessi con lo stesso formato dell'endpoint
+    admin di creazione utenti (via ``BaseTests.create_user`` di restapi). Poi esegue
+    il login con le credenziali generate e raccoglie il risultato in
+    ``AuthenticatedTestUser``, cosi il chiamante riusa lo stesso oggetto per setup,
+    asserzioni e cleanup.
     """
-    # Costruiamo lo stato controllato richiesto dal test, usando gli stessi canali che
-    # il backend espone in produzione quando possibile.
     db = sqlalchemy.get_instance()
-    # Creiamo un utente temporaneo con permessi mirati, cosi il test non dipende da
-    # account preesistenti.
     uuid, data = base.create_user(client, permissions or {})
-    # Effettuiamo il login per ottenere header autentici, identici a quelli usati dalle
-    # chiamate API successive.
     headers, _ = base.do_login(client, data.get("email"), data.get("password"))
 
-    # Leggiamo lo stato dal database di test per collegare la risposta API agli effetti
-    # persistiti dal backend.
     user = db.User.query.filter_by(uuid=uuid).first()
-    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
-    # arrivato fin qui senza eccezioni.
     assert user is not None
 
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return AuthenticatedTestUser(
         uuid=uuid,
         user_id=user.id,
@@ -77,19 +66,14 @@ def create_authenticated_test_user(
 
 
 def delete_test_user(base: BaseTests, client: FlaskClient, user_uuid: str) -> None:
-    """Delete one temporary user through the admin API with default admin login.
+    """Cancella un utente temporaneo via API admin, con il login admin di default.
 
-    Tests rarely care about the response body of this cleanup operation; they
-    only need a reliable way to remove throwaway users after the scenario.
+    Chiama ``DELETE {API_URI}/admin/users/<uuid>`` e si aspetta 204. Ai test di
+    solito non interessa il body di questa operazione di cleanup: serve solo un modo
+    affidabile per rimuovere gli utenti usa e getta alla fine dello scenario.
     """
-    # Rimuoviamo lo stato creato dal test per non lasciare dati che possano influenzare
-    # gli scenari successivi.
     admin_headers, _ = base.do_login(client, None, None)
-    # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
-    # autorizzazione e serializzazione vengono verificati insieme.
     response = client.delete(f"{API_URI}/admin/users/{user_uuid}", headers=admin_headers)
-    # Verifichiamo che la risposta confermi la cancellazione senza body di risposta
-    # prima di usare il payload.
     assert response.status_code == 204
 
 
@@ -101,17 +85,13 @@ def register_test_user_cleanup(
     user_uuid: str,
     root_path: Path,
 ) -> None:
-    """Register the standard teardown actions for a temporary test user.
+    """Registra le azioni di teardown standard per un utente di test temporaneo.
 
-    This helper adds both filesystem cleanup for the user's working directory and
-    admin-side deletion of the user record itself, so tests can fail safely
-    without leaving residual state behind.
+    Aggiunge al registro sia la rimozione dal filesystem della directory di lavoro
+    dell'utente sia la cancellazione del record utente via API admin, cosi i test
+    possono fallire senza lasciare stato residuo.
     """
-    # Registriamo subito il cleanup: anche se il test fallisce a meta, le risorse
-    # temporanee verranno rimosse.
     cleanup_registry.add_path(root_path)
-    # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta affidabile
-    # anche in caso di fallimento.
     cleanup_registry.add(lambda: delete_test_user(base, client, user_uuid))
 
 
@@ -123,11 +103,12 @@ def create_dataset_test_user(
     allowed_obs_archive: bool = False,
     open_dataset: bool = True,
 ) -> AuthenticatedTestUser:
-    """Create a temporary user with explicit dataset grants and register its teardown.
+    """Crea un utente con grant espliciti sui dataset e ne registra il teardown.
 
-    ``dataset_ids`` lists the only datasets explicitly granted to the user: an empty
-    list produces a user without grants, useful to hit private-dataset 401 branches.
-    ``allowed_obs_archive`` controls access to archived observed data.
+    ``dataset_ids`` elenca gli unici dataset concessi esplicitamente all'utente: una
+    lista vuota produce un utente senza grant, utile per raggiungere i rami 401 dei
+    dataset privati. ``allowed_obs_archive`` controlla l'accesso ai dati osservati
+    archiviati. I permessi passano dall'API admin di creazione utenti.
     """
     permissions: dict[str, Any] = {
         "open_dataset": open_dataset,
@@ -147,15 +128,11 @@ def create_dataset_test_user(
 
 
 def make_basic_auth(email: str, access_key: str) -> dict[str, str]:
-    """Build the exact HTTP Basic header used by access-key validation tests.
+    """Costruisce l'header HTTP Basic usato dai test di validazione dell'access key.
 
-    The validation endpoint expects the user email and access key encoded as a
-    single Basic-auth token. This helper keeps that encoding detail out of the
-    test bodies.
+    L'endpoint ``GET /api/access-key/validate`` (endpoints/access_key.py) si aspetta
+    email dell'utente e access key codificate in un unico token Basic-auth. Questo
+    helper tiene il dettaglio della codifica fuori dal corpo dei test.
     """
-    # Entriamo nel blocco operativo dell'helper condiviso, mantenendo esplicito
-    # quale stato viene letto o prodotto.
     token = base64.b64encode(f"{email}:{access_key}".encode()).decode()
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return {"Authorization": f"Basic {token}"}

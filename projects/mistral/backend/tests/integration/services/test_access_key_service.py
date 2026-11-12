@@ -1,6 +1,5 @@
-# EXTENSION TRACEABILITY - Prompt 06, modello e service access key.
-# Origine: questo modulo aggiunge copertura deterministica per AccessKey.generate,
-# AccessKey.is_valid e mistral.services.access_key_service.is_access_key_valid.
+# Test deterministici di AccessKey.generate, AccessKey.is_valid (models/sqlalchemy.py)
+# e mistral.services.access_key_service.is_access_key_valid.
 # Ambito: verifica scadenza default/null, validita con scadenza assente/futura/passata
 # e rifiuto di una chiave presentata diversa da quella salvata.
 # Finestra dati: nessun dataset reale e nessun record DB sono necessari; le AccessKey
@@ -8,7 +7,6 @@
 # Runtime fake: non servono request Flask, BasicAuth reale o database; il service helper
 # testato accetta direttamente il record AccessKey e la chiave fornita.
 # Cleanup: nessuno stato persistente viene creato, quindi non serve cleanup_registry.
-# Baseline non toccata: il file e un nuovo modulo di estensione nel dominio integration/services.
 
 from __future__ import annotations
 
@@ -40,7 +38,7 @@ def test_access_key_generate_sets_default_and_null_expiration() -> None:
     assert default_key.expiration > default_key.creation
     assert default_key.scope == "read:arco"
 
-    # assert - lifetime None produce chiave non expiring ma conserva gli altri campi.
+    # assert - lifetime None produce chiave senza scadenza ma conserva gli altri campi.
     assert no_expiration_key.user_id == 42
     assert no_expiration_key.key
     assert no_expiration_key.expiration is None
@@ -50,8 +48,8 @@ def test_access_key_generate_sets_default_and_null_expiration() -> None:
 def test_access_key_model_is_valid_handles_expiration_states() -> None:
     """Verifica AccessKey.is_valid per scadenza assente, futura e passata.
 
-    Il model method usa datetime.utcnow naive; il test costruisce datetime naive per
-    coprire il contratto senza introdurre confronti timezone non pertinenti.
+    Il metodo del modello usa datetime.utcnow naive; il test costruisce datetime
+    naive per coprire il contratto senza introdurre confronti timezone non pertinenti.
     """
     # arrange - tre istanze in memoria con stati di expiration distinti.
     now = datetime.utcnow()
@@ -74,7 +72,7 @@ def test_access_key_model_is_valid_handles_expiration_states() -> None:
         user_id=1,
     )
 
-    # act/assert - il model method deve distinguere i tre stati senza DB.
+    # act/assert - il metodo del modello deve distinguere i tre stati senza DB.
     assert without_expiration.is_valid() is True
     assert future_expiration.is_valid() is True
     assert past_expiration.is_valid() is False
@@ -84,7 +82,7 @@ def test_access_key_service_rejects_wrong_key() -> None:
     """Verifica is_access_key_valid quando la chiave fornita non combacia.
 
     Il service helper controlla prima esistenza/scadenza e poi uguaglianza del token; il
-    test usa expiration None per isolare il ramo wrong-key dalla logica temporale.
+    test usa expiration None cosi conta solo il confronto tra chiave salvata e fornita.
     """
     # arrange - record AccessKey in memoria valido ma con token diverso da quello fornito.
     key_record = AccessKey(

@@ -1,7 +1,7 @@
 # Review — `test_on_data_ready_task_edges.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** (prompt 04) sui rami edge del task data-ready, non coperti dall'happy path legacy.
+> Modulo: copertura dei rami edge del task data-ready, non coperti dall'happy path esistente.
 
 ## 1. Informazioni generali
 
@@ -9,7 +9,7 @@
 - **Scopo**: verificare i rami di `launch_all_on_data_ready_extractions` che **saltano** una schedule (0 dataset, ≥2 dataset, run filter non decodificabile) o che **falliscono** con `SystemError` quando l'invio Celery solleva un'eccezione.
 - **Tipologia**: test di **integrazione task** (schedule seedate nel DB di test + Celery fake). Marker dichiarati: `integration`, `deterministic`.
 - **Conteggio**: 4 test in `TestOnDataReadyTaskEdges`. Nessun `pytest.skip`.
-- **Baseline**: l'happy path data-ready è coperto inline da `test_schedule_opendata_bridge.py`; qui si coprono solo gli edge che **non** inviano l'estrazione.
+- **Altri test**: l'happy path data-ready è coperto inline da `test_schedule_opendata_bridge.py`; qui si coprono solo gli edge che **non** inviano l'estrazione.
 
 ## 2. Backend realmente testato
 

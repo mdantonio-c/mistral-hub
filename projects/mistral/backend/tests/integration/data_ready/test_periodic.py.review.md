@@ -106,7 +106,7 @@ wait_for_schedule_requests(expected_count) → GET /api/schedules/<id>/requests?
 
 ## 6. Comportamenti nascosti
 
-- **Doppio cablaggio Celery via helper condiviso**: `trigger_data_ready_inline` usa `AcceptTasksWithoutRunningCelery` sull'endpoint e `InlineDataReadyExtractionCelery` sul launcher. Il pattern è condiviso con i test di gating baseline, mismatch e crontab.
+- **Doppio cablaggio Celery via helper condiviso**: `trigger_data_ready_inline` usa `AcceptTasksWithoutRunningCelery` sull'endpoint e `InlineDataReadyExtractionCelery` sul launcher. Il pattern è condiviso con i test di gating di base, mismatch e crontab.
 - **Submit endpoint verificata**: il helper conserva il fake di ingresso e asserisce che sia stata registrata esattamente una submit del launcher prima di chiamare `.run(...)`.
 - **Decisione REALE, materializzazione FAKE**: la regola "periodo trascorso?" è eseguita dal backend reale; ma la **creazione** della `Request` e l'eventuale **dedup-by-reftime** sono implementate nel fake [celery_fakes.py](projects/mistral/backend/tests/helpers/celery_fakes.py). Per i due test "creates", il conteggio `2` dipende dal fake che crea la riga.
 - **Il dedup del fake non scatta (per mismatch di formato)**: il fake confronta `last_request.args.get("reftime") == reftime`. La riga **seminata** ha `reftime` **stringa** (da `create_schedule_request_record`), mentre il task reale passa `reftime` come **dict** `{"from":..,"to":..}`. I due valori non sono mai uguali → il fake **non** deduplica e crea sempre la nuova riga. Il conteggio `2` poggia quindi su questa differenza di formato, non su una vera assenza di duplicato.

@@ -1,7 +1,6 @@
 # Review — `test_tool_helpers.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** sopra la baseline legacy.
 
 ## 1. Informazioni generali
 
@@ -29,9 +28,9 @@
 | `BadRequest` | eccezione | `restapi.exceptions` | Target di `pytest.raises`. |
 | `shutil.rmtree` | stdlib | (in `spare_point_interpol.check_coord_filepath`) | Cancella la cartella del bundle shapefile corrotto (effetto collaterale su filesystem). |
 | `mistral.tools.{grid_cropping, grid_interpolation, spare_point_interpol}` | moduli | [tools/](projects/mistral/backend/tools) | Espongono gli helper sotto test; importati a livello di modulo. |
-| `pytest.mark.integration` / `deterministic` | marker | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L9) | Solo classificazione. |
+| `pytest.mark.integration` / `deterministic` | marker | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L13) | Solo classificazione. |
 
-> **Nota infra**: nessun `conftest.py`/`support` locale in `integration/tools/`. Nessuna fixture condivisa: solo `tmp_path` built-in. Le fixture suite ([`test_runtime`/`cleanup_registry`](projects/mistral/backend/tests/conftest.py#L31)) non sono richieste.
+> **Nota infra**: nessun `conftest.py`/`support` locale in `integration/tools/`. Nessuna fixture condivisa: solo `tmp_path` built-in. Le fixture suite ([`test_runtime`/`cleanup_registry`](projects/mistral/backend/tests/conftest.py#L49)) non sono richieste.
 
 ## 4. Analisi dettagliata di ogni test
 

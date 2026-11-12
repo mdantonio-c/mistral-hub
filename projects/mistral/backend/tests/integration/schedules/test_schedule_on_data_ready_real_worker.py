@@ -1,15 +1,15 @@
-"""Real-worker test for the first extraction of an on-data-ready schedule.
+"""Test con worker reale per la prima estrazione di una schedule on-data-ready.
 
-``POST /schedules`` with ``on-data-ready`` stores the schedule and sends its
-first ``data_extract`` to the broker straight away, without any RedBeat entry.
-Nothing is replaced here: a real Celery worker runs the extraction, the test
-waits until the request succeeds, downloads the output and deletes the
-schedule through the API.
+``POST /schedules`` con ``on-data-ready`` salva la schedule e invia subito al
+broker il primo ``data_extract``, senza alcuna voce in RedBeat.
+Qui non si sostituisce nulla: un worker Celery reale esegue l'estrazione, il test
+aspetta che la request vada a buon fine, scarica l'output e cancella la
+schedule tramite l'API.
 
-The test stays inside its perimeter: the temporary user comes from the
-``schedules_user`` fixture (``create_data_ready_user``, no real emails), the
-output is written in the user's directory instead of the shared opendata one,
-and the cleanup waits for the workers before deleting the user's data.
+Il test resta nel proprio perimetro: l'utente temporaneo arriva dalla fixture
+``schedules_user`` (``create_data_ready_user``, nessuna email reale), l'output
+viene scritto nella cartella dell'utente invece che in quella opendata condivisa,
+e il cleanup aspetta i worker prima di cancellare i dati dell'utente.
 """
 
 from __future__ import annotations
@@ -45,7 +45,10 @@ def _single_schedule_request(
     headers: Any,
     schedule_id: str,
 ) -> dict[str, Any] | None:
-    """Return the only request of the schedule, or ``None`` while it is missing."""
+    """Restituisce l'unica request della schedule, o ``None`` finche non esiste.
+
+    Legge le request tramite GET /schedules/<id>/requests.
+    """
     requests = list_schedule_requests(base, client, headers, schedule_id)
     return requests[0] if len(requests) == 1 else None
 
@@ -56,7 +59,11 @@ def test_on_data_ready_schedule_first_extraction_runs_on_real_worker(
     schedules_base,
     schedules_user,
 ) -> None:
-    """Verify that a real worker runs the first extraction of an on-data-ready schedule."""
+    """Un worker reale esegue la prima estrazione di una schedule on-data-ready.
+
+    Esercita POST /schedules, il task Celery ``data_extract``, GET /data/<file> e
+    DELETE /schedules/<id>, senza lasciare voci periodiche in RedBeat.
+    """
     # arrange
     # Registrata dopo il cleanup della fixture utente, l'attesa dei worker gira per
     # prima: la schedule, se resta, la cancella quel cleanup con Celery reale.

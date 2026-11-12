@@ -1,7 +1,6 @@
 # Review — `test_schedule_validation.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** sopra la baseline legacy.
 
 ## 1. Informazioni generali
 
@@ -29,7 +28,7 @@
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L39) | Teardown **LIFO**. |
+| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO**. |
 | `monkeypatch` | fixture | `pytest` | Patcha `rabbitmq.get_instance` nei test push e il nome `celery` del modulo endpoint (guardia). |
 | `forbid_real_schedule_dispatch` | fixture **locale autouse** | questo file | Sostituisce `celery` nel solo modulo endpoint con una funzione che chiama `pytest.fail`. |
 | `schedules_user` | fixture **locale** | questo file | Utente non-admin con ruolo esplicito `Role.USER` (`roles` nei permessi, come in `admin/support.py`): `allowed_schedule`, `open_dataset`, `datasets=[agrmet, lm5, lm2.2]`. **Shadowa** la fixture omonima del conftest. |
@@ -101,7 +100,7 @@
 ### `test_push_queue_nonexistent_returns_403`
 - **Obiettivo**: `push=true` con coda **configurata ma inesistente** lato broker → **403**.
 - **Backend coinvolto**: stesso ramo `push`, ma con `user.amqp_queue` valorizzato.
-- **Flusso**: scrive `user.amqp_queue = "missing.prompt04.ext"` **direttamente nel DB** → `monkeypatch` RabbitMQ (`queue_exists=False`) → `POST …?push=true`.
+- **Flusso**: scrive in `user.amqp_queue` il nome di una coda inesistente **direttamente nel DB** → `monkeypatch` RabbitMQ (`queue_exists=False`) → `POST …?push=true`.
 - **Setup**: `schedules_user`; mutazione diretta del record utente.
 - **Assert**: `status_code == 403`.
 - **Casi coperti**: push con coda nominata ma assente sul broker (stesso `raise`, stato diverso). Senza il fake, l'esito dipenderebbe dal broker reale: il `MagicMock` rende deterministico il ramo.

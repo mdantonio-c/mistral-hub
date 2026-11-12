@@ -1,17 +1,14 @@
-# EXTENSION TRACEABILITY: questo modulo di supporto e stato aggiunto dal prompt 07
-# dell'estensione copertura backend. Esiste solo per i nuovi test task di estensione e non
-# modifica la baseline legacy, gli helper globali o il codice applicativo.
-# EXTENSION SCOPE: centralizza piccoli seed DB e fake SMTP/Rabbit/Celery usati dai
-# test su requests_cleanup e data_extraction. I fake riproducono soltanto i metodi
+# Ambito: centralizza piccoli seed DB e fake SMTP/Rabbit/Celery usati dai test sui
+# task Celery requests_cleanup e data_extraction. I fake riproducono soltanto i metodi
 # osservati dai task, cosi la verifica resta sui side effect di quota, cleanup e
 # notification invece che sull'infrastruttura esterna.
-# EXTENSION DATA WINDOW: nessun dataset meteorologico reale viene letto o richiesto.
+# Finestra dati: nessun dataset meteorologico reale viene letto o richiesto.
 # Le date usate dai chiamanti sono sintetiche e servono solo a rendere vecchi o
 # recenti record e file controllati dalla suite.
-# EXTENSION RUNTIME: non vengono aperte connessioni SMTP, RabbitMQ, Celery worker o
+# Runtime: non vengono aperte connessioni SMTP, RabbitMQ, Celery worker o
 # tool meteo. Il DB e quello di test Rapydo perche i rami da coprire persistono
 # request, schedule e fileoutput; tutti i servizi esterni sono fake locali.
-# EXTENSION CLEANUP: i helper registrano utenti e directory nel cleanup_registry e
+# Cleanup: gli helper registrano utenti e directory nel cleanup_registry e
 # offrono funzioni idempotenti per rimuovere request, schedule e fileoutput creati
 # dai test. I path fisici vivono sotto la directory dell'utente temporaneo o sotto
 # tmp_path, mai in aree runtime non controllate.
@@ -58,8 +55,6 @@ class RetryThenSuccessSmtpFactoryEXT:
     """
 
     def __init__(self, *, failures_before_success: int = 1) -> None:
-        # Memorizziamo il comportamento sintetico e gli effetti osservabili che il test
-        # ispezionera dopo la chiamata a notify_by_email.
         self.failures_before_success = failures_before_success
         self.send_attempts = 0
         self.get_instance_calls: list[dict[str, Any]] = []
@@ -68,9 +63,8 @@ class RetryThenSuccessSmtpFactoryEXT:
     def get_instance(self, **kwargs: Any) -> "RetryThenSuccessSmtpClientEXT":
         """Restituisce un context manager SMTP fake per un singolo retry.
 
-        Il nome con suffisso EXT rende chiaro che questo metodo e introdotto solo dalla
-        suite estesa. Il chiamante lo monkeypatcha su `smtp.get_instance`, quindi la
-        firma accetta kwargs generici come il connettore reale.
+        Il chiamante lo monkeypatcha su `smtp.get_instance`, quindi la firma accetta
+        kwargs generici come il connettore reale.
         """
         # Registriamo i parametri di connessione richiesti dal task; non li usiamo per
         # collegarci a servizi reali, ma proteggono il contratto di retry esistente.
@@ -79,7 +73,7 @@ class RetryThenSuccessSmtpFactoryEXT:
 
 
 class RetryThenSuccessSmtpClientEXT:
-    """Context manager minimale restituito dal factory SMTP EXT.
+    """Context manager minimale restituito dal factory SMTP fake.
 
     Il client implementa solo `send`, `__enter__` e `__exit__`, cioe il sottoinsieme
     realmente usato dal task. Ogni altro comportamento SMTP resta fuori dallo scope.
@@ -188,7 +182,6 @@ class RecordingPeriodicTaskDeletionEXT:
     """
 
     def __init__(self, *, return_value: bool = True) -> None:
-        # Conserviamo il valore di ritorno configurabile e la cronologia chiamate.
         self.return_value = return_value
         self.calls: list[dict[str, Any]] = []
 
@@ -218,8 +211,6 @@ def create_task_test_user(
     utente e directory output, mentre i test aggiungono cleanup specifici per request
     e schedule creati dopo l'utente.
     """
-    # Prepariamo un utente reale del DB di test; nessun scenario dipende da account
-    # seedati o da configurazioni locali non portabili.
     base = BaseTests()
     user = create_authenticated_test_user(
         base,
@@ -373,7 +364,7 @@ def delete_schedule(db: Any, schedule_id: int) -> None:
 
 
 def delete_requests_for_user(db: Any, user_id: int) -> None:
-    """Rimuove request e fileoutput creati per un utente temporaneo dei task EXT."""
+    """Rimuove request e fileoutput creati per un utente temporaneo dei test task."""
     # Cancelliamo prima i FileOutput rimasti, poi le Request, cosi il teardown resta
     # stabile anche quando il task ha gia rimosso parte dello stato.
     for fileoutput in db.FileOutput.query.filter_by(user_id=user_id).all():

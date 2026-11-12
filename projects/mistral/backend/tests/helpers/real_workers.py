@@ -1,18 +1,19 @@
-"""Helpers for ``async_real`` tests, whose tasks run on the real Celery workers.
+"""Helper per i test ``async_real``, i cui task girano sui worker Celery reali.
 
-Inside a worker ``monkeypatch`` has no effect: whatever the task does really
-happens. These helpers keep such tests inside their own perimeter:
+Dentro un worker ``monkeypatch`` non ha effetto: tutto quello che il task fa
+avviene davvero. Questi helper tengono tali test dentro il loro perimetro:
 
-- run them only where the workers use the SMTP mock (``rapydo --testing``);
-- poll the API until the workers close a request;
-- make the cleanup wait for the workers before the API deletes the data of the
-  test user, and stop the user's tasks first if the workers are too slow;
-- read RedBeat only for the schedule created by the test;
-- read the emails recorded by the SMTP mock.
+- li eseguono solo dove i worker usano il mock SMTP (``rapydo --testing``);
+- interrogano l'API finche i worker chiudono una richiesta;
+- fanno si che il cleanup attenda i worker prima che l'API cancelli i dati
+  dell'utente di test, e fermano prima i task dell'utente se i worker sono
+  troppo lenti;
+- leggono RedBeat solo per la schedule creata dal test;
+- leggono le email registrate dal mock SMTP.
 
-Users whose extractions run on real workers must be created with
-``create_data_ready_user``, which keeps every notification away from real
-mailboxes.
+Gli utenti le cui estrazioni girano sui worker reali vanno creati con
+``create_data_ready_user``, che tiene ogni notifica lontana da caselle di posta
+reali.
 """
 
 from __future__ import annotations
@@ -53,7 +54,7 @@ SMTP_MOCK_FILES = ("mock.mail.lastsent.json", "mock.mail.prevsent.json")
 
 @dataclass(frozen=True)
 class MockEmail:
-    """One email recorded by the Rapydo SMTP mock instead of being sent."""
+    """Un'email registrata dal mock SMTP di Rapydo invece di essere inviata."""
 
     recipients: list[str]
     subject: str
@@ -61,20 +62,20 @@ class MockEmail:
 
 
 class RealWorkerCleanupWarning(Warning):
-    """The cleanup had to stop tasks of a test user on the real workers.
+    """Il cleanup ha dovuto fermare task di un utente di test sui worker reali.
 
-    It derives from ``Warning`` on purpose: in test mode ``create_app`` turns
-    ``UserWarning`` into an error, which would interrupt the cleanup halfway.
+    Deriva da ``Warning`` di proposito: in modalita test ``create_app`` trasforma
+    ``UserWarning`` in errore, e questo interromperebbe il cleanup a meta.
     """
 
 
 def workers_use_smtp_mock() -> bool:
-    """Return True if the stack was started with ``rapydo --testing``.
+    """Restituisce True se lo stack e stato avviato con ``rapydo --testing``.
 
-    Only in that mode the real workers run with ``APP_MODE=test`` and replace
-    SMTP with the Rapydo mock. The test process cannot read the environment of
-    the workers, so it checks the variables that the same command sets in the
-    backend container.
+    Solo in quella modalita i worker reali girano con ``APP_MODE=test`` e
+    sostituiscono SMTP con il mock di Rapydo. Il processo dei test non puo leggere
+    l'ambiente dei worker, quindi controlla le variabili che lo stesso comando
+    imposta nel container backend.
     """
     return all(
         os.environ.get(name) == value for name, value in TESTING_STACK_MARKERS.items()
@@ -82,10 +83,11 @@ def workers_use_smtp_mock() -> bool:
 
 
 def read_periodic_task(schedule_id: int | str) -> Any:
-    """Return the RedBeat entry of one schedule, or ``None`` if it does not exist.
+    """Restituisce la voce RedBeat di una schedule, o ``None`` se non esiste.
 
-    The lookup goes through the project's Celery connector and reads only the
-    key of the given schedule.
+    La lettura passa dal connettore Celery del progetto
+    (``celery.get_instance().get_periodic_task``) e legge solo la chiave della
+    schedule indicata.
     """
     return celery.get_instance().get_periodic_task(name=str(schedule_id))
 
@@ -97,11 +99,12 @@ def wait_for_finished_request(
     timeout: float = 120,
     interval: float = 2,
 ) -> dict[str, Any]:
-    """Poll until the request returned by ``read_request`` reaches a final state.
+    """Attende che la richiesta letta da ``read_request`` arrivi a uno stato finale.
 
-    ``read_request`` returns the request payload, or ``None`` while the request
-    is not visible yet. The final payload is returned whatever its state, so the
-    caller can assert on ``SUCCESS`` and show the worker error otherwise.
+    ``read_request`` restituisce il payload della richiesta, oppure ``None`` finche
+    la richiesta non e ancora visibile. Il payload finale viene restituito qualunque
+    sia lo stato, cosi il chiamante puo verificare ``SUCCESS`` e altrimenti mostrare
+    l'errore del worker.
     """
 
     def finished_request() -> dict[str, Any] | bool:
@@ -124,10 +127,10 @@ def wait_for_mock_email(
     timeout: float = 30,
     interval: float = 1,
 ) -> MockEmail:
-    """Return the email that the SMTP mock recorded for ``address``.
+    """Restituisce l'email che il mock SMTP ha registrato per ``address``.
 
-    The mock writes the last two sent emails in the logs folder, which the
-    backend and the workers share. An email found here never left the stack.
+    Il mock scrive le ultime due email inviate nella cartella dei log, condivisa da
+    backend e worker. Un'email trovata qui non e mai uscita dallo stack.
     """
 
     def recorded_email() -> MockEmail | bool:
@@ -158,11 +161,11 @@ def wait_for_mock_email(
 
 
 def held_user_tasks(user_id: int) -> set[str] | None:
-    """Return the ids of the ``data_extract`` tasks of ``user_id`` held by a worker.
+    """Restituisce gli id dei task ``data_extract`` di ``user_id`` tenuti da un worker.
 
-    Running, prefetched and countdown tasks are all included; the first argument
-    of ``data_extract`` is the user id. ``None`` means that no worker replied, so
-    nothing can be confirmed.
+    Sono inclusi i task in esecuzione, quelli gia prelevati e quelli in attesa del
+    countdown; il primo argomento di ``data_extract`` e l'id utente. ``None``
+    significa che nessun worker ha risposto, quindi non si puo confermare nulla.
     """
     inspector = celery.get_instance().celery_app.control.inspect(timeout=1)
     replies = (inspector.active(), inspector.reserved(), inspector.scheduled())
@@ -186,17 +189,17 @@ def stop_user_tasks(
     timeout: float = 30,
     interval: float = 3,
 ) -> None:
-    """Stop the tasks of the test user and wait until the workers confirm it.
+    """Ferma i task dell'utente di test e attende che i worker lo confermino.
 
-    Queued tasks are revoked, so the workers drop them; running ones are killed
-    with SIGKILL, so they never reach the ``finally`` block of ``data_extract``,
-    which writes the request and sends the notification. Only tasks of the test
-    user are touched: those of its unfinished requests and the ``data_extract``
-    tasks whose first argument is its id.
+    I task in coda vengono revocati, quindi i worker li scartano; quelli in
+    esecuzione vengono uccisi con SIGKILL, cosi non arrivano mai al blocco
+    ``finally`` di ``data_extract``, che scrive la richiesta e invia la notifica.
+    Vengono toccati solo i task dell'utente di test: quelli delle sue richieste
+    non terminate e i task ``data_extract`` il cui primo argomento e il suo id.
 
-    If the workers do not confirm, the step fails: the cleanup stops and every
-    row, file and account of the user stays in place, still consistent for a
-    worker that completes the task later.
+    Se i worker non confermano, il passo fallisce: il cleanup si ferma e ogni riga,
+    file e account dell'utente resta al suo posto, ancora coerente per un worker
+    che completi il task piu tardi.
     """
     control = celery.get_instance().celery_app.control
     # Un task ancora nel broker non compare nelle risposte dei worker: si revoca
@@ -234,17 +237,18 @@ def register_wait_for_user_requests(
     interval: float = 3,
     stop_timeout: float = 30,
 ) -> None:
-    """Make the cleanup wait for the workers before deleting the user's data.
+    """Fa si che il cleanup attenda i worker prima di cancellare i dati dell'utente.
 
-    Register it after ``register_data_ready_user_cleanup``: the registry runs in
-    LIFO order, so this step runs first. It waits until every request of the
-    user is finished and no worker holds a ``data_extract`` task of the user.
-    The API refuses to delete a pending request, and data deleted under a task
-    would leave the worker writing on missing rows and folders.
+    Va registrato dopo ``register_data_ready_user_cleanup``: il registro esegue in
+    ordine LIFO, quindi questo passo viene eseguito per primo. Attende che ogni
+    richiesta dell'utente sia terminata e che nessun worker tenga un task
+    ``data_extract`` dell'utente. L'API rifiuta di cancellare una richiesta in
+    corso, e dati cancellati sotto un task lascerebbero il worker a scrivere su
+    righe e cartelle mancanti.
 
-    If the workers are too slow, ``stop_user_tasks`` stops the user's tasks and
-    only then the unfinished requests of the user are deleted. If the workers
-    do not confirm, the step fails and deletes nothing.
+    Se i worker sono troppo lenti, ``stop_user_tasks`` ferma i task dell'utente e
+    solo dopo vengono cancellate le sue richieste non terminate. Se i worker non
+    confermano, il passo fallisce e non cancella nulla.
     """
 
     def user_tasks_finished() -> bool:
@@ -271,6 +275,7 @@ def register_wait_for_user_requests(
 
 
 def _unfinished_requests(user: AuthenticatedTestUser) -> list[Any]:
+    """Restituisce le richieste dell'utente non ancora in uno stato finale (DB)."""
     db = sqlalchemy.get_instance()
     # populate_existing rilegge lo stato scritto dai worker in altri processi.
     requests = (
@@ -280,6 +285,7 @@ def _unfinished_requests(user: AuthenticatedTestUser) -> list[Any]:
 
 
 def _delete_unfinished_requests(user: AuthenticatedTestUser) -> None:
+    """Cancella con l'ORM le richieste non terminate e lo segnala con un warning."""
     db = sqlalchemy.get_instance()
     unfinished = _unfinished_requests(user)
     if not unfinished:

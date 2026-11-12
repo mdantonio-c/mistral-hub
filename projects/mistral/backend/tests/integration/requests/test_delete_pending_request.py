@@ -1,4 +1,9 @@
-"""Integration tests for deleting pending requests and for automatic stale-request cleanup."""
+"""Test di integrazione su cancellazione e cleanup automatico delle richieste pendenti.
+
+Coprono ``DELETE /api/requests/<id>`` (endpoints/requests.py) con la regola del grace
+period e il task Celery ``automatic_cleanup`` (tasks/requests_cleanup.py), che marca
+come fallite le richieste rimaste ferme troppo a lungo.
+"""
 
 import pytest
 from celery.states import READY_STATES
@@ -14,14 +19,12 @@ pytestmark = [pytest.mark.integration, pytest.mark.deterministic]
 
 
 def delete_pending_request(client: FlaskClient, headers, request_id: int):
-    """Call the request-deletion endpoint for the provided request identifier."""
-    # Rimuoviamo lo stato creato dal test per non lasciare dati che possano influenzare
-    # gli scenari successivi.
+    """Chiama ``DELETE /api/requests/<id>``, l'endpoint sotto test, per la richiesta."""
     return client.delete(f"{API_URI}/requests/{request_id}", headers=headers)
 
 
 class TestDeletePendingRequests(BaseTests):
-    """Group scenarios covering request deletion rules around the configured grace period."""
+    """Scenari sulle regole di cancellazione delle richieste attorno al grace period."""
 
     def test_delete_request_before_grace_period_returns_200(
         self,
@@ -29,16 +32,15 @@ class TestDeletePendingRequests(BaseTests):
         pending_request_user: AuthenticatedTestUser,
         pending_delete_requests: tuple[int, int],
     ) -> None:
-        """Verify that requests older than the grace period can be deleted manually."""
+        """Verifica che una richiesta piu vecchia del grace period si possa cancellare.
+
+        ``DELETE /api/requests/<id>`` risponde 200 e la riga sparisce dal DB.
+        """
         # arrange
-        # Prepariamo lo scenario richieste utente con dati minimi e controllati, cosi la
-        # verifica successiva resta legata a un comportamento preciso.
         db = sqlalchemy.get_instance()
         deletable_request_id, _ = pending_delete_requests
 
         # act
-        # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-        # verifica dal setup.
         response = delete_pending_request(
             client,
             pending_request_user.headers,
@@ -46,11 +48,7 @@ class TestDeletePendingRequests(BaseTests):
         )
 
         # assert
-        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-        # questo test vuole proteggere.
         assert response.status_code == 200
-        # Leggiamo lo stato dal database di test per collegare la risposta API agli
-        # effetti persistiti dal backend.
         assert db.Request.query.get(deletable_request_id) is None
 
     def test_delete_request_within_grace_period_returns_403(
@@ -59,16 +57,16 @@ class TestDeletePendingRequests(BaseTests):
         pending_request_user: AuthenticatedTestUser,
         pending_delete_requests: tuple[int, int],
     ) -> None:
-        """Verify that fresh pending requests are still protected from manual deletion."""
+        """Verifica che una richiesta pendente recente non si possa cancellare.
+
+        Dentro il grace period ``DELETE /api/requests/<id>`` risponde 403 e la riga
+        resta nel DB.
+        """
         # arrange
-        # Prepariamo lo scenario richieste utente con dati minimi e controllati, cosi la
-        # verifica successiva resta legata a un comportamento preciso.
         db = sqlalchemy.get_instance()
         _, undeletable_request_id = pending_delete_requests
 
         # act
-        # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-        # verifica dal setup.
         response = delete_pending_request(
             client,
             pending_request_user.headers,
@@ -76,11 +74,7 @@ class TestDeletePendingRequests(BaseTests):
         )
 
         # assert
-        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-        # questo test vuole proteggere.
         assert response.status_code == 403
-        # Leggiamo lo stato dal database di test per collegare la risposta API agli
-        # effetti persistiti dal backend.
         assert db.Request.query.get(undeletable_request_id) is not None
 
     def test_requests_cleanup_marks_stale_request_as_failure(
@@ -90,10 +84,12 @@ class TestDeletePendingRequests(BaseTests):
         pending_delete_requests: tuple[int, int],
         requests_cleanup_perimeter: RequestsCleanupPerimeter,
     ) -> None:
-        """Verify that automatic cleanup marks stale requests as failed but leaves fresh ones pending."""
+        """Verifica che il cleanup automatico marchi come fallite le richieste ferme.
+
+        Il task Celery ``automatic_cleanup`` mette in ``FAILURE`` la richiesta oltre il
+        grace period e lascia pendente quella recente.
+        """
         # arrange
-        # Prepariamo lo scenario richieste utente con dati minimi e controllati, cosi la
-        # verifica successiva resta legata a un comportamento preciso.
         db = sqlalchemy.get_instance()
         deletable_request_id, undeletable_request_id = pending_delete_requests
         # Il task reale e globale: gli rendiamo visibili solo utente e request del test.
@@ -103,27 +99,13 @@ class TestDeletePendingRequests(BaseTests):
         )
 
         # act
-        # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-        # verifica dal setup.
         self.send_task(app, "automatic_cleanup")
 
         # assert
-        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-        # questo test vuole proteggere.
         deletable_request = db.Request.query.get(deletable_request_id)
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert deletable_request is not None
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert deletable_request.status == "FAILURE"
 
-        # Leggiamo lo stato dal database di test per collegare la risposta API agli
-        # effetti persistiti dal backend.
         undeletable_request = db.Request.query.get(undeletable_request_id)
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert undeletable_request is not None
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert undeletable_request.status not in READY_STATES

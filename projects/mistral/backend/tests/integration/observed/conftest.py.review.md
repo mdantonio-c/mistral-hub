@@ -20,7 +20,7 @@ Le fixture non testano direttamente: **scoprono** uno scenario interrogando il r
 | `arkimet_observed_case` | function | `client`, `auth_headers`, `test_runtime` | `yield from yield_observed_case(..., "arkimet")` → `ObservedCase` su dati **archiviati** Arkimet. |
 | `mixed_observed_case` | function | `client`, `auth_headers`, `test_runtime` | `yield from yield_observed_case(..., "mixed")` → `ObservedCase` che **attraversa** entrambi i mondi. |
 
-- Tutte e tre usano `auth_headers` (utente **DEFAULT** condiviso, [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py)) e `test_runtime` (singleton di sessione, [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L31)).
+- Tutte e tre usano `auth_headers` (utente **DEFAULT** condiviso, [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py)) e `test_runtime` (singleton di sessione, [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L49)).
 - Le fixture **non** sono `autouse`: vengono attivate dai test tramite l'indirezione `pytest.mark.parametrize("case_fixture", ...)` + `request.getfixturevalue(case_fixture)` (vedi §4).
 
 ## 4. Comportamenti nascosti
@@ -29,7 +29,6 @@ Le fixture non testano direttamente: **scoprono** uno scenario interrogando il r
 - **`yield from` + teardown via `override_attr`**: ogni fixture cede il `yield` di `yield_observed_case`, che può **patchare temporaneamente `BeDballe.LASTDAYS`** (per `dballe`/`mixed`) tramite `test_runtime.override_attr`. L'override è attivo **solo durante la vita della fixture** e ripristinato nel teardown; **non** avvolge l'esecuzione del corpo del test (importante: nei test, le richieste HTTP che richiedono quella finestra usano i propri override locali quando serve).
 - **Skip silenzioso ereditato**: `discover_observed_params` fa `pytest.skip` se non trova un dataset osservato utilizzabile per quel `db_type`. Quindi **ogni** istanza parametrizzata che dipende da una di queste fixture è **silenziosamente saltabile** quando il runtime non ha dati osservati adeguati. È il principale rischio "verde per skip" del dominio.
 - **Dipendenza dall'utente DEFAULT**: gli scenari `arkimet`/`mixed` producono richieste su `db_type` archiviato; il fatto che non vengano respinte con 401 dipende dal permesso `allowed_obs_archive=True` impostato di default dal customizer ([customization.py](projects/mistral/backend/customization.py#L33)).
-- **Commenti decorativi**: i commenti italiani ("Prepariamo la fixture osservazioni…") sono uniformi e auto-generati; non descrivono logica specifica.
 
 ## 5. Checklist di revisione
 

@@ -1,4 +1,4 @@
-"""Session-wide runtime helpers for reusable state shared across tests."""
+"""Helper di runtime a livello di sessione per stato riusabile condiviso tra i test."""
 
 from __future__ import annotations
 
@@ -8,67 +8,55 @@ from typing import Any
 
 
 class TestRuntime:
-    """Session-scoped singleton that caches reusable test resources.
+    """Singleton di sessione che tiene in cache risorse di test riusabili.
 
-    This object avoids repeating expensive lookups, such as resolving dataset ids,
-    and also offers a safe context manager for temporarily overriding module or
-    class attributes during a test.
+    Evita di ripetere ricerche costose, come la risoluzione degli id dei dataset,
+    e offre anche un context manager sicuro per sovrascrivere temporaneamente
+    attributi di moduli o classi durante un test. Usato dalla fixture
+    ``test_runtime``.
     """
 
     _instance: TestRuntime | None = None
     _lock = RLock()
 
     def __new__(cls) -> TestRuntime:
-        """Instantiate the singleton once and reuse it for the whole session."""
+        """Crea il singleton una sola volta e lo riusa per tutta la sessione."""
         if cls._instance is None:
             with cls._lock:
-                # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve
-                # succedere quando lo stato non e quello ideale.
                 if cls._instance is None:
                     cls._instance = super().__new__(cls)
                     cls._instance._dataset_cache = {}
-        # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo
-        # direttamente nelle asserzioni.
         return cls._instance
 
     def dataset_id(self, db: Any, name: str) -> int:
-        """Resolve one dataset identifier once and cache it for future lookups.
+        """Risolve una sola volta l'id di un dataset e lo mette in cache.
 
-        Tests often need the numeric database id for a dataset that they refer to
-        symbolically by name or ``arkimet_id``. This helper turns that symbolic
-        name into the numeric id and stores the result in the runtime cache.
+        I test hanno spesso bisogno dell'id numerico nel database di un dataset a
+        cui si riferiscono per nome o per ``arkimet_id``. Questo helper converte
+        quel nome simbolico nell'id numerico (tabella ``Datasets``) e salva il
+        risultato nella cache di runtime.
         """
         if name not in self._dataset_cache:
-            # Leggiamo lo stato dal database di test per collegare la risposta API agli
-            # effetti persistiti dal backend.
             ds = db.Datasets.query.filter(
                 (db.Datasets.name == name) | (db.Datasets.arkimet_id == name)
             ).first()
-            # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve
-            # succedere quando lo stato non e quello ideale.
             if ds is None:
                 raise LookupError(f"Dataset '{name}' not found")
             self._dataset_cache[name] = ds.id
-        # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo
-        # direttamente nelle asserzioni.
         return self._dataset_cache[name]
 
     @contextmanager
     def override_attr(self, target: Any, attr: str, value: Any):
-        """Temporarily override an attribute and restore the original afterwards.
+        """Sovrascrive temporaneamente un attributo e poi ripristina l'originale.
 
-        This is used by several test domains to patch environment-dependent class
-        attributes for the duration of a fixture or scenario without leaking the
-        override to later tests.
+        Diversi domini di test lo usano per modificare attributi di classe che
+        dipendono dall'ambiente, per la durata di una fixture o di uno scenario,
+        senza che la modifica resti attiva nei test successivi.
         """
-        # Entriamo nel blocco operativo dell'helper condiviso, mantenendo
-        # esplicito quale stato viene letto o prodotto.
         with self._lock:
             old_value = getattr(target, attr)
             setattr(target, attr, value)
         try:
-            # Cediamo la fixture al test; quando il test termina, il codice sotto il
-            # yield eseguira il teardown.
             yield
         finally:
             with self._lock:

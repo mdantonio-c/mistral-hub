@@ -1,24 +1,19 @@
-# EXTENSION TRACEABILITY: questo modulo nasce dal Prompt 08 del piano di
-# estensione della copertura backend. Integra la copertura ARCO esistente senza
-# modificare i test baseline `test_arco_proxy.py` e `test_arco_catalog.py`, cosi
-# la migrazione legacy resta leggibile e gli edge case nuovi sono isolati.
-# EXTENSION SCOPE: il file copre helper puri, rami di errore del proxy ARCO e
+# Test dei casi limite di ARCO (endpoints/arco.py): completano gli scenari principali
+# di `test_arco_proxy.py` e `test_arco_catalog.py`.
+# Ambito: il file copre helper puri, rami di errore del proxy ARCO e
 # varianti del catalogo S3/Zarr che non richiedono alcun servizio esterno reale.
-# EXTENSION DATA WINDOW: nessuna finestra dati meteorologica viene usata. Tutte
+# Finestra dati: nessuna finestra dati meteorologica viene usata. Tutte
 # le risposte S3, le righe SQLAlchemy di licenze/attribution e i body `.zmetadata`
 # sono sintetici e costruiti nel test.
-# EXTENSION RUNTIME: `mistral.connectors.s3.get_instance` e
+# Runtime: `mistral.connectors.s3.get_instance` e
 # `mistral.endpoints.arco.sqlalchemy.get_instance` sono sempre monkeypatchati con
 # fake locali. Questo evita contatti S3 reali e impedisce che lo stato del runtime
 # determini il risultato del test.
-# EXTENSION CLEANUP: i fake sono oggetti in memoria agganciati a `monkeypatch` e
+# Cleanup: i fake sono oggetti in memoria agganciati a `monkeypatch` e
 # vengono rimossi automaticamente da pytest. L'unico stato persistente usato e la
 # access key creata da `fresh_access_key` per l'utente temporaneo
 # `access_key_owner`: chiave e utente sono rimossi nel teardown, senza toccare
 # l'account predefinito.
-# EXTENSION BASELINE: i test legacy restano invariati. Questo modulo aggiunge solo
-# contratti mancanti, con marker `integration` e `deterministic`, senza introdurre
-# fixture globali o `conftest.py` locali.
 
 from __future__ import annotations
 
@@ -274,7 +269,10 @@ class TestArcoHelpers:
 
 
 class TestArcoProxyEdges:
-    """Verifica rami di autenticazione, errore S3 e mimetype del proxy ARCO."""
+    """Verifica rami di autenticazione, errore S3 e mimetype del proxy ARCO.
+
+    Endpoint esercitato: GET /api/arco/<path> (ArcoResource.get).
+    """
 
     def test_proxy_missing_basic_auth_is_rejected_before_s3(
         self,
@@ -403,7 +401,10 @@ class TestArcoProxyEdges:
 
 
 class TestArcoCatalogEdges:
-    """Copre edge case del catalogo ARCO con pagine e metadata S3 sintetici."""
+    """Copre edge case del catalogo ARCO con pagine e metadata S3 sintetici.
+
+    Endpoint esercitato: GET /api/arco/datasets (ArcoDatasetsResource.get).
+    """
 
     def test_catalog_keeps_only_zarr_prefixes_and_enriches_metadata(
         self,

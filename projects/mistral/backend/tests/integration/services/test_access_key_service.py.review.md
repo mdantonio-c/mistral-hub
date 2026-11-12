@@ -1,7 +1,6 @@
 # Review — `test_access_key_service.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** sopra la baseline legacy.
 
 ## 1. Informazioni generali
 
@@ -25,9 +24,9 @@
 | `AccessKey` | modello | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L167) | Istanziato in memoria; nessun INSERT, nessun commit. |
 | `is_access_key_valid` | funzione | [services/access_key_service.py](projects/mistral/backend/services/access_key_service.py#L10) | Funzione pura sul record passato: non interroga il DB, non legge la `request`. |
 | `datetime` / `timedelta` / `timezone` | stdlib | `datetime` | Costruzione degli stati di scadenza; il test sceglie **naive** per il modello e **aware** per il service (vedi §6). |
-| `pytest.mark.integration` / `deterministic` | marker | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L8) | Solo classificazione; nessun effetto runtime qui. |
+| `pytest.mark.integration` / `deterministic` | marker | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L13) | Solo classificazione; nessun effetto runtime qui. |
 
-> **Nota infra**: in `tests/integration/services/` **non** esiste `conftest.py`/`support` locale. Le fixture condivise ([`test_runtime`/`cleanup_registry`](projects/mistral/backend/tests/conftest.py#L31), [`auth_headers`/`fresh_access_key`](projects/mistral/backend/tests/integration/conftest.py)) **non sono autouse e non vengono richieste**: questo file non dipende da alcuna fixture.
+> **Nota infra**: in `tests/integration/services/` **non** esiste `conftest.py`/`support` locale. Le fixture condivise ([`test_runtime`/`cleanup_registry`](projects/mistral/backend/tests/conftest.py#L49), [`auth_headers`/`fresh_access_key`](projects/mistral/backend/tests/integration/conftest.py)) **non sono autouse e non vengono richieste**: questo file non dipende da alcuna fixture.
 
 ## 4. Analisi dettagliata di ogni test
 

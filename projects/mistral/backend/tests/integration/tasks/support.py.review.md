@@ -1,7 +1,7 @@
 # Review — `tasks/support.py` (infrastruttura di dominio, ADATTATA)
 
 > File di review per modulo di supporto dei test task. Non contiene test e non modifica codice.
-> Modulo: infrastruttura **di estensione** aggiunta dal prompt 07, usata solo dai nuovi test task.
+> Modulo: infrastruttura usata solo dai test task.
 
 ## 1. Informazioni generali
 

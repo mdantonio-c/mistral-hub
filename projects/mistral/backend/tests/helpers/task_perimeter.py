@@ -1,14 +1,15 @@
-"""Confine real tasks that scan global tables to the data owned by one test.
+"""Confina i task reali che scorrono tabelle globali ai soli dati di un test.
 
-Some Celery tasks are global by design: ``automatic_cleanup`` visits every user,
-request and download directory, while ``launch_all_on_data_ready_extractions``
-visits every schedule. Running them unchanged from a test can modify rows and
-files that the test did not create.
+Alcuni task Celery sono globali per costruzione: ``automatic_cleanup`` visita
+ogni utente, richiesta e directory di download, mentre
+``launch_all_on_data_ready_extractions`` visita ogni schedule. Eseguirli senza
+modifiche da un test puo cambiare righe e file che il test non ha creato.
 
-These helpers keep the real task code and the real ORM writes, but replace the
-database connector seen by the task module with a narrow facade exposing only
-the rows registered by the test. The facades are fail-closed: an access pattern
-that is not explicitly supported raises instead of reading a whole table.
+Questi helper mantengono il codice reale del task e le vere scritture ORM, ma
+sostituiscono il connettore del database visto dal modulo del task con una
+facade ristretta che espone solo le righe registrate dal test. Le facade sono
+fail-closed: un tipo di accesso non supportato esplicitamente solleva un errore
+invece di leggere un'intera tabella.
 """
 
 from __future__ import annotations
@@ -27,14 +28,16 @@ import mistral.tasks.requests_cleanup as requests_cleanup_task
 
 
 class OutsideTestPerimeterError(AssertionError):
-    """Raised when a confined task tries to reach data outside the test perimeter."""
+    """Sollevata quando un task confinato cerca dati fuori dal perimetro del test."""
 
 
 def _as_ids(values: Iterable[int | str]) -> set[int]:
+    """Converte gli id ricevuti (interi o stringhe) in un insieme di interi."""
     return {int(value) for value in values}
 
 
 def _restrict(query: Any, column: Any, allowed_ids: set[int]) -> Any:
+    """Filtra ``query`` alle sole righe con ``column`` tra gli id ammessi."""
     # Un perimetro vuoto deve produrre zero righe, non l'intera tabella.
     if not allowed_ids:
         return query.filter(false())
@@ -42,7 +45,7 @@ def _restrict(query: Any, column: Any, allowed_ids: set[int]) -> Any:
 
 
 class _ForwardOnly:
-    """Proxy forwarding only the attributes explicitly allowed for the task."""
+    """Proxy che inoltra solo gli attributi consentiti esplicitamente al task."""
 
     def __init__(self, target: Any, allowed: frozenset[str], label: str) -> None:
         self._target = target
@@ -60,7 +63,7 @@ class _ForwardOnly:
 
 
 class _ScopedModel:
-    """Model proxy whose ``query`` only returns rows linked to registered ids."""
+    """Proxy di modello la cui ``query`` restituisce solo righe degli id registrati."""
 
     def __init__(
         self, model: Any, column: Any, allowed_ids: Callable[[], set[int]]
@@ -81,7 +84,7 @@ class _ScopedModel:
 
 
 class _LookupByRegisteredId:
-    """Query stand-in that only allows ``get()`` on registered ids."""
+    """Sostituto della query che permette solo ``get()`` sugli id registrati."""
 
     def __init__(
         self, query: Any, allowed_ids: Callable[[], set[int]], label: str
@@ -106,7 +109,7 @@ class _LookupByRegisteredId:
 
 
 class _RequestLookupModel:
-    """Request proxy: columns stay usable, queries only resolve registered ids."""
+    """Proxy di Request: colonne usabili, query limitate agli id registrati."""
 
     def __init__(self, model: Any, allowed_ids: Callable[[], set[int]]) -> None:
         self._model = model
@@ -123,7 +126,7 @@ class _RequestLookupModel:
 
 
 class _CleanupSession(_ForwardOnly):
-    """Session proxy supporting the request queries issued by the cleanup task."""
+    """Proxy di sessione per le query su Request eseguite dal task di cleanup."""
 
     def __init__(
         self,
@@ -155,7 +158,7 @@ class _CleanupSession(_ForwardOnly):
 
 @dataclass
 class RequestsCleanupPerimeter:
-    """Users, requests and download root visible to ``automatic_cleanup``."""
+    """Utenti, richieste e root di download visibili ad ``automatic_cleanup``."""
 
     download_root: Path
     user_ids: set[int] = field(default_factory=set)
@@ -167,7 +170,7 @@ class RequestsCleanupPerimeter:
         user_ids: Iterable[int | str] = (),
         request_ids: Iterable[int | str] = (),
     ) -> None:
-        """Register rows created by the test that the task may process."""
+        """Registra le righe create dal test che il task puo elaborare."""
         self.user_ids.update(_as_ids(user_ids))
         self.request_ids.update(_as_ids(request_ids))
 
@@ -179,7 +182,7 @@ class RequestsCleanupPerimeter:
 
 
 class _RequestsCleanupDatabase(_ForwardOnly):
-    """Database facade seen by ``automatic_cleanup`` inside a test."""
+    """Facade del database vista da ``automatic_cleanup`` dentro un test."""
 
     def __init__(self, db: Any, perimeter: RequestsCleanupPerimeter) -> None:
         super().__init__(db, frozenset(), "db")
@@ -196,11 +199,11 @@ def confine_requests_cleanup(
     monkeypatch: pytest.MonkeyPatch,
     download_root: Path,
 ) -> RequestsCleanupPerimeter:
-    """Make ``automatic_cleanup`` see only registered rows and ``download_root``.
+    """Fa vedere ad ``automatic_cleanup`` solo le righe registrate e ``download_root``.
 
-    The orphan-file scan is redirected to ``download_root``. Outputs of the
-    registered requests are still removed by the real repository helper; they
-    live in the directories of the temporary users created by the test.
+    La scansione dei file orfani viene rediretta su ``download_root``. Gli output
+    delle richieste registrate vengono comunque rimossi dal vero helper del
+    repository; si trovano nelle directory degli utenti temporanei creati dal test.
     """
     download_root.mkdir(parents=True, exist_ok=True)
     perimeter = RequestsCleanupPerimeter(download_root=download_root)
@@ -220,7 +223,7 @@ def confine_requests_cleanup(
 
 
 class _DataReadyDatabase(_ForwardOnly):
-    """Database facade seen by ``launch_all_on_data_ready_extractions``."""
+    """Facade del database vista da ``launch_all_on_data_ready_extractions``."""
 
     def __init__(self, db: Any, schedule_ids: Callable[[], set[int]]) -> None:
         super().__init__(db, frozenset(), "db")
@@ -233,7 +236,7 @@ def confine_data_ready_schedules(
     monkeypatch: pytest.MonkeyPatch,
     schedule_ids: Iterable[int | str],
 ) -> None:
-    """Make the data-ready launcher consider only the schedules of the test."""
+    """Fa considerare al launcher data-ready solo le schedule del test."""
     allowed = _as_ids(schedule_ids)
 
     def registered_schedule_ids() -> set[int]:

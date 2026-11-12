@@ -1,8 +1,8 @@
-"""Fixtures local to the pending-request integration area.
+"""Fixture locali dell'area di integrazione sulle richieste pendenti.
 
-These fixtures prepare a temporary user and a pair of seeded requests with
-different ages so the deletion tests can focus on grace-period behavior instead
-of on raw request-row setup.
+Queste fixture preparano un utente temporaneo e una coppia di richieste inserite nel
+DB con eta diverse, cosi i test di cancellazione possono concentrarsi sul
+comportamento del grace period invece che sulla preparazione delle righe.
 """
 
 import pytest
@@ -26,12 +26,12 @@ def pending_request_user(
     client: FlaskClient,
     cleanup_registry,
 ) -> AuthenticatedTestUser:
-    """Create a temporary authenticated user dedicated to pending-request tests."""
-    # Prepariamo la fixture richieste utente: crea lo stato riusabile e lascia al test
-    # solo la verifica del comportamento.
+    """Crea un utente temporaneo autenticato per i test sulle richieste pendenti.
+
+    L'utente nasce tramite l'API admin degli utenti di restapi; il cleanup a fine
+    test rimuove utente e cartelle di output.
+    """
     base = BaseTests()
-    # Creiamo un utente temporaneo con permessi mirati, cosi il test non dipende da
-    # account preesistenti.
     user = create_authenticated_test_user(base, client)
     register_test_user_cleanup(
         base,
@@ -40,8 +40,6 @@ def pending_request_user(
         user_uuid=user.uuid,
         root_path=user.output_dir.parent,
     )
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return user
 
 
@@ -51,22 +49,19 @@ def pending_delete_requests(
     pending_request_user: AuthenticatedTestUser,
     cleanup_registry,
 ) -> tuple[int, int]:
-    """Seed one old request and one fresh request for deletion-rule scenarios.
+    """Inserisce una richiesta vecchia e una recente per gli scenari di cancellazione.
 
-    The deletion tests need two contrasting cases: one request old enough to be
-    deletable and one still inside the protection window. This fixture creates and
-    registers cleanup for both ids.
+    I test su ``DELETE /api/requests/<id>`` e sul task ``automatic_cleanup`` hanno
+    bisogno di due casi opposti: una richiesta abbastanza vecchia da essere
+    cancellabile e una ancora dentro la finestra di protezione. La fixture crea
+    entrambe e registra il cleanup dei due id.
     """
-    # Prepariamo la fixture richieste utente: crea lo stato riusabile e lascia al test
-    # solo la verifica del comportamento.
     db = sqlalchemy.get_instance()
     deletable_request_id, undeletable_request_id = create_pending_delete_requests(
         faker,
         db,
         pending_request_user.user_id,
     )
-    # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta affidabile
-    # anche in caso di fallimento.
     cleanup_registry.add(
         lambda: delete_request_rows(
             db,
@@ -74,6 +69,4 @@ def pending_delete_requests(
             undeletable_request_id,
         )
     )
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return deletable_request_id, undeletable_request_id

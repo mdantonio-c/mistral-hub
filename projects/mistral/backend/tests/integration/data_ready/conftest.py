@@ -1,12 +1,13 @@
-"""Fixtures dedicated to the data-ready integration subtree.
+"""Fixture dedicate ai test di integrazione del sottoalbero data-ready.
 
-These fixtures prepare the minimal environment required by data-ready tests:
+Queste fixture preparano l'ambiente minimo richiesto dai test data-ready:
 
-- the list of datasets accepted by the on-data-ready logic,
-- authenticated admin headers for triggering events,
-- direct access to the SQLAlchemy connector,
-- a temporary user allowed to create schedules on the selected dataset,
-- a local Celery transport for the schedules endpoint (no broker, no RedBeat).
+- la lista dei dataset accettati dalla logica on-data-ready,
+- gli header di autenticazione admin per lanciare gli eventi,
+- l'accesso diretto al connettore SQLAlchemy,
+- un utente temporaneo abilitato a creare schedule sul dataset scelto,
+- un trasporto Celery locale per l'endpoint delle schedule (niente broker, niente
+  RedBeat).
 """
 
 from types import SimpleNamespace
@@ -30,13 +31,14 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def schedules_endpoint_without_real_celery(monkeypatch):
-    """Keep /schedules calls of data-ready tests away from the real broker and RedBeat.
+    """Isola le chiamate a /schedules dei test data-ready dal broker reale e da RedBeat.
 
-    Creating an on-data-ready schedule submits a first ``data_extract`` to the broker,
-    and a crontab or periodic schedule writes a RedBeat entry that fires every day.
-    The data-ready tests verify the launcher decision, not that transport: the fake is
-    installed on the names used by the schedules endpoint module only, so the endpoint
-    logic and the DB rows stay real while nothing reaches Celery workers or RedBeat.
+    Creare una schedule on-data-ready (``POST /api/schedules``) invia un primo
+    ``data_extract`` al broker, e una schedule crontab o periodica scrive in RedBeat
+    una entry che scatta ogni giorno. I test data-ready verificano la decisione del
+    launcher, non quel trasporto: il fake e installato solo sui nomi usati dal modulo
+    dell'endpoint (endpoints/schedules.py), quindi la logica dell'endpoint e le righe
+    nel DB restano reali mentre nulla arriva ai worker Celery o a RedBeat.
     """
     schedules_celery = AcceptTasksWithoutRunningCelery("data_extract")
     monkeypatch.setattr(
@@ -58,42 +60,36 @@ def schedules_endpoint_without_real_celery(monkeypatch):
 
 @pytest.fixture
 def data_ready_base(test_runtime):
-    """Expose a ``BaseTests`` helper while overriding the allowed data-ready datasets.
+    """Fornisce un helper ``BaseTests`` forzando la lista dei dataset data-ready.
 
-    The production configuration may not enable exactly the datasets that the test
-    subtree wants to exercise. This fixture patches the authoritative list only
-    for the lifetime of the fixture, so the tests can operate against a stable
-    dataset set without permanently changing global state.
+    La configurazione di produzione potrebbe non abilitare esattamente i dataset che
+    questi test vogliono esercitare. La fixture sostituisce la lista autorevole
+    (``SingleSchedule.ON_DATA_READY_DATASETS`` in endpoints/schedules.py) solo per la
+    durata della fixture, cosi i test lavorano su un insieme di dataset stabile senza
+    modificare in modo permanente lo stato globale.
     """
-    # Prepariamo la fixture data-ready: crea lo stato riusabile e lascia al test solo la
-    # verifica del comportamento.
     base = BaseTests()
-    # Sostituiamo temporaneamente la dipendenza esterna con un fake controllato, cosi il
-    # test resta deterministico.
     with test_runtime.override_attr(
         SingleSchedule, "ON_DATA_READY_DATASETS", DATA_READY_DATASETS
     ):
-        # Cediamo la fixture al test; quando il test termina, il codice sotto il yield
-        # eseguira il teardown.
         yield base
 
 
 @pytest.fixture
 def data_ready_admin_headers(client: FlaskClient, data_ready_base):
-    """Return admin authentication headers using the same base helper as the subtree."""
-    # Prepariamo la fixture data-ready: crea lo stato riusabile e lascia al test solo la
-    # verifica del comportamento.
+    """Restituisce gli header di autenticazione dell'admin di default.
+
+    Usa lo stesso helper ``BaseTests`` del sottoalbero; servono per chiamare
+    ``POST /api/data/ready`` (endpoints/data_ready.py), che richiede il ruolo
+    operational.
+    """
     headers, _ = data_ready_base.do_login(client, None, None)
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return headers
 
 
 @pytest.fixture
 def data_ready_db():
-    """Expose the SQLAlchemy connector reused by data-ready setup helpers and assertions."""
-    # Prepariamo la fixture data-ready: crea lo stato riusabile e lascia al test solo la
-    # verifica del comportamento.
+    """Espone il connettore SQLAlchemy del backend, usato da helper e asserzioni."""
     return sqlalchemy.get_instance()
 
 
@@ -104,17 +100,14 @@ def data_ready_user(
     data_ready_base,
     test_runtime,
 ):
-    """Provision a temporary user that can create schedules on the test dataset.
+    """Crea un utente temporaneo che puo creare schedule sul dataset di test.
 
-    If the configured forecast dataset is not available in the current runtime,
-    the fixture skips the dependent tests instead of failing them with a later and
-    less readable lookup error.
+    L'utente nasce tramite l'API admin degli utenti di restapi e viene rimosso dal
+    cleanup a fine test. Se il dataset di previsione configurato non e disponibile
+    nel runtime corrente, la fixture salta i test dipendenti invece di farli fallire
+    piu avanti con un errore di lookup meno leggibile.
     """
-    # Prepariamo la fixture data-ready: crea lo stato riusabile e lascia al test solo la
-    # verifica del comportamento.
     try:
-        # Creiamo un utente temporaneo con permessi mirati, cosi il test non dipende da
-        # account preesistenti.
         user = create_data_ready_user(
             data_ready_base,
             client,
@@ -122,8 +115,6 @@ def data_ready_user(
             [DATA_READY_DATASET_NAME],
         )
     except LookupError:
-        # Saltiamo lo scenario quando i dati runtime richiesti non esistono, perche il
-        # contratto non sarebbe verificabile in modo significativo.
         pytest.skip(
             f"Dataset '{DATA_READY_DATASET_NAME}' is not available in this environment"
         )
@@ -133,6 +124,4 @@ def data_ready_user(
         cleanup_registry,
         user,
     )
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return user

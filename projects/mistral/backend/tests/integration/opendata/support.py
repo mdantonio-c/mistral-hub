@@ -1,9 +1,9 @@
-"""Opendata support helpers local to the opendata integration area.
+"""Helper di supporto locali ai test di integrazione degli opendata.
 
-The opendata tests create temporary datasets, users, synthetic request rows, and
-fake downloadable files. This module centralizes that setup so the test files can
-talk about authorization, listing, and download behavior without manually
-building every supporting record each time.
+I test opendata creano dataset, utenti, righe Request sintetiche e file finti da
+scaricare. Questo modulo raccoglie quel setup, cosi i file di test possono
+concentrarsi su autorizzazione, elenco e download (endpoints/opendata.py) senza
+costruire ogni volta a mano tutti i record di supporto.
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ from restapi.tests import BaseTests, FlaskClient
 
 @dataclass(frozen=True)
 class OpendataSeedSpec:
-    """Declarative description of one fake opendata package to seed in a test."""
+    """Descrizione dichiarativa di un pacchetto opendata finto da creare nel test."""
 
     reftime: datetime
     content: str
@@ -40,7 +40,7 @@ class OpendataSeedSpec:
 
 @dataclass(frozen=True)
 class FakeOpendataResult:
-    """Metadata describing one seeded opendata request row and file on disk."""
+    """Metadati di una riga Request opendata creata dal test e del suo file su disco."""
 
     request_id: int
     filename: str
@@ -55,14 +55,13 @@ def create_opendata_user(
     *,
     allow_schedule: bool = False,
 ) -> AuthenticatedTestUser:
-    """Create a temporary user for opendata tests, optionally pre-authorized.
+    """Crea un utente temporaneo per i test opendata, eventualmente gia autorizzato.
 
-    The fixture can grant access to specific datasets and, when needed, also allow
-    schedule-related operations so the same helper can serve both public and
-    private opendata scenarios.
+    L'helper puo dare accesso a dataset specifici e, se serve, abilitare anche le
+    operazioni sugli schedule, cosi lo stesso helper serve sia agli scenari
+    opendata pubblici sia a quelli privati. Usa le API reali di creazione utente
+    e login tramite ``create_authenticated_test_user``.
     """
-    # Costruiamo lo stato controllato richiesto dal test, usando gli stessi canali che
-    # il backend espone in produzione quando possibile.
     permissions: dict[str, Any] = {
         "disk_quota": 1073741824,
         "max_output_size": 1073741824,
@@ -73,8 +72,6 @@ def create_opendata_user(
     if allow_schedule:
         permissions["allowed_schedule"] = True
 
-    # Creiamo un utente temporaneo con permessi mirati, cosi il test non dipende da
-    # account preesistenti.
     return create_authenticated_test_user(BaseTests(), client, permissions)
 
 
@@ -83,9 +80,7 @@ def register_user_cleanup(
     cleanup_registry,
     user: AuthenticatedTestUser,
 ) -> None:
-    """Register the standard filesystem and user cleanup for an opendata scenario."""
-    # Registriamo subito il cleanup: anche se il test fallisce a meta, le risorse
-    # temporanee verranno rimosse.
+    """Registra il cleanup standard dell'utente e della sua cartella su disco."""
     register_test_user_cleanup(
         BaseTests(),
         client,
@@ -96,27 +91,19 @@ def register_user_cleanup(
 
 
 def authorize_user_for_dataset(db, user_uuid: str, dataset_id: int) -> None:
-    """Grant one existing user access to one existing dataset if not already linked."""
-    # Entriamo nel blocco operativo dell'helper opendata, mantenendo esplicito quale
-    # stato viene letto o prodotto.
+    """Autorizza un utente esistente su un dataset esistente, se non lo e gia.
+
+    Scrive l'associazione ``user.datasets`` usata dal backend per i dataset
+    privati.
+    """
     user = db.User.query.filter_by(uuid=user_uuid).first()
-    # Leggiamo lo stato dal database di test per collegare la risposta API agli effetti
-    # persistiti dal backend.
     dataset = db.Datasets.query.get(dataset_id)
-    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
-    # arrivato fin qui senza eccezioni.
     assert user is not None
-    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
-    # arrivato fin qui senza eccezioni.
     assert dataset is not None
 
     if all(authorized_dataset.id != dataset_id for authorized_dataset in user.datasets):
         user.datasets.append(dataset)
-        # Persistiamo la modifica nel database di test, altrimenti le chiamate
-        # successive non vedrebbero lo scenario preparato.
         db.session.add(user)
-        # Persistiamo la modifica nel database di test, altrimenti le chiamate
-        # successive non vedrebbero lo scenario preparato.
         db.session.commit()
 
 
@@ -132,9 +119,12 @@ def create_fake_opendata_result(
     archived: bool = False,
     submission_date: datetime | None = None,
 ) -> FakeOpendataResult:
-    """Create a successful opendata request row together with its output file on disk."""
-    # Costruiamo lo stato controllato richiesto dal test, usando gli stessi canali che
-    # il backend espone in produzione quando possibile.
+    """Crea una Request opendata in SUCCESS con il relativo file di output su disco.
+
+    Scrive le righe ``Request`` e ``FileOutput`` direttamente nel database e il
+    file in ``OPENDATA_DIR``, cioe lo stato letto dagli endpoint opendata;
+    registra subito il cleanup di riga e file.
+    """
     request = db.Request(
         user_id=request_owner_id,
         name=f"opendata_{uuid4().hex}",
@@ -144,11 +134,7 @@ def create_fake_opendata_result(
         archived=archived,
         submission_date=submission_date or datetime.utcnow(),
     )
-    # Persistiamo la modifica nel database di test, altrimenti le chiamate successive
-    # non vedrebbero lo scenario preparato.
     db.session.add(request)
-    # Persistiamo la modifica nel database di test, altrimenti le chiamate successive
-    # non vedrebbero lo scenario preparato.
     db.session.commit()
     request_id = request.id
     cleanup_registry.add(lambda: _delete_request_row(db, request_id))
@@ -165,15 +151,9 @@ def create_fake_opendata_result(
         size=len(file_content.encode("utf-8")),
         request_id=request.id,
     )
-    # Persistiamo la modifica nel database di test, altrimenti le chiamate successive
-    # non vedrebbero lo scenario preparato.
     db.session.add(file_output)
-    # Persistiamo la modifica nel database di test, altrimenti le chiamate successive
-    # non vedrebbero lo scenario preparato.
     db.session.commit()
 
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return FakeOpendataResult(
         request_id=request.id,
         filename=filename,
@@ -190,9 +170,7 @@ def seed_opendata_results(
     dataset_id: str,
     seeds: Sequence[OpendataSeedSpec],
 ) -> list[FakeOpendataResult]:
-    """Create several fake opendata results from a compact list of seed specifications."""
-    # Entriamo nel blocco operativo dell'helper opendata, mantenendo esplicito quale
-    # stato viene letto o prodotto.
+    """Crea piu risultati opendata finti da una lista di ``OpendataSeedSpec``."""
     return [
         create_fake_opendata_result(
             db,
@@ -210,13 +188,13 @@ def seed_opendata_results(
 
 
 def create_private_opendata_env(client: FlaskClient, cleanup_registry):
-    """Create a private dataset, a request owner, and one seeded opendata result."""
-    # Costruiamo lo stato controllato richiesto dal test, usando gli stessi canali che
-    # il backend espone in produzione quando possibile.
+    """Crea un dataset privato, un utente proprietario e un risultato opendata.
+
+    L'utente non e autorizzato sul dataset: serve ai test di autorizzazione degli
+    endpoint opendata. Restituisce ``(db, dataset, user, result)``.
+    """
     db = sqlalchemy.get_instance()
     dataset = create_test_dataset(db, cleanup_registry, is_public=False)
-    # Creiamo un utente temporaneo con permessi mirati, cosi il test non dipende da
-    # account preesistenti.
     user = create_opendata_user(client)
     register_user_cleanup(client, cleanup_registry, user)
     result = create_fake_opendata_result(
@@ -228,19 +206,17 @@ def create_private_opendata_env(client: FlaskClient, cleanup_registry):
         "private-opendata-content",
         run="00:00",
     )
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return db, dataset, user, result
 
 
 def create_listing_env(client: FlaskClient, cleanup_registry):
-    """Create one public dataset and two seeded listing entries with different filters."""
-    # Costruiamo lo stato controllato richiesto dal test, usando gli stessi canali che
-    # il backend espone in produzione quando possibile.
+    """Crea un dataset pubblico con due risultati opendata per i test dell'elenco.
+
+    I due risultati hanno run e reftime diversi, cosi i filtri di
+    GET /api/datasets/<id>/opendata possono distinguerli.
+    """
     db = sqlalchemy.get_instance()
     dataset = create_test_dataset(db, cleanup_registry, is_public=True)
-    # Creiamo un utente temporaneo con permessi mirati, cosi il test non dipende da
-    # account preesistenti.
     request_owner = create_opendata_user(client)
     register_user_cleanup(client, cleanup_registry, request_owner)
     seeded_results = seed_opendata_results(
@@ -261,19 +237,17 @@ def create_listing_env(client: FlaskClient, cleanup_registry):
             ),
         ],
     )
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return dataset, seeded_results
 
 
 def create_download_env(client: FlaskClient, cleanup_registry):
-    """Create one public dataset and three seeded opendata files for download scenarios."""
-    # Costruiamo lo stato controllato richiesto dal test, usando gli stessi canali che
-    # il backend espone in produzione quando possibile.
+    """Crea un dataset pubblico con tre file opendata per i test di download.
+
+    Le combinazioni di reftime e run permettono di verificare i filtri di
+    GET /api/opendata/<dataset_id>/download.
+    """
     db = sqlalchemy.get_instance()
     dataset = create_test_dataset(db, cleanup_registry, is_public=True)
-    # Creiamo un utente temporaneo con permessi mirati, cosi il test non dipende da
-    # account preesistenti.
     request_owner = create_opendata_user(client)
     register_user_cleanup(client, cleanup_registry, request_owner)
     seeded_results = seed_opendata_results(
@@ -299,21 +273,13 @@ def create_download_env(client: FlaskClient, cleanup_registry):
             ),
         ],
     )
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return dataset, seeded_results
 
 
 def zip_filenames(response) -> list[str]:
-    """Extract and sort filenames contained in a zip download response."""
-    # Entriamo nel blocco operativo dell'helper opendata, mantenendo esplicito quale
-    # stato viene letto o prodotto.
+    """Estrae e ordina i nomi dei file contenuti nello zip di una risposta."""
     archive_data = io.BytesIO(response.get_data())
-    # Apriamo lo zip prodotto dal backend per verificare i file effettivamente
-    # consegnati all'utente.
     with ZipFile(archive_data, "r") as archive:
-        # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo
-        # direttamente nelle asserzioni.
         return sorted(archive.namelist())
 
 
@@ -322,12 +288,12 @@ def _build_opendata_args(
     reftime: datetime,
     run: str | None,
 ) -> dict[str, Any]:
-    """Build the request args payload stored in synthetic opendata request rows."""
-    # Entriamo nel blocco operativo dell'helper opendata, mantenendo esplicito quale
-    # stato viene letto o prodotto.
+    """Costruisce il campo ``args`` salvato nelle Request opendata sintetiche.
+
+    La forma deve combaciare con le query JSONB costruite da endpoints/opendata.py,
+    altrimenti i filtri non trovano le righe create dal test.
+    """
     reftime_value = reftime.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return {
         "filters": {"run": _build_run_filter(run)} if run else None,
         "reftime": {"from": reftime_value, "to": reftime_value},
@@ -336,13 +302,13 @@ def _build_opendata_args(
 
 
 def _build_run_filter(run: str) -> list[dict[str, Any]]:
-    """Convert an HH:MM run string into the stored MINUTE filter structure."""
-    # Entriamo nel blocco operativo dell'helper opendata, mantenendo esplicito quale
-    # stato viene letto o prodotto.
+    """Converte un run "HH:MM" nella struttura di filtro MINUTE salvata su DB.
+
+    ``value`` deve restare un intero (minuti totali): il backend lo decodifica con
+    ``BeArkimet.decode_run`` quando elenca gli opendata.
+    """
     hours, minutes = [int(part) for part in run.split(":", maxsplit=1)]
     total_minutes = (hours * 60) + minutes
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return [
         {
             "desc": f"MINUTE({run})",
@@ -354,28 +320,18 @@ def _build_run_filter(run: str) -> list[dict[str, Any]]:
 
 
 def _delete_request_row(db, request_id: int) -> None:
-    """Delete a synthetic request row if it still exists in the test database."""
-    # Rimuoviamo lo stato creato dal test per non lasciare dati che possano influenzare
-    # gli scenari successivi.
+    """Cancella una Request sintetica, se esiste ancora, e verifica la rimozione."""
     request = db.Request.query.get(request_id)
-    # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve succedere
-    # quando lo stato non e quello ideale.
     if request is None:
         return
 
-    # Persistiamo la modifica nel database di test, altrimenti le chiamate successive
-    # non vedrebbero lo scenario preparato.
     db.session.delete(request)
-    # Persistiamo la modifica nel database di test, altrimenti le chiamate successive
-    # non vedrebbero lo scenario preparato.
     db.session.commit()
     assert db.Request.query.get(request_id) is None
 
 
 def _delete_file(path: Path) -> None:
-    """Delete a generated opendata file from disk if the path still exists."""
-    # Rimuoviamo lo stato creato dal test per non lasciare dati che possano influenzare
-    # gli scenari successivi.
+    """Cancella dal disco un file opendata generato e verifica che non esista piu."""
     if path.exists():
         path.unlink()
     assert not path.exists()

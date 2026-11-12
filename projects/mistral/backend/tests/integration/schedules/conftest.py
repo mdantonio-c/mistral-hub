@@ -1,4 +1,4 @@
-"""Fixtures shared by schedule integration tests that bridge data-ready events and opendata."""
+"""Fixture condivise dai test delle schedule (eventi data-ready e bridge opendata)."""
 
 import pytest
 from mistral.endpoints.schedules import SingleSchedule
@@ -14,28 +14,26 @@ from mistral.tests.helpers.data_ready import (
 
 @pytest.fixture
 def schedules_base(test_runtime):
-    """Override the enabled data-ready datasets for the whole schedules subtree."""
-    # Prepariamo la fixture schedules: crea lo stato riusabile e lascia al test solo la
-    # verifica del comportamento.
+    """Abilita i dataset data-ready per tutti i test della cartella schedules.
+
+    Sovrascrive temporaneamente `SingleSchedule.ON_DATA_READY_DATASETS`
+    (POST /schedules in endpoints/schedules.py) e lo ripristina a fine test:
+    senza questo override il backend rifiuta le schedule on-data-ready.
+    """
     base = BaseTests()
-    # Sostituiamo temporaneamente la dipendenza esterna con un fake controllato, cosi il
-    # test resta deterministico.
     with test_runtime.override_attr(
         SingleSchedule, "ON_DATA_READY_DATASETS", DATA_READY_DATASETS
     ):
-        # Cediamo la fixture al test; quando il test termina, il codice sotto il yield
-        # eseguira il teardown.
         yield base
 
 
 @pytest.fixture
 def schedules_admin_headers(client: FlaskClient, schedules_base):
-    """Return admin authentication headers used to trigger data-ready events."""
-    # Prepariamo la fixture schedules: crea lo stato riusabile e lascia al test solo la
-    # verifica del comportamento.
+    """Restituisce gli header dell'admin di default.
+
+    Servono per inviare gli eventi data-ready (POST /data/ready, riservato agli admin).
+    """
     headers, _ = schedules_base.do_login(client, None, None)
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return headers
 
 
@@ -46,12 +44,12 @@ def schedules_user(
     schedules_base,
     test_runtime,
 ):
-    """Create a schedule-capable user for the forecast dataset used by bridge tests."""
-    # Prepariamo la fixture schedules: crea lo stato riusabile e lascia al test solo la
-    # verifica del comportamento.
+    """Crea un utente abilitato alle schedule sul dataset forecast usato dal bridge.
+
+    Usa `create_data_ready_user` (tests/helpers/data_ready.py), registra il cleanup
+    dell'utente e salta il test se il dataset non e disponibile nell'ambiente.
+    """
     try:
-        # Creiamo un utente temporaneo con permessi mirati, cosi il test non dipende da
-        # account preesistenti.
         user = create_data_ready_user(
             schedules_base,
             client,
@@ -59,8 +57,6 @@ def schedules_user(
             [DATA_READY_DATASET_NAME],
         )
     except LookupError:
-        # Saltiamo lo scenario quando i dati runtime richiesti non esistono, perche il
-        # contratto non sarebbe verificabile in modo significativo.
         pytest.skip(
             f"Dataset '{DATA_READY_DATASET_NAME}' is not available in this environment"
         )
@@ -70,6 +66,4 @@ def schedules_user(
         cleanup_registry,
         user,
     )
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return user

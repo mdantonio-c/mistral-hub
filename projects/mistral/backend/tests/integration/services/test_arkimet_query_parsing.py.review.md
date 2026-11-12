@@ -1,7 +1,6 @@
 # Review — `test_arkimet_query_parsing.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** sopra la baseline legacy.
 
 ## 1. Informazioni generali
 
@@ -28,9 +27,9 @@
 | `dateutil.parser.parse` | libreria | `python-dateutil` (in `arkimet.py`) | Parsing dei bound in `parse_reftime`; il suffisso `Z` produce un datetime tz-aware **poi ignorato** da `strftime` (vedi §6). |
 | `math.floor` | stdlib | `math` (in `arkimet.py`) | Conversione minuti → ore in `decode_run`. |
 | `pytest.raises` | meccanismo | `pytest` | Verifica `TypeError`/`ValueError` nei due test negativi di `decode_run`. |
-| `pytest.mark.integration` / `deterministic` | marker | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L8) | Solo classificazione. |
+| `pytest.mark.integration` / `deterministic` | marker | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L13) | Solo classificazione. |
 
-> **Nota infra**: nessun `conftest.py`/`support` locale in `integration/services/`; il file **non richiede fixture** (i metodi sono statici e puri). Le fixture condivise ([`test_runtime`/`cleanup_registry`](projects/mistral/backend/tests/conftest.py#L31)) non sono autouse e non vengono usate.
+> **Nota infra**: nessun `conftest.py`/`support` locale in `integration/services/`; il file **non richiede fixture** (i metodi sono statici e puri). Le fixture condivise ([`test_runtime`/`cleanup_registry`](projects/mistral/backend/tests/conftest.py#L49)) non sono autouse e non vengono usate.
 
 ## 4. Analisi dettagliata di ogni test
 

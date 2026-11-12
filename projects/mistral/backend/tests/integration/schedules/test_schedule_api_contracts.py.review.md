@@ -1,7 +1,6 @@
 # Review — `test_schedule_api_contracts.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** sopra la baseline legacy.
 
 ## 1. Informazioni generali
 
@@ -31,7 +30,7 @@
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
 | `faker` | fixture | plugin `pytest-faker` | `faker.pystr()` per il `name` della schedule seminata. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L39) | Teardown **LIFO**; non ingoia eccezioni. |
+| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO**; non ingoia eccezioni. |
 | `schedules_user` | fixture **locale** | questo file | Crea un utente autenticato `allowed_schedule=True` via `create_authenticated_test_user`; **shadowa** la `schedules_user` del conftest locale (vedi §6). |
 | `create_authenticated_test_user`, `register_test_user_cleanup`, `AuthenticatedTestUser` | helper | [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) | Creazione utente + login reali; cleanup utente + cartella output. |
 | `seed_schedule_row` | helper **locale** | questo file | Inserisce una `Schedule` direttamente nel DB (bypassa `POST`); ritorna l'id. |

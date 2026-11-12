@@ -1,6 +1,3 @@
-# EXTENSION TRACEABILITY - Prompt 02, contratto POST /data lato validazioni HTTP.
-# Origine: questo modulo aggiunge solo casi di estensione nel dominio integration/data e lascia
-# invariati baseline, fixture globali e file legacy gia presenti.
 # Ambito: copre dataset inesistente, formati misti, gruppi licenza diversi,
 # output_format non valido a livello schema, output_format incompatibile con grib,
 # postprocessor non autorizzato e only_reliable non supportato.
@@ -10,7 +7,6 @@
 # sotto test richiede formato o categoria dataset, evitando chiamate Arkimet reali.
 # Cleanup: dataset e utenti temporanei vengono registrati nel cleanup_registry; i rami
 # coperti qui devono fallire prima di creare request persistite.
-# Baseline non toccata: il modulo amplia il dominio senza modificare test_data_endpoint_auth.py.
 
 """Test di validazione per POST /data con dataset sintetici e fake strettamente locali."""
 
@@ -54,8 +50,6 @@ def test_post_data_returns_404_for_missing_dataset(
     payload = build_data_payload(["missing_dataset_ext"], request_name="missing-dataset")
 
     # act
-    # La chiamata usa il percorso HTTP reale e lascia che sia l'endpoint a rilevare il
-    # dataset assente prima di qualsiasi altra validazione applicativa.
     response = client.post(DATA_ENDPOINT, headers=user.headers, json=payload)
 
     # assert
@@ -103,12 +97,9 @@ def test_post_data_returns_400_for_mixed_dataset_formats(
     )
 
     # act
-    # La submit deve attraversare il controllo catalogo e arrestarsi esattamente sul ramo
-    # di formato misto esposto dal fake Arkimet.
     response = client.post(DATA_ENDPOINT, headers=user.headers, json=payload)
 
     # assert
-    # L'endpoint deve rifiutare il set con 400 senza creare effetti persistenti.
     assert response.status_code == 400
     assert latest_request_for_user(db, user.user_id) is None
 
@@ -147,13 +138,9 @@ def test_post_data_returns_400_for_different_license_groups(
     )
 
     # act
-    # Usiamo il flusso endpoint reale fino al controllo del gruppo licenza, che in questo
-    # scenario deve essere il punto esatto di fallimento.
     response = client.post(DATA_ENDPOINT, headers=user.headers, json=payload)
 
     # assert
-    # Il contratto richiede 400 e nessuna request persistita quando i gruppi licenza non
-    # coincidono tra i dataset richiesti.
     assert response.status_code == 400
     assert latest_request_for_user(db, user.user_id) is None
 
@@ -169,8 +156,6 @@ def test_post_data_returns_400_for_invalid_output_format_schema(
     runtime oltre a un dataset sintetico valido nel payload.
     """
     # arrange
-    # Prepariamo un dataset valido e un utente autenticato, poi inviamo un valore di
-    # output_format non ammesso dalla schema validation (`csv`).
     db = sqlalchemy.get_instance()
     dataset = create_synthetic_dataset(cleanup_registry=cleanup_registry, db=db)
     user = create_data_endpoint_user(client, cleanup_registry, dataset_ids=[dataset.id])
@@ -181,7 +166,6 @@ def test_post_data_returns_400_for_invalid_output_format_schema(
     )
 
     # act
-    # La chiamata passa dall'autenticazione ma deve fermarsi nella validazione schema.
     response = client.post(DATA_ENDPOINT, headers=user.headers, json=payload)
 
     # assert
@@ -223,12 +207,9 @@ def test_post_data_returns_400_when_output_format_is_incompatible_with_grib(
     )
 
     # act
-    # La submit attraversa schema e catalogo ma deve fermarsi sul controllo di
-    # compatibilita applicativa fra formato dataset e formato di output richiesto.
     response = client.post(DATA_ENDPOINT, headers=user.headers, json=payload)
 
     # assert
-    # Il backend deve respingere la richiesta con 400 e senza lasciare Request persistite.
     assert response.status_code == 400
     assert latest_request_for_user(db, user.user_id) is None
 
@@ -268,12 +249,9 @@ def test_post_data_returns_401_for_unauthorized_postprocessor_usage(
     )
 
     # act
-    # La submit usa un postprocessor sintatticamente valido per arrivare al solo controllo
-    # di autorizzazione applicativa lato endpoint.
     response = client.post(DATA_ENDPOINT, headers=user.headers, json=payload)
 
     # assert
-    # Il backend deve restituire 401 e fermarsi prima della creazione di qualsiasi request.
     assert response.status_code == 401
     assert latest_request_for_user(db, user.user_id) is None
 
@@ -290,8 +268,6 @@ def test_post_data_returns_400_when_only_reliable_is_not_supported(
     verificare il rifiuto senza dipendenze da dati meteo reali.
     """
     # arrange
-    # Prepariamo un dataset forecast sintetico, lo rendiamo valido via fake Arkimet e
-    # attiviamo only_reliable nel payload per colpire esattamente il controllo endpoint.
     db = sqlalchemy.get_instance()
     dataset = create_synthetic_dataset(
         cleanup_registry=cleanup_registry,
@@ -313,11 +289,8 @@ def test_post_data_returns_400_when_only_reliable_is_not_supported(
     )
 
     # act
-    # La chiamata usa il percorso reale dell'endpoint e deve fallire esattamente sul ramo
-    # che limita only_reliable ai dataset supportati.
     response = client.post(DATA_ENDPOINT, headers=user.headers, json=payload)
 
     # assert
-    # Il backend deve rifiutare il parametro con 400 senza creare una request persistita.
     assert response.status_code == 400
     assert latest_request_for_user(db, user.user_id) is None

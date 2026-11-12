@@ -1,9 +1,10 @@
-"""Request-body builders for schedule-related integration tests.
+"""Builder dei body delle richieste per i test di integrazione sulle schedule.
 
-Schedule scenarios in this suite mostly differ in business intent, not in JSON
-syntax. These helpers build the payloads for on-data-ready, crontab, and periodic
-schedules so the test modules can describe the scenario they want without being
-cluttered by request-body boilerplate.
+Gli scenari sulle schedule di questa suite differiscono soprattutto per l'intento
+di business, non per la sintassi JSON. Questi helper costruiscono i payload per
+schedule on-data-ready, crontab e periodiche (inviati a ``POST /api/schedules``),
+cosi i moduli di test descrivono lo scenario voluto senza essere appesantiti dal
+boilerplate del body.
 """
 
 from __future__ import annotations
@@ -21,13 +22,11 @@ def build_on_data_ready_schedule(
     run_filter: list[dict[str, Any]] | None = None,
     opendata: bool = True,
 ) -> str:
-    """Build the JSON body for a schedule triggered by data-ready events.
+    """Costruisce il body JSON di una schedule avviata dagli eventi data-ready.
 
-    The helper fills the standard reftime and dataset sections and marks the
-    schedule as ``on-data-ready`` so tests can focus on the rule under scrutiny.
+    L'helper riempie le sezioni standard di reftime e dataset e marca la schedule
+    come ``on-data-ready``, cosi i test si concentrano sulla regola sotto esame.
     """
-    # Componiamo il payload in un solo punto, cosi i test possono concentrarsi sulla
-    # regola di business invece che sulla forma JSON.
     body: dict[str, Any] = {
         "request_name": request_name,
         "reftime": {"from": date_from, "to": date_to},
@@ -36,8 +35,6 @@ def build_on_data_ready_schedule(
         "on-data-ready": True,
         "opendata": opendata,
     }
-    # Costruiamo il payload esattamente nel formato atteso dall'endpoint, cosi la
-    # verifica riguarda la logica e non dettagli casuali di input.
     return json.dumps(body)
 
 
@@ -56,33 +53,21 @@ def build_crontab_schedule(
     on_data_ready: bool = False,
     opendata: bool = True,
 ) -> str:
-    """Build the JSON body for a schedule driven by crontab-style fields.
+    """Costruisce il body JSON di una schedule guidata da campi in stile crontab.
 
-    Only the time components explicitly provided by the caller are added to the
-    payload. This keeps tests concise while still allowing them to build partial
-    or fully specified crontab expressions.
+    Nel payload vengono aggiunti solo i campi temporali passati esplicitamente dal
+    chiamante. Cosi i test restano concisi, ma possono comunque costruire
+    espressioni crontab parziali o complete.
     """
-    # Componiamo il payload in un solo punto, cosi i test possono concentrarsi sulla
-    # regola di business invece che sulla forma JSON.
     crontab: dict[str, int] = {}
-    # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve succedere
-    # quando lo stato non e quello ideale.
     if hour is not None:
         crontab["hour"] = hour
-    # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve succedere
-    # quando lo stato non e quello ideale.
     if minute is not None:
         crontab["minute"] = minute
-    # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve succedere
-    # quando lo stato non e quello ideale.
     if day_of_week is not None:
         crontab["day_of_week"] = day_of_week
-    # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve succedere
-    # quando lo stato non e quello ideale.
     if day_of_month is not None:
         crontab["day_of_month"] = day_of_month
-    # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve succedere
-    # quando lo stato non e quello ideale.
     if month_of_year is not None:
         crontab["month_of_year"] = month_of_year
 
@@ -95,8 +80,6 @@ def build_crontab_schedule(
         "on-data-ready": on_data_ready,
         "opendata": opendata,
     }
-    # Costruiamo il payload esattamente nel formato atteso dall'endpoint, cosi la
-    # verifica riguarda la logica e non dettagli casuali di input.
     return json.dumps(body)
 
 
@@ -112,14 +95,11 @@ def build_periodic_schedule(
     on_data_ready: bool = True,
     opendata: bool = True,
 ) -> str:
-    """Build the JSON body for a schedule that repeats every fixed period.
+    """Costruisce il body JSON di una schedule che si ripete a intervallo fisso.
 
-    This helper is mainly used by periodic data-ready tests that need to express
-    rules such as "every 2 days" without rewriting the schedule payload shape in
-    each scenario.
+    Usato soprattutto dai test data-ready periodici che devono esprimere regole
+    come "ogni 2 giorni" senza riscrivere in ogni scenario la forma del payload.
     """
-    # Componiamo il payload in un solo punto, cosi i test possono concentrarsi sulla
-    # regola di business invece che sulla forma JSON.
     body: dict[str, Any] = {
         "request_name": request_name,
         "reftime": {"from": date_from, "to": date_to},
@@ -129,6 +109,4 @@ def build_periodic_schedule(
         "on-data-ready": on_data_ready,
         "opendata": opendata,
     }
-    # Costruiamo il payload esattamente nel formato atteso dall'endpoint, cosi la
-    # verifica riguarda la logica e non dettagli casuali di input.
     return json.dumps(body)

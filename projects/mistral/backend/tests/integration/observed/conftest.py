@@ -1,4 +1,4 @@
-"""Fixtures that expose one valid observed-data scenario for each supported backend mode."""
+"""Fixture con uno scenario valido di dati osservati per ogni modalita backend."""
 
 from __future__ import annotations
 
@@ -18,9 +18,10 @@ def dballe_observed_case(
     auth_headers,
     test_runtime: TestRuntime,
 ) -> Iterator[ObservedCase]:
-    """Provide one observed scenario that reads from recent DBALLE data."""
-    # Prepariamo la fixture osservazioni: crea lo stato riusabile e lascia al test solo
-    # la verifica del comportamento.
+    """Fornisce uno scenario osservato che legge dati recenti da DBALLE.
+
+    Lo scenario viene scoperto sui dati reali tramite GET /api/fields (vedi support.py).
+    """
     yield from yield_observed_case(client, auth_headers, test_runtime, "dballe")
 
 
@@ -30,9 +31,10 @@ def arkimet_observed_case(
     auth_headers,
     test_runtime: TestRuntime,
 ) -> Iterator[ObservedCase]:
-    """Provide one observed scenario that reads from archived Arkimet data."""
-    # Prepariamo la fixture osservazioni: crea lo stato riusabile e lascia al test solo
-    # la verifica del comportamento.
+    """Fornisce uno scenario osservato che legge dati archiviati da Arkimet.
+
+    Lo scenario viene scoperto sui dati reali tramite GET /api/fields (vedi support.py).
+    """
     yield from yield_observed_case(client, auth_headers, test_runtime, "arkimet")
 
 
@@ -42,7 +44,8 @@ def mixed_observed_case(
     auth_headers,
     test_runtime: TestRuntime,
 ) -> Iterator[ObservedCase]:
-    """Provide one observed scenario that spans both DBALLE and Arkimet data."""
-    # Prepariamo la fixture osservazioni: crea lo stato riusabile e lascia al test solo
-    # la verifica del comportamento.
+    """Fornisce uno scenario osservato che copre sia dati DBALLE sia dati Arkimet.
+
+    Lo scenario viene scoperto sui dati reali tramite GET /api/fields (vedi support.py).
+    """
     yield from yield_observed_case(client, auth_headers, test_runtime, "mixed")

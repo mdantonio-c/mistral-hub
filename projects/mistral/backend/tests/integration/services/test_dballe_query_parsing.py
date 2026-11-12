@@ -1,15 +1,13 @@
-# EXTENSION TRACEABILITY: questo modulo e stato aggiunto dal piano di estensione
-# della copertura backend, fase quick wins, per coprire parser puri del service
-# DB-All.e senza toccare i test legacy o i flussi observed runtime-sensitive.
-# EXTENSION SCOPE: i test verificano trasformazioni di query e filtri in strutture
+# Test dei parser puri del service DB-All.e (BeDballe in services/dballe.py).
+# Ambito: i test verificano trasformazioni di query e filtri in strutture
 # Python usate dal backend: non aprono database DB-All.e, non leggono summary JSON e non
 # interrogano dataset reali.
-# EXTENSION DATA WINDOW: nessun dato meteorologico reale viene usato. Le date sono
+# Finestra dati: nessun dato meteorologico reale viene usato. Le date sono
 # sintetiche e servono solo a verificare parsing e propagazione dei campi datetime.
-# EXTENSION RUNTIME: i monkeypatch sostituiscono soltanto la mappa dataset -> network e
+# Runtime: i monkeypatch sostituiscono soltanto la mappa dataset -> network e
 # il DSN aggregazioni, perche questi contratti dipendono da configurazione runtime ma la
 # logica sotto test resta locale e deterministica.
-# EXTENSION CLEANUP: non vengono creati file o record DB; i monkeypatch sono ripristinati
+# Cleanup: non vengono creati file o record DB; i monkeypatch sono ripristinati
 # automaticamente da pytest a fine test.
 
 import datetime as dt
@@ -25,10 +23,10 @@ pytestmark = [pytest.mark.integration, pytest.mark.deterministic]
 
 
 class TestDballeQueryParsing:
-    """Verify deterministic DB-All.e query parsing helpers."""
+    """Verifica gli helper deterministici di BeDballe che traducono query e filtri."""
 
     def test_from_query_to_dic_parses_reftime_and_multi_value_filters(self):
-        """A textual query is converted to the dictionary shape used downstream."""
+        """BeDballe.from_query_to_dic converte una query testuale in un dizionario."""
         # arrange
         # La stringa e interamente sintetica ma riproduce la grammatica supportata dal
         # parser: reftime con bounds, filtri multi-valore e license scalar.
@@ -54,7 +52,7 @@ class TestDballeQueryParsing:
         assert parsed_query["license"] == "public"
 
     def test_from_filters_to_lists_maps_frontend_codes_to_dballe_fields(self):
-        """Filter dictionaries become ordered DB-All.e fields and value lists."""
+        """BeDballe.from_filters_to_lists produce campi DB-All.e e liste di valori."""
         # arrange
         # Ogni filtro usa il formato `code` prodotto dagli endpoint. Level e timerange
         # esercitano la conversione a tuple numeriche, mentre network/product restano
@@ -75,7 +73,10 @@ class TestDballeQueryParsing:
         assert queries == [[(1, None, None, None)], ["agrmet"], ["B13011"], [(1, 0, 3600)]]
 
     def test_from_query_to_lists_maps_query_dictionary_to_dballe_lists(self):
-        """Already parsed query dictionaries keep ordering and tuple conversions."""
+        """BeDballe.from_query_to_lists converte una query gia parsata in liste.
+
+        Mantiene l'ordine dei campi e converte level/timerange in tuple numeriche.
+        """
         # arrange
         # La query evita qualsiasi accesso a summary DB-All.e: il test protegge solo la
         # normalizzazione dei nomi campo e dei valori compositi level/timerange.
@@ -100,7 +101,7 @@ class TestDballeQueryParsing:
         ]
 
     def test_parse_query_for_maps_translates_api_names_to_dballe_names(self):
-        """Map query parameters are adapted to DB-All.e cursor field names."""
+        """BeDballe.parse_query_for_maps traduce i nomi API nei campi DB-All.e."""
         # arrange
         # Lo scenario miscela filtri da tradurre e campi gia ammessi. Non viene creato un
         # explorer DB-All.e reale: il contratto e il dizionario risultante.
@@ -130,7 +131,10 @@ class TestDballeQueryParsing:
     def test_parse_query_for_data_extraction_uses_dataset_networks_and_reftime(
         self, monkeypatch
     ):
-        """Observed extraction query parsing uses a fake dataset-network map."""
+        """BeDballe.parse_query_for_data_extraction costruisce campi e valori.
+
+        Usa una mappa finta dataset -> reti e converte il reftime in datetimemin/max.
+        """
         # arrange
         # Il monkeypatch sostituisce la lettura della configurazione Arkimet con una
         # mappa locale. Questo rende il test portabile tra locale e CI e copre il ramo
@@ -169,7 +173,10 @@ class TestDballeQueryParsing:
     def test_parse_query_for_data_extraction_rejects_network_outside_dataset(
         self, monkeypatch
     ):
-        """A requested network not declared by the dataset fake is rejected."""
+        """BeDballe.parse_query_for_data_extraction rifiuta una rete fuori dataset.
+
+        Solleva InvalidFiltersException se la rete richiesta non appartiene al dataset.
+        """
         # arrange
         # Il diniego e costruito in modo controllato e portabile: il dataset fake espone
         # solo `agrmet`, mentre il filtro chiede una rete diversa.
@@ -190,7 +197,10 @@ class TestDballeQueryParsing:
     def test_is_query_for_pluvio_aggregations_selects_configured_dsn(
         self, monkeypatch
     ):
-        """Hourly B13011 timeranges are routed to the configured aggregation DSN."""
+        """BeDballe.is_query_for_pluvio_aggregations sceglie il DSN delle aggregazioni.
+
+        Il DSN torna solo per B13011 con timerange multiplo di un'ora, altrimenti None.
+        """
         # arrange
         # Il DSN reale dipende dall'ambiente, quindi viene sostituito con un valore
         # locale. La logica verificata resta la selezione sul prodotto e sul p2 orario.
@@ -209,7 +219,10 @@ class TestDballeQueryParsing:
     def test_get_queries_and_dsn_list_with_itertools_expands_filter_combinations(
         self, monkeypatch
     ):
-        """Multiple filter values are expanded into independent query dictionaries."""
+        """BeDballe.get_queries_and_dsn_list_with_itertools espande le combinazioni.
+
+        Ogni combinazione di valori multipli diventa una query separata con il suo DSN.
+        """
         # arrange
         # La query contiene due dimensioni multi-valore. Il DSN fake consente di
         # verificare che solo la combinazione pluviometrica oraria venga marcata per le

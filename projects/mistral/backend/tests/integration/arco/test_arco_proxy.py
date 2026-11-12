@@ -1,7 +1,8 @@
-"""Integration tests for the authenticated ARCO proxy endpoint.
+"""Test di integrazione dell'endpoint proxy ARCO autenticato.
 
-These scenarios verify the proxy behavior seen by API clients, including access
-control and propagation of success or not-found responses.
+Gli scenari verificano il comportamento del proxy visto dai client API, incluso il
+controllo di accesso e la propagazione delle risposte di successo o di oggetto non
+trovato.
 """
 
 from unittest.mock import MagicMock
@@ -16,20 +17,16 @@ pytestmark = [pytest.mark.integration, pytest.mark.deterministic]
 
 
 def test_arco_proxy_requires_authentication(client: FlaskClient) -> None:
-    """Verify that the ARCO proxy enforces authentication before proxying data.
+    """Verifica che il proxy ARCO richieda l'autenticazione prima di servire dati.
 
-    The proxy ultimately serves remote Zarr content, but the access decision has
-    to happen at the Meteo-Hub boundary first. This test protects that outer
-    security contract.
+    Il proxy GET /api/arco/<path> (ArcoResource.get) serve contenuti Zarr remoti, ma la
+    decisione di accesso deve avvenire prima, al confine di Meteo-Hub. Il test protegge
+    questo contratto di sicurezza esterno.
     """
     # act
-    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-    # verifica dal setup.
     response = client.get(f"{API_URI}/arco/ww3.zarr/.zgroup")
 
     # assert
-    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-    # questo test vuole proteggere.
     assert response.status_code == 401
 
 
@@ -39,30 +36,24 @@ def test_arco_proxy_returns_zgroup_for_authorized_user(
     fresh_access_key,
     monkeypatch,
 ) -> None:
-    """Verify that a user authenticated with an access key can read proxied Zarr metadata."""
+    """Verifica che un utente con access key valida legga i metadati Zarr dal proxy.
+
+    Endpoint esercitato: GET /api/arco/<path> (ArcoResource.get) con BasicAuth
+    email:access key; il connettore S3 e sostituito da un MagicMock.
+    """
     # arrange
-    # Prepariamo lo scenario catalogo ARCO con dati minimi e controllati, cosi la
-    # verifica successiva resta legata a un comportamento preciso.
     _, valid_key = fresh_access_key
     email = access_key_owner.email
     mock_s3 = MagicMock()
     mock_s3.client.get_object.return_value = {
         "Body": MagicMock(read=lambda: b'{"zarr_format": 2}')
     }
-    # Sostituiamo temporaneamente la dipendenza esterna con un fake controllato, cosi il
-    # test resta deterministico.
     monkeypatch.setattr("mistral.connectors.s3.get_instance", lambda: mock_s3)
     headers = make_basic_auth(email, valid_key)
 
     # act
-    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-    # verifica dal setup.
     response = client.get(f"{API_URI}/arco/ww3.zarr/.zgroup", headers=headers)
 
     # assert
-    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-    # questo test vuole proteggere.
     assert response.status_code == 200
-    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
-    # arrivato fin qui senza eccezioni.
     assert b"zarr_format" in response.data

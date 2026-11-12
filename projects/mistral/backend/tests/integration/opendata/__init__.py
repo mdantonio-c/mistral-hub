@@ -1,1 +1,1 @@
-"""Local support package for opendata integration tests."""
+"""Package locale dei test di integrazione sugli opendata."""

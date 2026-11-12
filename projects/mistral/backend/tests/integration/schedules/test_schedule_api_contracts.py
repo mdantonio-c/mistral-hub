@@ -1,18 +1,16 @@
-# EXTENSION TRACEABILITY: added by coverage extension prompt 04
-# EXTENSION SCOPE: integrates the refactored suite without modifying legacy baseline
-# EXTENSION DATA WINDOW: no real runtime data required; uses DB-seeded schedule rows
-# EXTENSION RUNTIME: deterministic fake schedule rows; no async dependencies
-# EXTENSION CLEANUP: schedule rows and temporary users cleaned via cleanup_registry
+# Finestra dati: nessun dato runtime reale richiesto; usa righe schedule scritte nel DB.
+# Runtime: righe schedule finte e deterministiche; nessuna dipendenza asincrona.
+# Cleanup: righe schedule e utenti temporanei rimossi tramite cleanup_registry.
 #
-# This module extends the schedules integration area with tests for:
-# - GET /schedules list returns expected shape
-# - GET /schedules?get_total=true returns 206 with total count
-# - GET /schedules/<id> returns schedule details
-# - GET /schedules/<id> owner mismatch forbidden
+# Questo modulo contiene i test di integrazione delle schedule per:
+# - GET /schedules restituisce una lista con la struttura attesa
+# - GET /schedules?get_total=true restituisce 206 con il conteggio totale
+# - GET /schedules/<id> restituisce il dettaglio della schedule
+# - GET /schedules/<id> nega l'accesso se la schedule e di un altro utente
 #
-# The baseline test_schedule_opendata_bridge.py already covers the full schedule
-# creation and data-ready flow. This extension focuses on the basic CRUD API
-# contracts that listing and get-by-id expose.
+# test_schedule_opendata_bridge.py copre gia il flusso completo di creazione della
+# schedule e di data-ready. Questo modulo si concentra sui contratti API di base
+# esposti dal listing e dalla lettura per id.
 
 from __future__ import annotations
 
@@ -34,7 +32,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.deterministic]
 
 
 # =============================================================================
-# Local helper: seed a schedule row with controlled args
+# Helper locale: inserisce una riga schedule con argomenti controllati
 # =============================================================================
 
 
@@ -48,14 +46,12 @@ def seed_schedule_row(
     on_data_ready: bool = True,
     opendata: bool = False,
 ) -> int:
-    """Seed one schedule row directly in the database for deterministic scenarios.
+    """Inserisce una riga schedule direttamente nel database per scenari deterministici.
 
-    The helper bypasses the endpoint creation path so tests can focus on the
-    listing and get-by-id contract without depending on RedBeat or real Celery
-    infrastructure.
+    L'helper evita il percorso di creazione dell'endpoint (POST /schedules), cosi i
+    test si concentrano sul contratto di listing e lettura per id senza dipendere da
+    RedBeat o da un'infrastruttura Celery reale.
     """
-    # Costruiamo lo stato controllato richiesto dal test, usando un DB seed diretto
-    # quando l'endpoint POST richiederebbe troppo contesto esterno.
     schedule_row = db.Schedule(
         user_id=user_id,
         name=faker.pystr(),
@@ -74,31 +70,21 @@ def seed_schedule_row(
         every=1,
         opendata=opendata,
     )
-    # Persistiamo la modifica nel database di test, altrimenti le chiamate successive
-    # non vedrebbero lo scenario preparato.
     db.session.add(schedule_row)
     db.session.commit()
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return schedule_row.id
 
 
 def delete_schedule_row(db: Any, schedule_id: int) -> None:
-    """Delete one seeded schedule row from the database if still present."""
-    # Rimuoviamo lo stato creato dal test per non lasciare dati che possano influenzare
-    # gli scenari successivi.
+    """Elimina dal database una riga schedule inserita dal test, se esiste ancora."""
     schedule = db.Schedule.query.get(schedule_id)
-    # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve succedere
-    # quando lo stato non e quello ideale.
     if schedule is not None:
-        # Persistiamo la modifica nel database di test, altrimenti le chiamate
-        # successive non vedrebbero lo scenario preparato.
         db.session.delete(schedule)
         db.session.commit()
 
 
 # =============================================================================
-# Fixture: temporary authenticated user with schedule permissions
+# Fixture: utente autenticato temporaneo con permessi sulle schedule
 # =============================================================================
 
 
@@ -107,12 +93,12 @@ def schedules_user(
     client: FlaskClient,
     cleanup_registry,
 ) -> AuthenticatedTestUser:
-    """Create a temporary authenticated user for schedule CRUD tests."""
-    # Prepariamo la fixture schedules: crea lo stato riusabile e lascia al test solo la
-    # verifica del comportamento.
+    """Crea un utente autenticato temporaneo per i test CRUD sulle schedule.
+
+    L'utente ha il permesso `allowed_schedule` e sostituisce, in questo modulo, la
+    `schedules_user` del conftest; il cleanup e registrato in cleanup_registry.
+    """
     base = BaseTests()
-    # Creiamo un utente temporaneo con permessi mirati, cosi il test non dipende da
-    # account preesistenti.
     user = create_authenticated_test_user(
         base,
         client,
@@ -125,18 +111,16 @@ def schedules_user(
         user_uuid=user.uuid,
         root_path=user.output_dir.parent,
     )
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return user
 
 
 # =============================================================================
-# Tests: GET /schedules - listing and pagination
+# Test: GET /schedules - listing e paginazione
 # =============================================================================
 
 
 class TestSchedulesListing:
-    """Verify the shape and pagination behavior of GET /schedules."""
+    """Verifica struttura e paginazione di GET /schedules (Schedules.get)."""
 
     def test_get_schedules_returns_expected_shape(
         self,
@@ -145,10 +129,8 @@ class TestSchedulesListing:
         schedules_user: AuthenticatedTestUser,
         cleanup_registry,
     ):
-        """GET /schedules must return a list with standard schedule fields."""
-        # arrange - seed one schedule
-        # Costruiamo lo stato controllato richiesto dal test, usando un DB seed diretto
-        # quando l'endpoint POST richiederebbe troppo contesto esterno.
+        """GET /schedules restituisce una lista con i campi standard della schedule."""
+        # arrange - inserisce una schedule
         db = sqlalchemy.get_instance()
         schedule_id = seed_schedule_row(
             db,
@@ -156,30 +138,20 @@ class TestSchedulesListing:
             schedules_user.user_id,
             dataset_names=["agrmet"],
         )
-        # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta
-        # affidabile anche in caso di fallimento.
         cleanup_registry.add(lambda: delete_schedule_row(db, schedule_id))
 
-        # act - list user schedules
-        # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
-        # autorizzazione e serializzazione vengono verificati insieme.
+        # act - elenca le schedule dell'utente
         response = client.get(
             f"{API_URI}/schedules",
             headers=schedules_user.headers,
         )
 
-        # assert - response shape
-        # Verifichiamo che la risposta confermi che l'operazione richiesta e andata
-        # a buon fine prima di usare il payload.
+        # assert - struttura della risposta
         assert response.status_code == 200
         data = BaseTests().get_content(response)
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il
-        # codice sia arrivato fin qui senza eccezioni.
         assert isinstance(data, list)
         assert len(data) >= 1
         schedule_item = next((s for s in data if s["id"] == schedule_id), None)
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il
-        # codice sia arrivato fin qui senza eccezioni.
         assert schedule_item is not None
         assert "id" in schedule_item
         assert "name" in schedule_item
@@ -194,46 +166,36 @@ class TestSchedulesListing:
         schedules_user: AuthenticatedTestUser,
         cleanup_registry,
     ):
-        """GET /schedules?get_total=true must return 206 with total field."""
-        # arrange - seed a few schedules
-        # Costruiamo lo stato controllato richiesto dal test, usando un DB seed diretto
-        # quando l'endpoint POST richiederebbe troppo contesto esterno.
+        """GET /schedules?get_total=true deve rispondere 206 con il campo total."""
+        # arrange - inserisce alcune schedule
         db = sqlalchemy.get_instance()
         schedule_ids = [
             seed_schedule_row(db, faker, schedules_user.user_id, dataset_names=["agrmet"])
             for _ in range(3)
         ]
         for schedule_id in schedule_ids:
-            # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta
-            # affidabile anche in caso di fallimento.
             cleanup_registry.add(lambda sid=schedule_id: delete_schedule_row(db, sid))
 
-        # act - get total count
-        # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
-        # autorizzazione e serializzazione vengono verificati insieme.
+        # act - richiede il conteggio totale
         response = client.get(
             f"{API_URI}/schedules?get_total=true",
             headers=schedules_user.headers,
         )
 
-        # assert - 206 with total
-        # Verifichiamo che la risposta confermi l'uso del codice parziale prima di
-        # usare il payload.
+        # assert - 206 con il totale
         assert response.status_code == 206
         data = BaseTests().get_content(response)
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il
-        # codice sia arrivato fin qui senza eccezioni.
         assert "total" in data
         assert data["total"] >= 3
 
 
 # =============================================================================
-# Tests: GET /schedules/<id> - get schedule by id
+# Test: GET /schedules/<id> - lettura della schedule per id
 # =============================================================================
 
 
 class TestScheduleGetById:
-    """Verify the get-by-id operation returns schedule details."""
+    """Verifica la lettura per id con GET /schedules/<id> (SingleSchedule.get)."""
 
     def test_get_schedule_by_id_returns_details(
         self,
@@ -242,10 +204,8 @@ class TestScheduleGetById:
         schedules_user: AuthenticatedTestUser,
         cleanup_registry,
     ):
-        """GET /schedules/<id> must return the schedule details."""
-        # arrange - seed one schedule
-        # Costruiamo lo stato controllato richiesto dal test, usando un DB seed diretto
-        # quando l'endpoint POST richiederebbe troppo contesto esterno.
+        """GET /schedules/<id> deve restituire il dettaglio della schedule."""
+        # arrange - inserisce una schedule
         db = sqlalchemy.get_instance()
         schedule_id = seed_schedule_row(
             db,
@@ -253,25 +213,17 @@ class TestScheduleGetById:
             schedules_user.user_id,
             dataset_names=["agrmet"],
         )
-        # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta
-        # affidabile anche in caso di fallimento.
         cleanup_registry.add(lambda: delete_schedule_row(db, schedule_id))
 
-        # act - get schedule by id
-        # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
-        # autorizzazione e serializzazione vengono verificati insieme.
+        # act - legge la schedule per id
         response = client.get(
             f"{API_URI}/schedules/{schedule_id}",
             headers=schedules_user.headers,
         )
 
-        # assert - schedule details
-        # Verifichiamo che la risposta confermi che l'operazione richiesta e andata
-        # a buon fine prima di usare il payload.
+        # assert - dettaglio della schedule
         assert response.status_code == 200
         data = BaseTests().get_content(response)
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il
-        # codice sia arrivato fin qui senza eccezioni.
         assert data["id"] == schedule_id
         assert "name" in data
         assert "args" in data
@@ -285,14 +237,10 @@ class TestScheduleGetById:
         schedules_user: AuthenticatedTestUser,
         cleanup_registry,
     ):
-        """GET /schedules/<id> must reject accessing another user's schedule."""
-        # arrange - seed schedule owned by a different user
-        # Costruiamo lo stato controllato richiesto dal test, usando un DB seed diretto
-        # quando l'endpoint POST richiederebbe troppo contesto esterno.
+        """GET /schedules/<id> risponde 403 se la schedule e di un altro utente."""
+        # arrange - inserisce una schedule di un altro utente
         db = sqlalchemy.get_instance()
         base = BaseTests()
-        # Creiamo un utente temporaneo con permessi mirati, cosi il test non dipende da
-        # account preesistenti.
         other_user = create_authenticated_test_user(
             base,
             client,
@@ -312,19 +260,13 @@ class TestScheduleGetById:
             other_user.user_id,
             dataset_names=["agrmet"],
         )
-        # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta
-        # affidabile anche in caso di fallimento.
         cleanup_registry.add(lambda: delete_schedule_row(db, schedule_id))
 
-        # act - attempt to get with wrong user
-        # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
-        # autorizzazione e serializzazione vengono verificati insieme.
+        # act - tenta la lettura con l'utente sbagliato
         response = client.get(
             f"{API_URI}/schedules/{schedule_id}",
             headers=schedules_user.headers,
         )
 
-        # assert - forbidden
-        # Verifichiamo che la risposta confermi il diniego esplicito prima di usare
-        # il payload.
+        # assert - accesso negato
         assert response.status_code == 403

@@ -1,6 +1,4 @@
-# EXTENSION TRACEABILITY - Prompt 05, supporto locale per il dominio templates.
-# Origine: questo modulo e stato aggiunto per evitare duplicazione tra i nuovi test
-# di listing e upload/delete dell'endpoint projects/mistral/backend/endpoints/templates.py.
+# Supporto per i test di GET/POST/DELETE /templates (endpoints/templates.py).
 # Ambito: prepara utenti temporanei con quota e limite template espliciti, crea file
 # template sintetici nelle cartelle uploads/grib e uploads/shp, e costruisce archivi zip
 # minimali per validare il wiring HTTP senza invocare strumenti GDAL reali.
@@ -10,8 +8,6 @@
 # runtime e il filesystem locale del container, sempre ripulito dal cleanup_registry.
 # Cleanup: ogni utente viene cancellato via API admin e la directory /data/<uuid> viene
 # registrata con cleanup_registry.add_path; gli upload diretti registrano anche uploads.
-# Baseline non toccata: il modulo e un nuovo artefatto di estensione e non crea fixture
-# globali ne conftest.py locali, mantenendo confinata l'estensione al dominio templates.
 
 from __future__ import annotations
 
@@ -48,7 +44,7 @@ def create_templates_user(
     preesistenti nel runtime locale o CI.
     """
     # Prepariamo uno stato utente chiuso: quota disco e numero massimo di template sono
-    # il contratto osservabile di questo prompt, quindi vengono sempre dichiarati qui.
+    # il contratto osservabile di questi test, quindi vengono sempre dichiarati qui.
     permissions = {
         "disk_quota": disk_quota,
         "max_output_size": disk_quota,
@@ -171,8 +167,6 @@ def upload_payload(content: bytes | io.BytesIO, filename: str) -> dict[str, obje
     che i test stanno attraversando il vero endpoint HTTP e non chiamando direttamente
     Uploader.upload o funzioni interne del controller.
     """
-    # Normalizziamo i bytes in BytesIO solo qui, lasciando ai test il compito di indicare
-    # quale nome file e quale estensione vogliono esercitare.
     stream = content if isinstance(content, io.BytesIO) else io.BytesIO(content)
     stream.seek(0)
     return {"file": (stream, filename)}

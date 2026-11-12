@@ -1,18 +1,17 @@
-# EXTENSION TRACEABILITY: questo modulo e stato aggiunto dal prompt 07 del piano di
-# estensione copertura backend per coprire rami di `requests_cleanup.automatic_cleanup`
-# non presenti nella baseline legacy rifattorizzata.
-# EXTENSION SCOPE: i test verificano archiviazione/cancellazione di request completate
+# Test dei rami del task Celery `requests_cleanup.automatic_cleanup`
+# (tasks/requests_cleanup.py) su scadenza delle request e file orfani.
+# Ambito: i test verificano archiviazione/cancellazione di request completate
 # scadute, esclusioni per request recenti/archiviate/user disabilitato e cleanup di
 # file orfani. Non toccano endpoint HTTP ne flussi postprocessing gia coperti altrove.
-# EXTENSION DATA WINDOW: nessun dato meteo reale viene usato. Le date sono sintetiche
+# Finestra dati: nessun dato meteo reale viene usato. Le date sono sintetiche
 # e relative a `datetime.now()` solo per superare o non superare grace period e
 # requests_expiration_days.
-# EXTENSION RUNTIME: il task viene invocato in-process con `.run()`; non c'e Celery
+# Runtime: il task viene invocato in-process con `.run()`; non c'e Celery
 # worker reale. Il DB e quello di test perche il contratto da proteggere e sui record
 # Request/FileOutput. La fixture `requests_cleanup_perimeter` espone al task solo
 # utenti e request registrati dal test e sostituisce DOWNLOAD_DIR del task con una
 # cartella temporanea: righe e file estranei restano fuori dal suo raggio d'azione.
-# EXTENSION CLEANUP: utenti temporanei, request, fileoutput e directory output sono
+# Cleanup: utenti temporanei, request, fileoutput e directory output sono
 # registrati nel cleanup_registry. I file che il task cancella vengono verificati con
 # assert idempotenti, mentre quelli recenti rimasti sono rimossi dal teardown.
 
@@ -41,7 +40,11 @@ pytestmark = [pytest.mark.integration, pytest.mark.deterministic]
 
 
 class TestAutomaticCleanupExpirationEXT:
-    """Verifica i rami di expiration request non coperti dal pending-stale legacy."""
+    """Verifica i rami di scadenza delle request completate in ``automatic_cleanup``.
+
+    Il caso delle request pending oltre il grace period e coperto da
+    requests/test_delete_pending_request.py.
+    """
 
     def test_automatic_cleanup_archives_deletes_and_preserves_expected_requests(
         self,

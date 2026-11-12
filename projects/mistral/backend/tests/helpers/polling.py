@@ -1,8 +1,8 @@
-"""Small polling helper used when test assertions depend on eventual consistency.
+"""Piccolo helper di polling per asserzioni su stati che si aggiornano in ritardo.
 
-The suite avoids blind ``sleep()`` calls whenever possible. This helper retries a
-predicate until it becomes truthy or a timeout expires, which makes tests both
-clearer and less brittle than fixed waits.
+La suite evita quando possibile le chiamate ``sleep()`` alla cieca. Questo helper
+riprova un predicato finche non restituisce un valore truthy o scade il timeout,
+il che rende i test piu chiari e meno fragili delle attese fisse.
 """
 
 from __future__ import annotations
@@ -17,20 +17,16 @@ def wait_until(
     interval: float = 2,
     message: str = "Condition not met within timeout",
 ) -> Any:
-    """Poll ``predicate`` until it returns a truthy value or the timeout expires.
+    """Interroga ``predicate`` finche restituisce un valore truthy o scade il timeout.
 
-    The helper returns the first truthy value produced by the predicate so callers
-    can immediately reuse the discovered object. If the deadline is reached first,
-    it raises ``AssertionError`` with the provided message.
+    Restituisce il primo valore truthy prodotto dal predicato, cosi il chiamante
+    puo riusare subito l'oggetto trovato. Se prima si raggiunge la scadenza,
+    solleva ``AssertionError`` con il messaggio indicato.
     """
-    # Avviamo il polling su una condizione osservabile, evitando attese fisse che
-    # renderebbero il test fragile.
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         result = predicate()
         if result:
-            # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo
-            # direttamente nelle asserzioni.
             return result
         time.sleep(interval)
     raise AssertionError(message)

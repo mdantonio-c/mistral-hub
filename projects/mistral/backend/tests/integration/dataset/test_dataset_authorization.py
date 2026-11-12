@@ -1,4 +1,9 @@
-"""Integration tests for dataset authorization and visibility rules."""
+"""Test di integrazione sulle regole di autorizzazione e visibilita dei dataset.
+
+Esercitano GET /api/datasets e GET /api/datasets/<dataset_name>
+(endpoints/datasets.py) con utenti che hanno permessi diversi su dataset pubblici
+e privati.
+"""
 
 import json
 from typing import Any
@@ -17,7 +22,10 @@ pytestmark = [
 
 
 def _delete_user(client: FlaskClient, admin_headers: Any, user_uuid: Any) -> None:
-    """Delete one temporary API user during fixture teardown."""
+    """Elimina un utente temporaneo durante il teardown (DELETE /api/admin/users).
+
+    Si aspetta la risposta 204 dall'endpoint di amministrazione utenti di restapi.
+    """
     response = client.delete(
         f"{API_URI}/admin/users/{user_uuid}",
         headers=admin_headers,
@@ -32,7 +40,13 @@ def _create_test_user(
     dataset_ids: tuple[int, ...] = (),
     open_dataset: bool,
 ) -> tuple[BaseTests, Any, Any, Any, dict[str, Any]]:
-    """Create an authenticated user and immediately register its teardown."""
+    """Crea un utente con permessi sui dataset e ne registra subito il cleanup.
+
+    Usa l'API di amministrazione utenti di restapi per assegnare i permessi
+    ``datasets`` (dataset privati concessi) e ``open_dataset`` (accesso ai dataset
+    pubblici). Restituisce l'helper ``BaseTests``, l'uuid e gli header dell'utente,
+    gli header admin e i permessi usati.
+    """
     base = BaseTests()
     admin_headers, _ = base.do_login(client, None, None)
     permissions: dict[str, Any] = {
@@ -53,7 +67,11 @@ def test_user_with_open_dataset_can_access_public_catalog(
     client: FlaskClient,
     cleanup_registry,
 ) -> None:
-    """An authorized user can list and read a controlled public dataset."""
+    """Verifica che un utente con ``open_dataset`` veda un dataset pubblico.
+
+    Il dataset pubblico creato dal test compare in GET /api/datasets ed e
+    leggibile con GET /api/datasets/<dataset_name>.
+    """
     db = sqlalchemy.get_instance()
     public_dataset = create_test_dataset(
         db,
@@ -90,7 +108,11 @@ def test_private_dataset_visibility_requires_explicit_grant(
     client: FlaskClient,
     cleanup_registry,
 ) -> None:
-    """Only the private dataset explicitly assigned to the user is visible."""
+    """Verifica che sia visibile solo il dataset privato assegnato all'utente.
+
+    GET /api/datasets/<dataset_name> risponde 200 per il dataset concesso e 404
+    per un altro dataset privato non concesso.
+    """
     db = sqlalchemy.get_instance()
     authorized_dataset = create_test_dataset(
         db,
@@ -131,7 +153,11 @@ def test_private_grant_survives_disabling_open_dataset(
     client: FlaskClient,
     cleanup_registry,
 ) -> None:
-    """Disabling public access hides public data but preserves a private grant."""
+    """Verifica che togliere ``open_dataset`` nasconda i pubblici ma non i privati.
+
+    Dopo l'aggiornamento dell'utente con PUT /api/admin/users/<uuid>, il dataset
+    pubblico risponde 404 mentre il dataset privato concesso resta leggibile.
+    """
     db = sqlalchemy.get_instance()
     private_dataset = create_test_dataset(
         db,
@@ -187,7 +213,11 @@ def test_unknown_dataset_lookups_return_404(
     faker: Faker,
     cleanup_registry,
 ) -> None:
-    """Authenticated lookup returns 404 for each representative unknown name."""
+    """Verifica che GET /api/datasets/<dataset_name> risponda 404 per nomi sconosciuti.
+
+    Oltre a un nome casuale prova ``error`` e ``duplicates``, nomi che in Arkimet
+    identificano dataset di servizio e che non devono comparire nel catalogo.
+    """
     _, _, user_headers, _, _ = _create_test_user(
         client,
         cleanup_registry,

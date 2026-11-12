@@ -1,7 +1,6 @@
 # Review — `test_admin_license_groups.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** sopra la baseline legacy, senza toccarla.
 
 ## 1. Informazioni generali
 
@@ -28,7 +27,7 @@
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L39) | Teardown **LIFO**, eseguito dopo lo `yield`; non ingoia eccezioni. |
+| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO**, eseguito dopo lo `yield`; non ingoia eccezioni. |
 | `admin_headers` | fixture | [admin/conftest.py](conftest.py) | Scoperta automaticamente da pytest; login admin di **default** → header condivisi. |
 | `license_group_payload` | helper | [admin/support.py](projects/mistral/backend/tests/integration/admin/support.py) | Payload `LicGroupInput` con `is_public` e `dballe_dsn` espliciti (default `"DBALLE_EXT"`). |
 | `create_license_group_via_api` | helper | [admin/support.py](projects/mistral/backend/tests/integration/admin/support.py) | POST gruppo via API (asserisce 200) + registra cleanup DB del gruppo. |

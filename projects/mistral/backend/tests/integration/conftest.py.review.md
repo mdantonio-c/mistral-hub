@@ -5,7 +5,7 @@
 ## 1. Informazioni generali
 
 - **Percorso**: [projects/mistral/backend/tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py)
-- **Scopo**: baseline autenticato minimo riusabile da tutti i sottoalberi di `integration/`, più il perimetro del task globale di cleanup.
+- **Scopo**: base autenticata minima riusabile da tutti i sottoalberi di `integration/`, più il perimetro del task globale di cleanup.
 - **Tipologia**: `conftest.py` di area (visibile a `integration/**`).
 
 ## 2. Elementi definiti

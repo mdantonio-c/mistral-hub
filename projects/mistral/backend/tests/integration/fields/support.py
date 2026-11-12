@@ -1,6 +1,4 @@
-# EXTENSION TRACEABILITY - Prompt 03, dominio integration/fields.
-# Origine: questo modulo supporta solo i nuovi test di estensione per l'endpoint /fields e
-# nasce per non modificare la suite baseline osservazioni gia rifattorizzata.
+# Supporto ai test di GET /fields (Fields.get in endpoints/fields.py).
 # Ambito: centralizza URL, finestre dati ammesse, utenti temporanei, dataset sintetici
 # e cleanup per coprire il ramo OBS/map, il ramo OBS/dataset e il ramo FOR/Arkimet.
 # Finestra dati: OBS usa solo agrmet DBALLE 2020-04-06 00:00-01:00 e agrmet Arkimet
@@ -11,8 +9,6 @@
 # Cleanup: ogni utente temporaneo, dataset sintetico, gruppo licenza e licenza creati
 # dal supporto viene registrato nel cleanup_registry; i record reali del catalogo, come
 # agrmet, vengono solo letti e mai modificati.
-# Baseline non toccata: non vengono creati conftest.py, fixture globali o helper fuori
-# dal dominio fields; la logica nuova resta confinata in file di estensione.
 
 from __future__ import annotations
 
@@ -237,11 +233,11 @@ def require_forecast_fields_case(
 ) -> ForecastFieldsCase:
     """Trova lm5 o lm2.2 con dati nella sola finestra forecast ammessa.
 
-    Il helper prova prima lm5 2021-10-19 e poi lm2.2 2019-09-10. Ogni probe usa un
-    utente temporaneo autorizzato al dataset specifico, quindi l'esito non dipende dal
-    fatto che la CI abbia restrizioni meno forti del locale dell'utente.
+    Il helper prova prima lm5 2021-10-19 e poi lm2.2 2019-09-10 con GET /fields. Ogni
+    probe usa un utente temporaneo autorizzato al dataset specifico, quindi l'esito non
+    dipende dal fatto che la CI abbia restrizioni meno forti del locale dell'utente.
     """
-    # Cerchiamo un solo caso forecast reale, mantenendo le finestre del prompt come
+    # Cerchiamo un solo caso forecast reale, mantenendo le finestre dati consentite come
     # unica sorgente di verita e saltando esplicitamente se nessuna espone dati.
     db = sqlalchemy.get_instance()
     for dataset_name, date_from, date_to in FORECAST_WINDOWS:

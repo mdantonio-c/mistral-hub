@@ -1,7 +1,6 @@
 # Review — `test_queue_sorting.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** sopra la baseline legacy (fase quick wins).
 
 ## 1. Informazioni generali
 

@@ -1,22 +1,20 @@
-# EXTENSION TRACEABILITY: questo modulo e stato aggiunto dal Prompt 08 per dare
-# uno smoke test mirato a `mistral.initialization.Initializer`, superficie finora
-# coperta solo indirettamente dallo startup del progetto.
-# EXTENSION SCOPE: il test importa il modulo, attraversa il costruttore con fake
+# Smoke test mirato a `mistral.initialization.Initializer` (initialization.py), che
+# altrimenti viene esercitato solo indirettamente dallo startup del progetto.
+# Ambito: il test importa il modulo, attraversa il costruttore con fake
 # SQLAlchemy, Arkimet e Celery, e aggiunge uno smoke import-only delle revisioni
 # Alembic. Non prova ogni riga di seed ne esegue upgrade/downgrade, ma protegge
 # invarianti sostenibili: nessuna creazione duplicata quando le righe risultano gia
 # presenti, ricreazione del cron `requests_cleanup` con task `automatic_cleanup` e
 # importabilita dei migration script versionati.
-# EXTENSION DATA WINDOW: nessun dataset reale viene letto da Arkimet. Il fake
+# Finestra dati: nessun dataset reale viene letto da Arkimet. Il fake
 # `load_datasets` restituisce un solo dataset sintetico gia presente nel DB fake.
-# EXTENSION RUNTIME: `sqlalchemy.get_instance`, `celery.get_instance` e
+# Runtime: `sqlalchemy.get_instance`, `celery.get_instance` e
 # `arki.load_datasets` sono monkeypatchati. Non vengono avviati Celery, DB reale,
 # migrazioni operative o servizi esterni; le revisioni Alembic sono solo importate
 # come moduli Python, senza chiamare `upgrade` o `downgrade`.
-# EXTENSION CLEANUP: tutti i fake sono in memoria e durano solo per il test. Non ci
+# Cleanup: tutti i fake sono in memoria e durano solo per il test. Non ci
 # sono righe DB, cron reali o file da cancellare.
-# EXTENSION BASELINE: non vengono modificati initializer, migration script o suite
-# legacy. Il file e intenzionalmente uno smoke deterministico, non una replica
+# Il file e intenzionalmente uno smoke deterministico, non una replica
 # fragile dell'intero seeding applicativo.
 
 from __future__ import annotations
@@ -236,7 +234,7 @@ class TestInitializerSmoke:
     def test_migration_versions_import_without_running_upgrade(self) -> None:
         """Le revisioni Alembic devono essere importabili senza toccare il DB.
 
-        Questo test copre il perimetro migration richiesto dal Prompt 08 in modo
+        Questo test copre le migrazioni (migrations/versions) in modo
         non invasivo: verifica che ogni file versione esponga metadati Alembic minimi,
         che gli id di revisione siano univoci e che esista almeno una head. Non prova la
         correttezza dello schema, che resta demandata al runtime Alembic/CI.

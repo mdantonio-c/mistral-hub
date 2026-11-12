@@ -1,9 +1,9 @@
-"""Fixtures that assemble reusable environments for postprocessing scenarios.
+"""Fixture che preparano ambienti riusabili per gli scenari di postprocessing.
 
-Postprocessing tests need more than authenticated headers: they need a prepared
-request helper, a dataset-specific user, database access, cleanup wiring, and in
-the observed case a temporary ``LASTDAYS`` override. These fixtures build those
-complete environments once per test.
+Ai test di postprocessing non bastano header autenticati: servono un helper per
+creare le request, un utente abilitato al dataset, l'accesso al database, il
+cleanup e, nel caso observed, un override temporaneo di ``LASTDAYS``. Queste
+fixture costruiscono l'ambiente completo una volta per ogni test.
 """
 
 import pytest
@@ -30,15 +30,14 @@ def pp_forecast_env(
     faker: Faker,
     cleanup_registry,
 ) -> PostprocessingEnv:
-    """Create a complete forecast postprocessing environment bound to ``lm5``.
+    """Crea un ambiente completo di postprocessing forecast sul dataset ``lm5``.
 
-    The returned environment bundles together the app, client, faker, DB handle,
-    cleanup registry, dedicated user, and dataset name that forecast scenarios
-    need to create requests and assert on their outcomes.
+    L'ambiente restituito raccoglie app, client, faker, handle del DB, cleanup
+    registry, utente dedicato e nome del dataset: e quanto serve agli scenari
+    forecast per creare request, eseguire il task Celery ``data_extract`` e
+    verificarne l'esito. Fa skip se il dataset ``lm5`` non esiste.
     """
     # arrange
-    # Prepariamo lo scenario post-processing con dati minimi e controllati, cosi la
-    # verifica successiva resta legata a un comportamento preciso.
     db = sqlalchemy.get_instance()
     dataset = require_dataset(db, "lm5")
     base = PostprocessingSupport()
@@ -46,8 +45,6 @@ def pp_forecast_env(
     register_user_cleanup(base, client, cleanup_registry, user)
 
     # act
-    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-    # verifica dal setup.
     env = PostprocessingEnv(
         base=base,
         app=app,
@@ -60,8 +57,6 @@ def pp_forecast_env(
     )
 
     # assert
-    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-    # questo test vuole proteggere.
     return env
 
 
@@ -73,15 +68,14 @@ def pp_observed_env(
     cleanup_registry,
     test_runtime,
 ) -> PostprocessingEnv:
-    """Create a complete observed postprocessing environment bound to ``agrmet``.
+    """Crea un ambiente completo di postprocessing observed sul dataset ``agrmet``.
 
-    In addition to the resources used by forecast scenarios, observed tests also
-    need a temporary ``BeDballe.LASTDAYS`` override derived from real data so the
-    selected observed slice stays visible during the test.
+    Oltre alle risorse usate dagli scenari forecast, i test observed hanno
+    bisogno di un override temporaneo di ``BeDballe.LASTDAYS`` derivato dai dati
+    reali, cosi la porzione di dati observed selezionata resta visibile durante il
+    test. Fa skip se mancano il dataset, la configurazione DBALLE o i dati.
     """
     # arrange
-    # Prepariamo lo scenario post-processing con dati minimi e controllati, cosi la
-    # verifica successiva resta legata a un comportamento preciso.
     db = sqlalchemy.get_instance()
     dataset = require_dataset(db, "agrmet")
     observed_lastdays = require_observed_lastdays()
@@ -89,12 +83,11 @@ def pp_observed_env(
     user = create_postprocessing_user(base, client, [dataset.id])
     register_user_cleanup(base, client, cleanup_registry, user)
 
-    # Sostituiamo temporaneamente la dipendenza esterna con un fake controllato, cosi il
-    # test resta deterministico.
+    # LASTDAYS decide il confine tra dati recenti (DBALLE) e storici (Arkimet):
+    # l'override fa ricadere i dati observed reali nella finestra DBALLE. Lo yield
+    # sta dentro il with, cosi l'override resta attivo per tutta la durata del test.
     with test_runtime.override_attr(BeDballe, "LASTDAYS", observed_lastdays):
         # act
-        # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-        # verifica dal setup.
         env = PostprocessingEnv(
             base=base,
             app=app,
@@ -107,6 +100,4 @@ def pp_observed_env(
         )
 
         # assert
-        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-        # questo test vuole proteggere.
         yield env

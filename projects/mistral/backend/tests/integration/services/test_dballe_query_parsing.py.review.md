@@ -1,7 +1,6 @@
 # Review — `test_dballe_query_parsing.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** sopra la baseline legacy.
 
 ## 1. Informazioni generali
 
@@ -35,9 +34,9 @@
 | `InvalidFiltersException` | eccezione | [exceptions.py](projects/mistral/backend/exceptions.py) | Atteso in `pytest.raises` nel test di rete fuori dataset. |
 | `itertools.product` | stdlib | `itertools` (in `dballe.py`) | Espansione combinazioni multi-valore. |
 | `datetime` (`dt`) | stdlib | `datetime` | Confronto esatto dei `datetime` parsati (naive). |
-| `pytest.mark.integration` / `deterministic` | marker | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L8) | Solo classificazione. |
+| `pytest.mark.integration` / `deterministic` | marker | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L13) | Solo classificazione. |
 
-> **Nota infra**: nessun `conftest.py`/`support` locale in `integration/services/`. L'unica fixture usata è la built-in `monkeypatch`; le fixture condivise ([`test_runtime`/`cleanup_registry`](projects/mistral/backend/tests/conftest.py#L31)) non sono autouse e non vengono richieste.
+> **Nota infra**: nessun `conftest.py`/`support` locale in `integration/services/`. L'unica fixture usata è la built-in `monkeypatch`; le fixture condivise ([`test_runtime`/`cleanup_registry`](projects/mistral/backend/tests/conftest.py#L49)) non sono autouse e non vengono richieste.
 
 ## 4. Analisi dettagliata di ogni test
 

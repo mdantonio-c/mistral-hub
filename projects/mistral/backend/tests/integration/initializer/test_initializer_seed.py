@@ -1,21 +1,20 @@
-# EXTENSION TRACEABILITY: modulo aggiunto per trasformare la copertura di
-# `mistral.initialization.Initializer` da smoke con fake permissivi a test di stato
-# reale. Affianca `test_initializer_smoke.py` senza sostituirlo.
-# EXTENSION SCOPE: tre scenari prioritari eseguiti su PostgreSQL e modelli SQLAlchemy
+# Test di stato reale di `mistral.initialization.Initializer` (initialization.py): seed
+# di gruppi di licenze, licenze, attribution e dataset e installazione del cron di
+# cleanup delle richieste. Affianca `test_initializer_smoke.py` senza sostituirlo.
+# Ambito: tre scenari eseguiti su PostgreSQL e modelli SQLAlchemy
 # reali: prima creazione del seed, doppia esecuzione idempotente e ripristino di un
 # singolo campo modificato. Le asserzioni rileggono le righe dal DB dopo `expire_all`.
-# EXTENSION DATA WINDOW: nessun dato meteorologico. `arki.load_datasets` restituisce un
+# Finestra dati: nessun dato meteorologico. `arki.load_datasets` restituisce un
 # solo dataset sintetico con `arkimet_id`/`name` univoci (uuid).
-# EXTENSION RUNTIME: DB reale nella stessa transazione del test. `session.commit` e
+# Runtime: DB reale nella stessa transazione del test. `session.commit` e
 # sostituito da `session.flush`, quindi INSERT/UPDATE e vincoli vengono eseguiti davvero
 # ma nulla viene reso permanente. Celery e un recorder in memoria con stato, per non
 # toccare RedBeat; Arkimet e monkeypatchato.
-# EXTENSION CLEANUP: `session.rollback()` a fine test annulla tutto; il fixture verifica
+# Cleanup: `session.rollback()` a fine test annulla tutto; il fixture verifica
 # poi che le tabelle seed abbiano esattamente le righe presenti prima del test.
-# EXTENSION FINDING: il test xfail strict documenta che ogni rerun riscrive
+# Bug noto: il test xfail strict documenta che ogni rerun riscrive
 # `datasets.category` (enum confrontato con stringa Arkimet). Il bug maschera anche i
 # confronti degli altri campi dataset nel ramo di update.
-# EXTENSION BASELINE: initializer, migration script e test esistenti non modificati.
 
 from __future__ import annotations
 

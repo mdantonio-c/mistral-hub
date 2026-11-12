@@ -1,6 +1,3 @@
-# EXTENSION TRACEABILITY - Prompt 02, contratto GET /data/<filename> lato file download.
-# Origine: questo modulo aggiunge copertura EXT per projects/mistral/backend/endpoints/file.py
-# senza toccare il baseline auth o i moduli legacy di altri domini.
 # Ambito: copre download del file posseduto, negazione per file non posseduto e 404
 # quando il record FileOutput esiste ma il file fisico manca dal filesystem utente.
 # Finestra dati: non usa dati meteorologici reali; i contenuti file sono stringhe
@@ -9,7 +6,6 @@
 # di file.py dipende solo da DB, ownership e presenza fisica del file su disco.
 # Cleanup: ogni utente temporaneo, request sintetica e directory output viene registrato
 # nel cleanup_registry tramite helper locali di support.py.
-# Baseline non toccata: il file vive nel perimetro di estensione richiesto e non modifica suite preesistente.
 
 """Test di download file per l'endpoint GET /data/<filename> con stato sintetico locale."""
 
@@ -39,8 +35,6 @@ def test_file_download_returns_owned_output_content(
     invio del contenuto fisico come attachment.
     """
     # arrange
-    # Prepariamo un solo utente proprietario e il suo file sintetico su disco, cosi il
-    # test resta focalizzato sul contratto di download e non sulla creazione della request.
     db = sqlalchemy.get_instance()
     owner = create_data_endpoint_user(client, cleanup_registry)
     filename = create_file_download_record(
@@ -52,12 +46,9 @@ def test_file_download_returns_owned_output_content(
     endpoint = f"{API_URI}/data/{filename}"
 
     # act
-    # La richiesta attraversa il controllo reale di ownership e la consegna del file dal
-    # filesystem dell'utente temporaneo appena preparato.
     response = client.get(endpoint, headers=owner.headers)
 
     # assert
-    # Il contratto osservabile e il 200 con il contenuto esatto del file sintetico.
     assert response.status_code == 200
     assert response.mimetype == "application/octet-stream"
     assert response.get_data(as_text=True) == "owned-file-download-ext"
@@ -75,8 +66,6 @@ def test_file_download_denies_non_owned_output(
     contratto di non disclosure dell'ownership.
     """
     # arrange
-    # Costruiamo il file per il proprietario e poi eseguiamo il download con un secondo
-    # utente autenticato, senza condividere nessuna autorizzazione aggiuntiva.
     db = sqlalchemy.get_instance()
     owner = create_data_endpoint_user(client, cleanup_registry)
     other_user = create_data_endpoint_user(client, cleanup_registry)
@@ -89,7 +78,6 @@ def test_file_download_denies_non_owned_output(
     endpoint = f"{API_URI}/data/{filename}"
 
     # act
-    # La richiesta passa con credenziali valide ma deve fallire sul controllo ownership.
     response = client.get(endpoint, headers=other_user.headers)
 
     # assert
@@ -121,5 +109,4 @@ def test_file_download_returns_404_when_db_row_exists_but_file_is_missing(
     response = client.get(endpoint, headers=owner.headers)
 
     # assert
-    # Il contratto richiede 404 quando il record esiste ma il file non puo essere letto.
     assert response.status_code == 404

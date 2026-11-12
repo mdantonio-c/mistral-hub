@@ -1,6 +1,4 @@
-# EXTENSION TRACEABILITY - Prompt 05, contratti GET /templates.
-# Origine: questo modulo aggiunge copertura dedicata per Templates.get senza modificare
-# i test legacy o introdurre fixture globali.
+# Test di GET /templates: listing dei template dell'utente (endpoints/templates.py).
 # Ambito: copre autenticazione richiesta, lista vuota grib/shp, filtro format, conteggio
 # get_total e flag max_allowed quando l'utente raggiunge max_templates.
 # Finestra dati: nessun dato meteo reale viene usato; i file grib/shp sono placeholder
@@ -9,7 +7,6 @@
 # filesystem preparato dal test e il campo max_templates dell'utente creato via API.
 # Cleanup: create_templates_user registra /data/<uuid> con cleanup_registry.add_path;
 # i seed diretti registrano anche la cartella uploads locale.
-# Baseline non toccata: il file e un nuovo modulo di estensione nel dominio integration/templates.
 
 from __future__ import annotations
 
@@ -35,13 +32,9 @@ def test_templates_listing_requires_authentication(client: FlaskClient) -> None:
     leggere alcuna cartella utente.
     """
     # act
-    # Eseguiamo una GET anonima, senza preparare file o utenti temporanei: il contratto
-    # qui e soltanto l'autenticazione obbligatoria.
     response = client.get(TEMPLATES_ENDPOINT)
 
     # assert
-    # Il backend deve rifiutare il chiamante anonimo con 401, come gli altri endpoint
-    # user-facing della suite.
     assert response.status_code == 401
 
 
@@ -61,7 +54,6 @@ def test_templates_listing_returns_empty_grib_and_shp_lists(
     user = create_templates_user(client, cleanup_registry, max_templates=3)
 
     # act
-    # Attraversiamo il vero endpoint HTTP per verificare routing, auth e serializzazione.
     response = client.get(TEMPLATES_ENDPOINT, headers=user.headers)
 
     # assert
@@ -92,8 +84,6 @@ def test_templates_listing_filters_by_format(
     seed_template_file(cleanup_registry, user, "filter_ext.shp")
 
     # act
-    # Usiamo query_string invece di concatenare parametri a mano, cosi il test resta
-    # focalizzato sul contratto dell'endpoint.
     response = client.get(
         TEMPLATES_ENDPOINT,
         headers=user.headers,
@@ -101,8 +91,6 @@ def test_templates_listing_filters_by_format(
     )
 
     # assert
-    # Il payload deve contenere una sola sezione e la lista deve riferire il file grib
-    # preparato, indipendentemente dal prefisso assoluto serializzato dal backend.
     assert response.status_code == 200
     content = BaseTests().get_content(response)
     assert len(content) == 1
@@ -127,7 +115,6 @@ def test_templates_listing_get_total_counts_all_and_filtered_templates(
     seed_template_file(cleanup_registry, user, "total_ext.shp")
 
     # act
-    # Prima chiediamo il totale globale, poi il totale del solo formato grib.
     total_response = client.get(
         TEMPLATES_ENDPOINT,
         headers=user.headers,
@@ -140,8 +127,6 @@ def test_templates_listing_get_total_counts_all_and_filtered_templates(
     )
 
     # assert
-    # Entrambe le risposte devono attraversare il ramo compatto {total: ...}; il codice
-    # HTTP resta 200 per questo endpoint.
     assert total_response.status_code == 200
     assert grib_total_response.status_code == 200
     assert BaseTests().get_content(total_response) == {"total": 2}
@@ -170,8 +155,6 @@ def test_templates_listing_marks_max_allowed_when_limit_is_reached(
     response = client.get(TEMPLATES_ENDPOINT, headers=user.headers)
 
     # assert
-    # Ogni sezione deve dichiarare max_allowed=True quando il numero di template del tipo
-    # corrispondente raggiunge il limite configurato sull'utente.
     assert response.status_code == 200
     content = BaseTests().get_content(response)
     by_type = {item["type"]: item for item in content}

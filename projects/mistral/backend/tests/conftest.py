@@ -1,4 +1,4 @@
-"""Suite-wide pytest configuration shared by the whole backend test tree."""
+"""Configurazione pytest valida per tutti i test del backend MeteoHub."""
 
 import pytest
 
@@ -11,9 +11,11 @@ from mistral.tests.helpers.runtime import TestRuntime
 
 
 def pytest_configure(config):
-    """Register custom markers used across the modularized integration suite."""
-    # Entriamo nel blocco operativo della configurazione di test, mantenendo esplicito quale
-    # stato viene letto o prodotto.
+    """Registra i marker personalizzati usati per classificare i test.
+
+    I marker (``integration``, ``deterministic``, ``async_real``,
+    ``runtime_sensitive``) servono solo a selezionare o saltare gruppi di test.
+    """
     config.addinivalue_line(
         "markers", "integration: marks tests as integration-level"
     )
@@ -32,7 +34,7 @@ def pytest_configure(config):
 
 
 def pytest_collection_modifyitems(config, items):
-    """Skip the ``async_real`` tests when the real workers would send real emails."""
+    """Salta i test ``async_real`` quando i worker reali invierebbero email vere."""
     # I task di questi test girano sui worker reali, dove monkeypatch non arriva:
     # solo negli stack `rapydo --testing` i worker usano il mock SMTP.
     if workers_use_smtp_mock():
@@ -45,19 +47,21 @@ def pytest_collection_modifyitems(config, items):
 
 @pytest.fixture(scope="session")
 def test_runtime() -> TestRuntime:
-    """Create the session-scoped runtime cache reused by multiple test domains."""
-    # Prepariamo la fixture suite di test: crea lo stato riusabile e lascia al test solo
-    # la verifica del comportamento.
+    """Crea lo stato condiviso da tutti i test della sessione.
+
+    Contiene la cache degli id dei dataset e permette di cambiare un attributo
+    del backend solo per la durata di un test (vedi ``helpers/runtime.py``).
+    """
     return TestRuntime()
 
 
 @pytest.fixture
 def cleanup_registry() -> CleanupRegistry:
-    """Collect teardown callbacks and paths that each test wants cleaned up."""
-    # Prepariamo la fixture suite di test: crea lo stato riusabile e lascia al test solo
-    # la verifica del comportamento.
+    """Raccoglie le azioni di pulizia registrate dal test e le esegue alla fine.
+
+    Le azioni (cancellazione di utenti, righe DB, file) girano in ordine inverso
+    di registrazione, anche quando il test fallisce.
+    """
     registry = CleanupRegistry()
-    # Cediamo la fixture al test; quando il test termina, il codice sotto il yield
-    # eseguira il teardown.
     yield registry
     registry.run()

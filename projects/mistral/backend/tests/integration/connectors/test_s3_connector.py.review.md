@@ -1,7 +1,6 @@
 # Review — `test_s3_connector.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** sopra la baseline legacy.
 
 ## 1. Informazioni generali
 
@@ -34,9 +33,9 @@
 | `s3_connector.boto3` | modulo | `boto3` (importato in `connectors/s3/__init__.py`) | Riferimento patchato direttamente nel modulo del connector. |
 | `Connector` | classe base | `restapi.connectors` | Fornisce `services` e `self.variables`. |
 | `ServiceUnavailable` | eccezione | `restapi.exceptions` | Target di `pytest.raises`. |
-| `pytest.mark.integration` / `deterministic` | marker | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L9) | Solo classificazione. |
+| `pytest.mark.integration` / `deterministic` | marker | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L13) | Solo classificazione. |
 
-> **Nota infra**: nessun `conftest.py`/`support` locale in `integration/connectors/`. Le sole fixture usate sono la built-in `monkeypatch`; le fixture condivise ([`test_runtime`/`cleanup_registry`](projects/mistral/backend/tests/conftest.py#L31)) non sono autouse e non vengono richieste.
+> **Nota infra**: nessun `conftest.py`/`support` locale in `integration/connectors/`. Le sole fixture usate sono la built-in `monkeypatch`; le fixture condivise ([`test_runtime`/`cleanup_registry`](projects/mistral/backend/tests/conftest.py#L49)) non sono autouse e non vengono richieste.
 
 ## 4. Analisi dettagliata di ogni test
 

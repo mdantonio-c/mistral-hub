@@ -1,7 +1,6 @@
 # Review — `test_scheduled_requests.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** sopra la baseline legacy.
 
 ## 1. Informazioni generali
 
@@ -31,7 +30,7 @@
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
 | `faker` | fixture | `pytest-faker` | `name` per righe seminate. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L39) | Teardown **LIFO**. |
+| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO**. |
 | `monkeypatch` | fixture | `pytest` | Patcha `celery.get_instance` e `create_periodic_task_with_routing`. |
 | `schedules_user` | fixture **locale** | questo file | Utente `allowed_schedule=True` (`create_authenticated_test_user`). **Shadowa** la fixture del conftest. |
 | `seed_schedule_row` | helper **locale** | questo file | Inserisce una `Schedule` (parametrizza `enabled`, `on_data_ready`, `period`, `every`). |

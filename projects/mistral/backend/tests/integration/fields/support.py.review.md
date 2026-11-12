@@ -1,12 +1,12 @@
 # Review — `fields/support.py` (infrastruttura di dominio)
 
 > File di review per modulo di supporto. Non contiene test.
-> Modulo: supporta **solo** i nuovi test `test_fields_api.py`, senza toccare la baseline observed né creare fixture globali.
+> Modulo: supporta **solo** i test `test_fields_api.py`, senza creare fixture globali.
 
 ## 1. Informazioni generali
 
 - **Percorso**: [projects/mistral/backend/tests/integration/fields/support.py](projects/mistral/backend/tests/integration/fields/support.py)
-- **Scopo**: centralizzare URL, **finestre dati ammesse** (Prompt 03), utenti temporanei, dataset/licenze sintetici, override runtime e cleanup per coprire i rami OBS/map, OBS/dataset e FOR/Arkimet di `Fields.get`.
+- **Scopo**: centralizzare URL, **finestre dati ammesse**, utenti temporanei, dataset/licenze sintetici, override runtime e cleanup per coprire i rami OBS/map, OBS/dataset e FOR/Arkimet di `Fields.get`.
 - **Tipologia**: modulo di supporto (costanti + dataclass + factory/helper con effetti su DB e su `cleanup_registry`).
 
 ## 2. Elementi definiti

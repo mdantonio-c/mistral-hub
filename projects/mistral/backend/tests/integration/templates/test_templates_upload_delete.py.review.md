@@ -1,7 +1,6 @@
 # Review — `test_templates_upload_delete.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** sopra la baseline legacy.
 
 ## 1. Informazioni generali
 
@@ -30,7 +29,7 @@
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `cleanup_registry` | fixture | [tests/conftest.py#L39](projects/mistral/backend/tests/conftest.py#L39) | Teardown **LIFO**; non ingoia eccezioni. |
+| `cleanup_registry` | fixture | [tests/conftest.py#L59](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO**; non ingoia eccezioni. |
 | `TEMPLATES_ENDPOINT` | costante | [templates/support.py](projects/mistral/backend/tests/integration/templates/support.py) | URL `{API_URI}/templates`. |
 | `create_templates_user` | helper | [templates/support.py](projects/mistral/backend/tests/integration/templates/support.py) | Crea utente con `max_templates`/`disk_quota`; cleanup utente + `/data/<uuid>`. |
 | `upload_payload` | helper | [templates/support.py](projects/mistral/backend/tests/integration/templates/support.py) | Payload multipart `{"file": (stream, filename)}` (dimostra che si passa dall'HTTP reale). |

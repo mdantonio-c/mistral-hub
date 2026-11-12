@@ -1,7 +1,8 @@
-"""Integration tests for the bridge between data-ready schedules and opendata.
+"""Test di integrazione del ponte tra schedule data-ready e opendata.
 
-These scenarios verify the end-to-end handoff from a schedule-generated request
-to the creation of an opendata package that can later be listed and downloaded.
+Gli scenari verificano il passaggio completo da una request generata da una
+schedule alla creazione di un pacchetto opendata, che poi si puo elencare e
+scaricare.
 """
 
 from __future__ import annotations
@@ -47,34 +48,34 @@ BRIDGE_DATASET_NAME = DATA_READY_DATASET_NAME
 
 
 class ScheduleRequestFailed(AssertionError):
-    """Raised when a schedule-generated request reaches FAILURE while polling."""
+    """Sollevata quando una request generata dalla schedule va in FAILURE."""
 
     pass
 
 
 # =============================================================================
-# Two Test Paths: On-Data-Ready (Inline) vs. Crontab (RedBeat/Beat)
+# Due percorsi di test: on-data-ready (inline) e crontab (RedBeat/Beat)
 # =============================================================================
-# This file tests the bridge from schedules to opendata in two ways:
+# Questo file verifica il ponte dalle schedule a opendata in due modi:
 #
-# 1. ON-DATA-READY path (test_on_data_ready_schedule_publishes_opendata_package):
-#    - The test monkeypatches Celery to intercept tasks before they hit the broker.
-#    - The /api/data/ready endpoint is reached, the task is accepted locally,
-#      and the nested data_extract task runs immediately in-process.
-#    - The entire flow is synchronous and deterministic within the test.
-#    - Use this path when you want to verify endpoint logic and immediate extraction.
+# 1. Percorso ON-DATA-READY (test_on_data_ready_schedule_publishes_opendata_package):
+#    - Il test usa monkeypatch su Celery per intercettare i task prima del broker.
+#    - L'endpoint /api/data/ready viene chiamato, il task e accettato localmente
+#      e il data_extract annidato gira subito nello stesso processo.
+#    - L'intero flusso e sincrono e deterministico dentro il test.
+#    - Serve a verificare la logica dell'endpoint e l'estrazione immediata.
 #
-# 2. CRONTAB path (test_crontab_schedule_publishes_opendata_package):
-#    - The test creates a real schedule entry in Redis using RedBeat (the scheduler backend).
-#    - The running celerybeat container picks up that entry from Redis.
-#    - When the scheduled minute arrives, celerybeat puts the task in the RabbitMQ broker.
-#    - The async celery workers consume the task and execute the extraction.
-#    - The test polls for the result, waiting for both beat and workers to do their work.
-#    - Use this path when you want to verify real schedule persistence and async execution.
+# 2. Percorso CRONTAB (test_crontab_schedule_publishes_opendata_package):
+#    - Il test crea una vera voce di schedule in Redis tramite RedBeat (lo scheduler).
+#    - Il container celerybeat in esecuzione legge quella voce da Redis.
+#    - All'ora prevista celerybeat mette il task nel broker RabbitMQ.
+#    - I worker Celery asincroni consumano il task ed eseguono l'estrazione.
+#    - Il test fa polling sul risultato, aspettando sia beat sia i worker.
+#    - Serve a verificare la persistenza reale della schedule e l'esecuzione asincrona.
 #
-# The on-data-ready path is faster and fully isolated; the crontab path exercises
-# real infrastructure (Redis, RabbitMQ, celerybeat, workers) and is therefore a
-# more complete integration test.
+# Il percorso on-data-ready e piu veloce e del tutto isolato; il percorso crontab
+# usa l'infrastruttura reale (Redis, RabbitMQ, celerybeat, worker) ed e quindi un
+# test di integrazione piu completo.
 # =============================================================================
 
 
@@ -87,19 +88,17 @@ def _trigger_data_ready_schedule_inline(
     rundate: str,
     schedule_ids: list[str],
 ):
-    """Drive one data-ready schedule to a real inline extraction.
+    """Porta una schedule data-ready fino a un'estrazione reale eseguita inline.
 
-    The test keeps the real HTTP endpoint and the real data-ready scheduling
-    logic, but replaces the Celery transport twice:
+    Il test mantiene l'endpoint HTTP reale (POST /data/ready) e la logica reale di
+    schedulazione data-ready, ma sostituisce due volte il trasporto Celery:
 
-    - the endpoint submission is accepted locally instead of going to the broker,
-    - the nested ``data_extract`` task is executed immediately in-process.
+    - l'invio dall'endpoint viene accettato localmente invece di andare al broker,
+    - il task annidato ``data_extract`` viene eseguito subito nello stesso processo.
 
-    The inline extraction is real, so the launcher is confined to
-    ``schedule_ids``: schedules of other users never reach ``data_extract``.
+    L'estrazione inline e reale, quindi il launcher e limitato a ``schedule_ids``:
+    le schedule di altri utenti non arrivano mai a ``data_extract``.
     """
-    # Entriamo nel blocco operativo dell'helper schedules, mantenendo esplicito quale
-    # stato viene letto o prodotto.
     monkeypatch.setattr(
         data_ready_endpoint.celery,
         "get_instance",
@@ -113,8 +112,6 @@ def _trigger_data_ready_schedule_inline(
         model=model,
         rundate=rundate,
     )
-    # Sostituiamo temporaneamente la dipendenza esterna con un fake controllato, cosi il
-    # test resta deterministico.
     monkeypatch.setattr(
         on_data_ready_task.celery,
         "get_instance",
@@ -125,8 +122,6 @@ def _trigger_data_ready_schedule_inline(
         model,
         datetime.strptime(rundate, "%Y%m%d%H"),
     )
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return response
 
 
@@ -140,23 +135,18 @@ def _wait_for_successful_schedule_request(
     interval: float = 5,
     grace_timeout: float = 0,
 ) -> dict[str, Any]:
-    """Poll one schedule until it exposes a successful request with a real file output.
+    """Fa polling su una schedule finche espone una request riuscita con un file reale.
 
-    The normal timeout covers the expected dispatch window. A second optional
-    grace window exists only for the async-real crontab path, where celerybeat
-    and workers may occasionally surface the request later than the nominal
-    bound even though the flow eventually succeeds.
+    Legge le request con GET /schedules/<id>/requests. Il timeout normale copre la
+    finestra di invio attesa. Una seconda finestra di tolleranza, opzionale, esiste
+    solo per il percorso crontab con worker reali, dove celerybeat e i worker possono
+    a volte mostrare la request oltre il limite nominale anche se il flusso alla
+    fine riesce.
     """
-    # Avviamo il polling su una condizione osservabile, evitando attese fisse che
-    # renderebbero il test fragile.
     def successful_request():
-        """Return the request once it succeeds with a concrete output filename."""
-        # Entriamo nel blocco operativo dell'helper schedules, mantenendo esplicito quale
-        # stato viene letto o prodotto.
+        """Restituisce la request quando e riuscita con un nome di file concreto."""
         requests = list_schedule_requests(base, client, headers, schedule_id)
         if len(requests) != 1:
-            # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo
-            # direttamente nelle asserzioni.
             return False
 
         request = requests[0]
@@ -171,17 +161,11 @@ def _wait_for_successful_schedule_request(
             and request.get("fileoutput")
             and request.get("fileoutput") != "no file available"
         ):
-            # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo
-            # direttamente nelle asserzioni.
             return request
 
-        # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo
-        # direttamente nelle asserzioni.
         return False
 
     try:
-        # Aspettiamo finche lo stato osservabile diventa quello atteso, invece di usare
-        # sleep ciechi.
         return wait_until(
             successful_request,
             timeout=timeout,
@@ -194,8 +178,6 @@ def _wait_for_successful_schedule_request(
         if grace_timeout <= 0:
             raise
 
-    # Aspettiamo finche lo stato osservabile diventa quello atteso, invece di usare
-    # sleep ciechi.
     return wait_until(
         successful_request,
         timeout=grace_timeout,
@@ -217,34 +199,23 @@ def _wait_for_listing_entry(
     timeout: float = 60,
     interval: float = 3,
 ) -> dict[str, Any]:
-    """Poll the dataset opendata listing until a specific published filename appears."""
-    # Avviamo il polling su una condizione osservabile, evitando attese fisse che
-    # renderebbero il test fragile.
+    """Fa polling sul listing opendata del dataset finche compare il file atteso.
+
+    Usa GET /datasets/<dataset_name>/opendata con il filtro ``query``.
+    """
     endpoint = f"{API_URI}/datasets/{dataset_name}/opendata?q={query}"
     base = BaseTests()
 
     def listed_package():
-        """Return the package row once the expected filename becomes visible in listing."""
-        # Entriamo nel blocco operativo dell'helper schedules, mantenendo esplicito quale
-        # stato viene letto o prodotto.
+        """Restituisce il pacchetto quando il file atteso compare nel listing."""
         response = client.get(endpoint, headers=headers)
-        # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine
-        # prima di usare il payload.
         assert response.status_code == 200
         content = base.get_content(response) or []
-        # Scorriamo gli elementi restituiti dal backend per trovare solo quelli
-        # rilevanti per questo scenario.
         for package in content:
             if package.get("filename") == filename:
-                # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo
-                # direttamente nelle asserzioni.
                 return package
-        # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo
-        # direttamente nelle asserzioni.
         return False
 
-    # Aspettiamo finche lo stato osservabile diventa quello atteso, invece di usare
-    # sleep ciechi.
     return wait_until(
         listed_package,
         timeout=timeout,
@@ -256,20 +227,16 @@ def _wait_for_listing_entry(
 
 
 def _next_crontab_run_time() -> datetime:
-    """Return the next safe minute for a real crontab schedule execution.
+    """Restituisce il prossimo minuto sicuro per l'esecuzione reale di una crontab.
 
-    This helper is used only in the crontab path (see note at top of file).
-    When the test starts too close to the current minute boundary, scheduling the
-    task for the very next minute can race with RedBeat pickup and celerybeat.
-    A small extra minute keeps the test deterministic while still much tighter
-    than the legacy fixed sleeps.
+    Questo helper serve solo al percorso crontab (vedi la nota in cima al file).
+    Se il test parte troppo vicino al cambio di minuto, schedulare il task per il
+    minuto successivo puo entrare in competizione con la lettura di RedBeat e
+    celerybeat. Un minuto in piu mantiene il test deterministico e resta comunque
+    molto piu stretto di uno sleep fisso.
     """
-    # Entriamo nel blocco operativo dell'helper schedules, mantenendo esplicito quale
-    # stato viene letto o prodotto.
     now = datetime.now()
     minutes_ahead = 2 if now.second >= 45 else 1
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return now.replace(second=0, microsecond=0) + timedelta(minutes=minutes_ahead)
 
 
@@ -282,17 +249,18 @@ def test_on_data_ready_schedule_publishes_opendata_package(
     schedules_admin_headers,
     schedules_user,
 ) -> None:
-    """Verify that a successful on-data-ready schedule publishes a downloadable opendata package."""
+    """Una schedule on-data-ready riuscita pubblica un pacchetto opendata scaricabile.
+
+    Esercita POST /schedules, POST /data/ready, il task
+    ``launch_all_on_data_ready_extractions``, il listing
+    GET /datasets/<name>/opendata e il download GET /opendata/<file>.
+    """
     # arrange
-    # Prepariamo lo scenario schedules con dati minimi e controllati, cosi la verifica
-    # successiva resta legata a un comportamento preciso.
     dataset_window = fetch_dataset_window(
         client,
         schedules_user.headers,
         BRIDGE_DATASET_NAME,
     )
-    # Prepariamo la schedule con parametri espliciti, rendendo chiara la condizione che
-    # deve attivare o bloccare il backend.
     schedule_body = build_on_data_ready_schedule(
         request_name="test_schedule_opendata_bridge",
         date_from=dataset_window.date_from,
@@ -301,15 +269,13 @@ def test_on_data_ready_schedule_publishes_opendata_package(
         run_filter=[dataset_window.ref_run[0]],
         opendata=True,
     )
-    # Sostituiamo temporaneamente la dipendenza esterna con un fake controllato, cosi il
-    # test resta deterministico.
+    # POST /schedules on-data-ready invia subito un data_extract: il fake lo accetta
+    # senza eseguirlo, cosi l'unica estrazione e quella lanciata dal data-ready.
     monkeypatch.setattr(
         schedules_endpoint.celery,
         "get_instance",
         lambda: AcceptTasksWithoutRunningCelery("data_extract"),
     )
-    # Prepariamo la schedule con parametri espliciti, rendendo chiara la condizione che
-    # deve attivare o bloccare il backend.
     schedule_id = create_schedule(
         schedules_base,
         client,
@@ -324,8 +290,6 @@ def test_on_data_ready_schedule_publishes_opendata_package(
     )
 
     # act
-    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-    # verifica dal setup.
     response = _trigger_data_ready_schedule_inline(
         monkeypatch,
         client,
@@ -347,8 +311,6 @@ def test_on_data_ready_schedule_publishes_opendata_package(
         schedules_user.headers,
         query=f"reftime:={dataset_window.ref_from.strftime('%Y-%m-%d %H:%M')}",
     )
-    # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
-    # autorizzazione e serializzazione vengono verificati insieme.
     download_response = client.get(
         f"{API_URI}/opendata/{published_request['fileoutput']}",
         headers=schedules_user.headers,
@@ -356,26 +318,12 @@ def test_on_data_ready_schedule_publishes_opendata_package(
 
     try:
         # assert
-        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-        # questo test vuole proteggere.
         assert response.status_code == 202
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert published_request["status"] == "SUCCESS"
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert published_request["fileoutput"] == listed_package["filename"]
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert listed_package["date"] == dataset_window.ref_from.strftime("%Y-%m-%d")
-        # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine
-        # prima di usare il payload.
         assert download_response.status_code == 200
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert download_response.data
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert (
             published_request["fileoutput"]
             in download_response.headers["Content-Disposition"]
@@ -391,18 +339,19 @@ def test_crontab_schedule_publishes_opendata_package(
     schedules_base,
     schedules_user,
 ) -> None:
-    """Verify that a pure crontab schedule eventually publishes a downloadable opendata package."""
+    """Una schedule crontab pura pubblica, alla fine, un pacchetto opendata scaricabile.
+
+    Esercita POST /schedules con RedBeat, celerybeat e worker reali, il listing
+    GET /datasets/<name>/opendata, il download GET /opendata/<file> e
+    DELETE /schedules/<id>.
+    """
     # arrange
-    # Prepariamo lo scenario schedules con dati minimi e controllati, cosi la verifica
-    # successiva resta legata a un comportamento preciso.
     dataset_window = fetch_dataset_window(
         client,
         schedules_user.headers,
         BRIDGE_DATASET_NAME,
     )
     trigger_at = _next_crontab_run_time()
-    # Prepariamo la schedule con parametri espliciti, rendendo chiara la condizione che
-    # deve attivare o bloccare il backend.
     schedule_body = build_crontab_schedule(
         request_name="test_crontab_schedule_opendata_bridge",
         date_from=dataset_window.date_from,
@@ -413,8 +362,6 @@ def test_crontab_schedule_publishes_opendata_package(
         minute=trigger_at.minute,
         opendata=True,
     )
-    # Prepariamo la schedule con parametri espliciti, rendendo chiara la condizione che
-    # deve attivare o bloccare il backend.
     schedule_id = create_schedule(
         schedules_base,
         client,
@@ -433,8 +380,6 @@ def test_crontab_schedule_publishes_opendata_package(
     periodic_task = read_periodic_task(schedule_id)
 
     # act
-    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-    # verifica dal setup.
     published_request = _wait_for_successful_schedule_request(
         schedules_base,
         client,
@@ -462,8 +407,6 @@ def test_crontab_schedule_publishes_opendata_package(
     # lancerebbe data_extract ogni giorno per una schedule che non esiste piu.
     delete_schedule(client, schedules_user.headers, schedule_id)
     periodic_task_after_delete = read_periodic_task(schedule_id)
-    # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
-    # autorizzazione e serializzazione vengono verificati insieme.
     download_response = client.get(
         f"{API_URI}/opendata/{published_request['fileoutput']}",
         headers=schedules_user.headers,
@@ -471,26 +414,14 @@ def test_crontab_schedule_publishes_opendata_package(
 
     try:
         # assert
-        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-        # questo test vuole proteggere.
         assert published_request["status"] == "SUCCESS"
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert published_request["fileoutput"] == listed_package["filename"]
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert listed_package["date"] == "from {date_from} to {date_to}".format(
             date_from=dataset_window.ref_from.strftime("%Y-%m-%d"),
             date_to=dataset_window.ref_to.strftime("%Y-%m-%d"),
         )
-        # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine
-        # prima di usare il payload.
         assert download_response.status_code == 200
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert download_response.data
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert (
             published_request["fileoutput"]
             in download_response.headers["Content-Disposition"]

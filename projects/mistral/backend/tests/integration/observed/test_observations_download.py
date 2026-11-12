@@ -1,19 +1,17 @@
-# EXTENSION TRACEABILITY - Prompt 03, dominio integration/observed POST download.
-# Origine: questo modulo aggiunge copertura a MapsObservations.post senza modificare i
-# test GET baseline in test_observations_filters.py e test_observations_station_details.py.
+# Test di POST /observations: download dei dati osservati (MapsObservations.post in
+# endpoints/maps_observed.py). I test GET sono in test_observations_filters.py e
+# test_observations_station_details.py.
 # Ambito: copre download JSON/BUFR, validazioni schema/controller, mismatch licenza,
-# network inesistente/non autorizzato, singleStation e archive authorization.
-# Finestra dati: i success path usano solo agrmet DBALLE 2020-04-06 00:00-01:00; i
-# rami archived usano solo agrmet Arkimet 2020-03-31/2020-04-01. Le date fuori da
-# queste finestre non sono usate come oracolo dati reali.
+# network inesistente/non autorizzato, singleStation e autorizzazione all'archivio.
+# Finestra dati: i casi di successo usano solo agrmet DBALLE 2020-04-06 00:00-01:00; i
+# rami su dati archiviati usano solo agrmet Arkimet 2020-03-31/2020-04-01. Le date fuori
+# da queste finestre non sono usate come oracolo dati reali.
 # Runtime fake: nessun fake per i download positivi; BeDballe.LASTDAYS e temporaneamente
 # patchato solo per classificare la finestra DBALLE storica come recente nel runtime di
-# test, seguendo il pattern observed gia presente.
+# test, come negli altri test observed.
 # Cleanup: gli utenti temporanei e il dataset privato sintetico vengono registrati nel
 # cleanup_registry; il catalogo reale (agrmet compreso) viene solo letto e non vengono
 # creati file persistenti dalla suite.
-# Baseline non toccata: tutti gli helper nuovi sono locali al file e nessun conftest.py
-# o support.py legacy viene modificato.
 
 from __future__ import annotations
 
@@ -183,7 +181,10 @@ def test_observed_post_invalid_output_format_returns_bad_request(
     client: FlaskClient,
     auth_headers,
 ) -> None:
-    """Verifica il 400 schema per output_format non ammesso prima del runtime DBALLE."""
+    """Verifica che POST /observations risponda 400 se output_format non e ammesso.
+
+    Lo schema ObservationsDownloader rifiuta il valore prima di interrogare DBALLE.
+    """
     # act
     response = _post_observations(
         client,
@@ -204,7 +205,10 @@ def test_observed_post_incomplete_bbox_returns_bad_request(
     client: FlaskClient,
     auth_headers,
 ) -> None:
-    """Verifica il 400 controller per bounding box incompleta su query valida."""
+    """Verifica che POST /observations risponda 400 se la bounding box e incompleta.
+
+    Il controllo e in MapsObservations.post, con una query altrimenti valida.
+    """
     # act
     response = _post_observations(
         client,
@@ -224,7 +228,10 @@ def test_observed_post_missing_license_returns_bad_request(
     client: FlaskClient,
     auth_headers,
 ) -> None:
-    """Verifica il 400 quando q non contiene license, senza interrogare dati reali."""
+    """Verifica che POST /observations risponda 400 se q non contiene license.
+
+    Il controllo avviene senza interrogare dati reali.
+    """
     # arrange
     query_without_license = f"reftime:>={OBS_DBALLE_FROM},<={OBS_DBALLE_TO}"
 
@@ -245,7 +252,11 @@ def test_observed_post_unknown_license_group_returns_bad_request(
     client: FlaskClient,
     auth_headers,
 ) -> None:
-    """Verifica il 400 per gruppo licenza inesistente nella finestra DBALLE ammessa."""
+    """Verifica che POST /observations risponda 400 per un gruppo licenza inesistente.
+
+    La query usa la finestra DBALLE ammessa; l'errore nasce da
+    BeDballe.check_access_authorization.
+    """
     # arrange
     query = _download_query(license_group=f"missing_license_{uuid4().hex}")
 
@@ -266,7 +277,10 @@ def test_observed_post_mismatch_network_license_returns_bad_request(
     client: FlaskClient,
     auth_headers,
 ) -> None:
-    """Verifica il 400 quando agrmet viene richiesto con gruppo licenza non coerente."""
+    """Verifica che POST /observations risponda 400 se agrmet ha una licenza incoerente.
+
+    Il gruppo licenza esiste ma non contiene il network richiesto.
+    """
     # arrange
     query = _download_query(license_group=OBSERVED_MISMATCH_LICENSE_GROUP)
 
@@ -287,7 +301,11 @@ def test_observed_post_unknown_network_returns_not_found(
     client: FlaskClient,
     auth_headers,
 ) -> None:
-    """Verifica il 404 per network non presente nella configurazione Arkimet."""
+    """Verifica che POST /observations risponda 404 per un network inesistente.
+
+    Il network non e presente nella configurazione Arkimet
+    (BeArkimet.from_network_to_dataset restituisce None).
+    """
     # arrange
     missing_network = f"missing_network_{uuid4().hex}"
 
@@ -309,7 +327,7 @@ def test_observed_post_private_network_returns_unauthorized_without_local_oracle
     cleanup_registry,
     monkeypatch,
 ) -> None:
-    """Costruisce un 401 portabile con una rete privata sintetica.
+    """Verifica che POST /observations risponda 401 su una rete privata senza permesso.
 
     Il diniego non dipende dallo stato locale del dataset e non modifica agrmet: il test
     crea un dataset privato sintetico raggiungibile da una rete sintetica e usa un
@@ -343,7 +361,7 @@ def test_observed_post_single_station_without_networks_returns_bad_request(
     client: FlaskClient,
     auth_headers,
 ) -> None:
-    """Verifica il 400 quando singleStation=true non dichiara networks."""
+    """Verifica il 400 di POST /observations con singleStation=true senza networks."""
     # arrange
     query = DBALLE_QUERY
 
@@ -364,7 +382,10 @@ def test_observed_post_single_station_with_multiple_networks_returns_bad_request
     client: FlaskClient,
     auth_headers,
 ) -> None:
-    """Verifica il 400 quando singleStation riceve piu network, anche se validi."""
+    """Verifica che POST /observations risponda 400 se singleStation ha piu network.
+
+    Il rifiuto avviene anche se i network indicati sono validi.
+    """
     # arrange
     duplicate_valid_networks = f"{OBSERVED_NETWORK} or {OBSERVED_NETWORK}"
 
@@ -388,7 +409,10 @@ def test_observed_post_single_station_without_station_identity_returns_bad_reque
     client: FlaskClient,
     auth_headers,
 ) -> None:
-    """Verifica il 400 quando singleStation non riceve coordinate ne ident."""
+    """Verifica il 400 di POST /observations se singleStation non indica la stazione.
+
+    Mancano sia le coordinate lat/lon sia ident.
+    """
     # arrange
     query = DBALLE_QUERY
 
@@ -409,7 +433,10 @@ def test_observed_post_single_station_without_station_identity_returns_bad_reque
 def test_observed_post_archived_window_rejects_anonymous_user(
     client: FlaskClient,
 ) -> None:
-    """Verifica il 401 anonimo su agrmet Arkimet 2020-03-31/2020-04-01."""
+    """Verifica che POST /observations risponda 401 a un anonimo su dati archiviati.
+
+    Usa la finestra agrmet Arkimet 2020-03-31/2020-04-01.
+    """
     # arrange
     query = ARCHIVE_QUERY
 
@@ -430,7 +457,11 @@ def test_observed_post_archived_window_rejects_user_without_archive_permission(
     client: FlaskClient,
     cleanup_registry,
 ) -> None:
-    """Verifica il 401 archive per utente senza allowed_obs_archive su finestra ammessa."""
+    """Verifica che POST /observations risponda 401 su dati archiviati senza permesso.
+
+    L'utente ha accesso al dataset ma non ha allowed_obs_archive; la finestra Arkimet
+    usata e quella ammessa.
+    """
     # arrange
     user = require_observed_dataset_user(client, cleanup_registry, allowed_obs_archive=False)
 

@@ -1,8 +1,9 @@
-"""Integration tests for the anonymous view of the dataset catalog.
+"""Test di integrazione sulla vista anonima del catalogo dataset.
 
-This module focuses on the simplest public scenario: a user who is not logged
-in should still be able to list public datasets and read the details of a known
-public dataset, while unknown dataset identifiers must still return ``404``.
+Il modulo copre lo scenario pubblico piu semplice di GET /api/datasets e
+GET /api/datasets/<dataset_name> (endpoints/datasets.py): un utente non
+autenticato deve poter elencare i dataset pubblici e leggere i dettagli di un
+dataset pubblico noto, mentre un identificativo sconosciuto deve dare ``404``.
 """
 
 import pytest
@@ -24,13 +25,13 @@ def test_dataset_endpoints_expose_public_catalog_without_login(
     faker: Faker,
     cleanup_registry,
 ) -> None:
-    """Verify the basic anonymous contract for the dataset catalog endpoints.
+    """Verifica il comportamento base degli endpoint del catalogo dataset senza login.
 
-    The test checks three independent expectations:
+    Il test controlla tre aspetti indipendenti:
 
-    1. ``GET /datasets`` works without authentication,
-    2. one public dataset returned by the catalog can be fetched directly,
-    3. an unknown dataset identifier still produces ``404``.
+    1. ``GET /datasets`` funziona senza autenticazione,
+    2. un dataset pubblico presente nel catalogo si puo leggere direttamente,
+    3. un identificativo di dataset sconosciuto produce ``404``.
     """
     # arrange
     db = sqlalchemy.get_instance()
@@ -42,36 +43,20 @@ def test_dataset_endpoints_expose_public_catalog_without_login(
     )
 
     # act
-    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-    # verifica dal setup.
     list_response = client.get(f"{API_URI}/datasets")
-    # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
-    # autorizzazione e serializzazione vengono verificati insieme.
     dataset_response = client.get(
         f"{API_URI}/datasets/{public_dataset.arkimet_id}"
     )
-    # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
-    # autorizzazione e serializzazione vengono verificati insieme.
     missing_response = client.get(f"{API_URI}/datasets/{faker.pystr()}")
 
     # assert
-    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-    # questo test vuole proteggere.
     assert list_response.status_code == 200
-    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
-    # arrivato fin qui senza eccezioni.
     assert isinstance(list_response.json, list)
     assert any(
         dataset["id"] == public_dataset.arkimet_id
         and dataset["is_public"] is True
         for dataset in list_response.json
     )
-    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
-    # usare il payload.
     assert dataset_response.status_code == 200
-    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
-    # arrivato fin qui senza eccezioni.
     assert isinstance(dataset_response.json, dict)
-    # Verifichiamo che la risposta segnali correttamente una risorsa assente o non
-    # visibile prima di usare il payload.
     assert missing_response.status_code == 404

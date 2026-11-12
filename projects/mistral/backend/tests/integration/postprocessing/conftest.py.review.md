@@ -36,7 +36,7 @@ Le fixture **non** invocano ancora il backend di estrazione: predispongono lo sc
 - **Skip silenziosi annidati**: entrambe le fixture possono terminare in `pytest.skip` *durante il setup* (dataset assente; observed: `ALCHEMY_*` mancanti o niente dati DBALLE; più, a valle, l'archivio spare-point). Un intero file di test può quindi risultare “skipped” senza che il corpo dei test venga mai eseguito.
 - **Override `LASTDAYS` solo observed e con dato reale**: il valore non è una costante ma è **derivato dai dati DBALLE reali** in `require_observed_lastdays`; la fixture observed è perciò accoppiata sia alla configurazione (`ALCHEMY_*`) sia allo stato del DB.
 - **`return` vs `yield`**: solo `pp_observed_env` è generatore, perché deve mantenere vivo il context manager dell'override; `pp_forecast_env` non ha override e quindi non necessita teardown proprio.
-- **Commenti `# arrange/act/assert` fuorvianti**: le fixture riportano gli stessi commenti-template dei test (“Eseguiamo l'azione sotto test…”, “Verifichiamo l'effetto osservabile…”), ma qui **non c'è act né assert**: si limita a costruire l'`env`. I commenti sono boilerplate, non descrivono il codice.
+- **Marcatori `# arrange/act/assert` fuorvianti**: le fixture riportano gli stessi marcatori dei test, ma qui **non c'è act né assert**: si limita a costruire l'`env`.
 - **Utente per-scenario**: ogni test ottiene un utente nuovo, autorizzato al solo dataset richiesto (`allowed_postprocessing=True`, `open_dataset=True`, quota 1 GB); il cleanup (utente + cartella `DOWNLOAD_DIR/<uuid>`) è registrato subito.
 
 ## 5. Checklist di revisione
@@ -44,7 +44,7 @@ Le fixture **non** invocano ancora il backend di estrazione: predispongono lo sc
 - [ ] Verificare che lo `skip` in setup sia il comportamento voluto e che in CI sia monitorato (un file interamente skippato non protegge nulla).
 - [ ] Confermare che l'override `LASTDAYS` derivato dai dati reali sia coerente con l'estrazione observed senza reftime (`db_type="mixed"`).
 - [ ] Verificare che il `test_runtime` ripristini correttamente `BeDballe.LASTDAYS` anche se il test fallisce a metà.
-- [ ] Valutare se i commenti-template vadano rimossi dalle fixture per non confondere il revisore.
+- [ ] Valutare se i marcatori `# act`/`# assert` vadano rimossi dalle fixture per non confondere il revisore.
 
 ## 6. Possibili criticità
 

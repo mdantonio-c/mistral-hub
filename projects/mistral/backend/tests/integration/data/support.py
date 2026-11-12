@@ -1,7 +1,5 @@
-# EXTENSION TRACEABILITY - Prompt 02, dominio integration/data.
-# Origine: questo modulo e stato introdotto solo per i nuovi test di estensione del contratto
-# HTTP di POST /data e GET /data/<filename>; non modifica il test legacy
-# test_data_endpoint_auth.py e non sposta fixture in conftest.py.
+# Supporto per i test del dominio data: POST /data (endpoints/data.py) e
+# GET /data/<filename> (endpoints/file.py).
 # Ambito: prepara utenti temporanei, dataset sintetici, request/fileoutput sintetici e
 # fake locali per Celery/RabbitMQ, cosi i test restano confinati al backend di test e
 # non avviano worker reali o estrazioni meteorologiche pesanti.
@@ -11,8 +9,6 @@
 # espone solo queue_exists; Arkimet e le funzioni quota sono monkeypatchate nei test.
 # Cleanup: ogni record DB, associazione many-to-many, file fisico e utente temporaneo
 # viene registrato nel cleanup_registry o rimosso da helper dedicati.
-# Baseline non toccata: il modulo supporta solo file di estensione e non altera fixture globali,
-# moduli legacy o dati runtime persistenti della suite.
 
 from __future__ import annotations
 
@@ -80,7 +76,6 @@ class RecordingCelery:
     """
 
     def __init__(self, *, task_id: str = "task-data-endpoint-ext") -> None:
-        # Memorizziamo nello stato del fake le chiamate che il test dovra ispezionare.
         self.sent_tasks: list[dict[str, Any]] = []
         self.celery_app = _RecordingCeleryApp(self.sent_tasks, task_id=task_id)
 
@@ -89,8 +84,6 @@ class _RecordingCeleryApp:
     """Facade minima di celery_app usata dal fake RecordingCelery."""
 
     def __init__(self, sent_tasks: list[dict[str, Any]], *, task_id: str) -> None:
-        # Conserviamo lo stato condiviso con il wrapper esterno per rendere visibili
-        # al test le submission prodotte dall'endpoint.
         self.sent_tasks = sent_tasks
         self.task_id = task_id
 
@@ -101,10 +94,7 @@ class _RecordingCeleryApp:
         **kwargs: Any,
     ) -> FakeTaskResult:
         """Registra una submission Celery e restituisce un AsyncResult sintetico."""
-        # Intercettiamo l'invio del task per controllare quale lavoro asincrono sarebbe
-        # stato richiesto dal backend, senza mandarlo al broker reale.
         self.sent_tasks.append({"name": name, "args": args, "kwargs": kwargs})
-        # Restituiamo un risultato compatibile con gli attributi letti da Data.post.
         return FakeTaskResult(id=self.task_id, status=states.PENDING)
 
 
@@ -117,15 +107,11 @@ class FakeRabbit:
     """
 
     def __init__(self, *, exists: bool) -> None:
-        # Salviamo l'esito configurato e le queue verificate, cosi il test puo
-        # distinguere il ramo positivo da quello negativo.
         self.exists = exists
         self.checked_queues: list[str] = []
 
     def queue_exists(self, queue_name: str) -> bool:
         """Restituisce l'esito configurato registrando la queue controllata."""
-        # Registriamo l'input osservabile del ramo push prima di restituire il valore
-        # sintetico scelto dal test.
         self.checked_queues.append(queue_name)
         return self.exists
 
@@ -158,8 +144,6 @@ def create_data_endpoint_user(
     }
 
     base = BaseTests()
-    # Creiamo e autentichiamo l'utente temporaneo, evitando dipendenze da account
-    # preesistenti nella base dati runtime.
     user = create_authenticated_test_user(base, client, permissions)
     db = sqlalchemy.get_instance()
     db_user = db.User.query.get(user.user_id)
@@ -171,7 +155,6 @@ def create_data_endpoint_user(
     db_user.amqp_queue = amqp_queue
     db.session.add(db_user)
     db.session.commit()
-    # Registriamo subito la pulizia dell'utente e della relativa area output.
     register_test_user_cleanup(
         base,
         client,
@@ -245,7 +228,6 @@ def create_synthetic_dataset(
     db.session.add(dataset)
     db.session.commit()
 
-    # Registriamo la rimozione del bundle relazionale appena il record esiste.
     cleanup_registry.add(
         lambda: delete_dataset_bundle(
             db,
@@ -400,8 +382,6 @@ def latest_request_for_user(db, user_id: int):
 
 def delete_request_row(db, request_id: int) -> None:
     """Rimuove una request sintetica e il relativo FileOutput se sono ancora presenti."""
-    # Rimuoviamo lo stato creato dal test senza assumere che il caso di errore sia
-    # arrivato fino alla creazione completa di tutte le righe.
     request = db.Request.query.get(request_id)
     if request is None:
         return

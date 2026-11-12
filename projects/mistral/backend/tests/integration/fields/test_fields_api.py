@@ -1,18 +1,13 @@
-# EXTENSION TRACEABILITY - Prompt 03, dominio /fields.
-# Origine: questo modulo introduce la prima copertura dedicata dell'endpoint Fields.get
-# senza modificare i test observed baseline e senza creare fixture globali.
-# Ambito: copre OBS map mode, OBS dataset mode, errori authorization/validation e FOR
-# dataset mode con lm5/lm2.2, inclusi descriptions e probe SummaryStats=False.
+# Test di GET /fields (Fields.get in endpoints/fields.py): filtri e statistiche.
+# Ambito: copre OBS map mode, OBS dataset mode, errori di autorizzazione e validazione e
+# FOR dataset mode con lm5/lm2.2, incluse le descriptions e la sonda SummaryStats=False.
 # Finestra dati: OBS usa solo agrmet DBALLE 2020-04-06 00:00-01:00 e agrmet Arkimet
 # 2020-03-31/2020-04-01; FOR usa solo lm5 2021-10-19 o lm2.2 2019-09-10.
 # Runtime fake: i rami multi-dataset non richiedono dati Arkimet reali e usano dataset
 # sintetici piu monkeypatch mirati del calcolo categoria per raggiungere il controller;
 # i rami happy path interrogano il runtime reale nelle finestre consentite.
 # Cleanup: utenti temporanei, dataset sintetici e licenze sintetiche sono registrati nel
-# cleanup_registry; il catalogo reale (agrmet compreso) viene solo letto e nessun
-# conftest.py viene creato o modificato.
-# Baseline non toccata: i test sono tutti in un nuovo modulo di estensione e usano helper
-# locali del dominio fields/support.py.
+# cleanup_registry; il catalogo reale (agrmet compreso) viene solo letto.
 
 from __future__ import annotations
 
@@ -59,7 +54,7 @@ def test_fields_observed_map_mode_returns_recent_agrmet_filters(
     auth_headers,
     test_runtime,
 ) -> None:
-    """Verifica OBS map mode su agrmet DBALLE 2020-04-06 00:00-01:00.
+    """Verifica GET /fields in OBS map mode su agrmet DBALLE 2020-04-06 00:00-01:00.
 
     Il ramo senza `datasets` e quello usato dalle mappe: il test passa network e license
     dentro q, forza solo la classificazione DBALLE e controlla summary/network/product.
@@ -86,7 +81,10 @@ def test_fields_observed_dataset_mode_returns_agrmet_filters(
     cleanup_registry,
     test_runtime,
 ) -> None:
-    """Verifica OBS dataset mode autenticato su agrmet DBALLE 2020-04-06."""
+    """Verifica GET /fields in OBS dataset mode con utente autenticato.
+
+    Usa agrmet DBALLE 2020-04-06 e si aspetta 200 con summarystats e network.
+    """
     # arrange
     user = require_observed_dataset_user(client, cleanup_registry)
     endpoint = fields_url(
@@ -108,7 +106,10 @@ def test_fields_observed_dataset_mode_returns_agrmet_filters(
 def test_fields_observed_archived_map_mode_rejects_anonymous_user(
     client: FlaskClient,
 ) -> None:
-    """Verifica il 401 anonimo su agrmet Arkimet 2020-03-31/2020-04-01."""
+    """Verifica il 401 di GET /fields per un anonimo su dati archiviati.
+
+    Usa la finestra agrmet Arkimet 2020-03-31/2020-04-01.
+    """
     # arrange
     endpoint = fields_url(q=OBS_ARCHIVE_QUERY)
 
@@ -123,7 +124,10 @@ def test_fields_observed_archived_map_mode_rejects_user_without_archive_permissi
     client: FlaskClient,
     cleanup_registry,
 ) -> None:
-    """Verifica il 401 archive per utente senza allowed_obs_archive su date ammesse."""
+    """Verifica il 401 di GET /fields su dati archiviati per utente senza permesso.
+
+    L'utente non ha allowed_obs_archive; le date sono quelle Arkimet ammesse.
+    """
     # arrange
     user = require_observed_dataset_user(client, cleanup_registry, allowed_obs_archive=False)
 
@@ -139,7 +143,7 @@ def test_fields_observed_unknown_network_returns_not_found(
     auth_headers,
     test_runtime,
 ) -> None:
-    """Verifica il 404 per network inesistente nel ramo OBS map mode."""
+    """Verifica il 404 di GET /fields per network inesistente in OBS map mode."""
     # arrange
     query = OBS_DBALLE_QUERY.replace(OBSERVED_NETWORK, f"missing_{uuid4().hex}")
 
@@ -157,7 +161,10 @@ def test_fields_observed_private_network_returns_unauthorized_without_local_orac
     test_runtime,
     monkeypatch,
 ) -> None:
-    """Costruisce un 401 portabile con una rete OBS privata sintetica."""
+    """Verifica il 401 di GET /fields su una rete OBS privata senza permesso.
+
+    La rete e il dataset privato sono sintetici e creati dal test.
+    """
     # arrange
     # Il dataset reale agrmet non viene modificato: la rete sintetica punta a un dataset
     # privato creato dal test e l'utente non ha grant su di esso.
@@ -184,7 +191,7 @@ def test_fields_observed_missing_license_group_returns_bad_request(
     auth_headers,
     test_runtime,
 ) -> None:
-    """Verifica il 400 quando OBS map mode non riceve license in q."""
+    """Verifica il 400 di GET /fields quando OBS map mode non riceve license in q."""
     # arrange
     endpoint = fields_url(q=OBS_DBALLE_QUERY_WITHOUT_LICENSE)
 
@@ -201,7 +208,7 @@ def test_fields_observed_unknown_license_group_returns_bad_request(
     auth_headers,
     test_runtime,
 ) -> None:
-    """Verifica il 400 per gruppo licenza OBS inesistente."""
+    """Verifica il 400 di GET /fields per gruppo licenza OBS inesistente."""
     # arrange
     query = OBS_DBALLE_QUERY.replace(OBSERVED_LICENSE_GROUP, f"missing_{uuid4().hex}")
 
@@ -218,7 +225,7 @@ def test_fields_observed_mismatch_network_license_returns_bad_request(
     auth_headers,
     test_runtime,
 ) -> None:
-    """Verifica il 400 quando agrmet viene accoppiato a un gruppo licenza diverso."""
+    """Verifica il 400 di GET /fields se agrmet ha un gruppo licenza diverso dal suo."""
     # arrange
     query = OBS_DBALLE_QUERY.replace(
         OBSERVED_LICENSE_GROUP,
@@ -237,7 +244,7 @@ def test_fields_observed_missing_dataset_returns_not_found(
     client: FlaskClient,
     auth_headers,
 ) -> None:
-    """Verifica il 404 dataset mode quando il dataset observed non esiste."""
+    """Verifica il 404 di GET /fields in dataset mode per un dataset inesistente."""
     # arrange
     endpoint = fields_url(datasets=f"missing_dataset_{uuid4().hex}")
 
@@ -253,7 +260,10 @@ def test_fields_observed_incomplete_bbox_returns_bad_request(
     auth_headers,
     test_runtime,
 ) -> None:
-    """Verifica il 400 per bbox incompleta su OBS map mode nella finestra DBALLE."""
+    """Verifica il 400 di GET /fields per bbox incompleta in OBS map mode.
+
+    La query usa la finestra DBALLE ammessa.
+    """
     # arrange
     endpoint = fields_url(q=OBS_DBALLE_QUERY, lonmin=10.0)
 
@@ -270,7 +280,10 @@ def test_fields_observed_only_summary_stats_returns_stats_only(
     auth_headers,
     test_runtime,
 ) -> None:
-    """Verifica onlySummaryStats=true su agrmet DBALLE 2020-04-06."""
+    """Verifica che GET /fields con onlySummaryStats=true dia solo le statistiche.
+
+    Usa agrmet DBALLE 2020-04-06 in OBS map mode.
+    """
     # arrange
     endpoint = fields_url(q=OBS_DBALLE_QUERY, onlySummaryStats="true")
 
@@ -290,7 +303,10 @@ def test_fields_observed_summary_stats_false_omits_summary_stats(
     auth_headers,
     test_runtime,
 ) -> None:
-    """Verifica SummaryStats=False sul ramo OBS map mode."""
+    """Verifica che GET /fields con SummaryStats=False ometta summarystats.
+
+    Scenario OBS map mode su agrmet DBALLE 2020-04-06.
+    """
     # arrange
     endpoint = fields_url(q=OBS_DBALLE_QUERY, SummaryStats="false")
 
@@ -311,8 +327,8 @@ def test_fields_observed_all_available_products_excludes_unauthorized_private_gr
 ) -> None:
     """Verifica che allAvailableProducts non includa gruppi OBS privati non autorizzati.
 
-    Il test interroga dati reali agrmet, ma crea un gruppo OBS privato sintetico come
-    controllo negativo per l'elenco all_licenses autorizzato dell'utente.
+    Il test interroga GET /fields su dati reali agrmet, ma crea un gruppo OBS privato
+    sintetico come controllo negativo per l'elenco all_licenses autorizzato dell'utente.
     """
     # arrange
     db = sqlalchemy.get_instance()
@@ -343,7 +359,7 @@ def test_fields_forecast_dataset_mode_returns_descriptions_for_allowed_window(
     client: FlaskClient,
     cleanup_registry,
 ) -> None:
-    """Verifica FOR dataset mode su lm5 2021-10-19 o lm2.2 2019-09-10.
+    """Verifica GET /fields in FOR dataset mode su lm5 2021-10-19 o lm2.2 2019-09-10.
 
     L'utente viene autorizzato esplicitamente al dataset scelto, cosi il test resta
     portabile tra locale e CI e controlla le descriptions quando summarystats.c > 0.
@@ -365,7 +381,7 @@ def test_fields_forecast_missing_dataset_returns_not_found(
     client: FlaskClient,
     auth_headers,
 ) -> None:
-    """Verifica il 404 per dataset forecast inesistente."""
+    """Verifica il 404 di GET /fields per dataset forecast inesistente."""
     # arrange
     endpoint = fields_url(datasets=f"missing_forecast_{uuid4().hex}")
 
@@ -381,7 +397,7 @@ def test_fields_forecast_multiple_categories_return_bad_request(
     cleanup_registry,
     monkeypatch,
 ) -> None:
-    """Verifica il 400 per dataset con categorie diverse usando catalogo sintetico.
+    """Verifica il 400 di GET /fields per dataset con categorie diverse.
 
     I record DB sintetici arrivano fino al controllo categoria; il monkeypatch ritorna
     None come farebbe Arkimet quando riceve categorie incompatibili.
@@ -424,7 +440,11 @@ def test_fields_forecast_multiple_license_groups_return_bad_request(
     cleanup_registry,
     monkeypatch,
 ) -> None:
-    """Verifica il 400 per dataset forecast appartenenti a gruppi licenza diversi."""
+    """Verifica il 400 di GET /fields per dataset forecast di gruppi licenza diversi.
+
+    I dataset sono sintetici; il monkeypatch fa risultare FOR la categoria comune,
+    cosi la richiesta arriva al controllo dei gruppi licenza.
+    """
     # arrange
     db = sqlalchemy.get_instance()
     first_dataset = create_fields_synthetic_dataset(db, cleanup_registry)
@@ -454,7 +474,7 @@ def test_fields_forecast_multimodel_multi_dataset_returns_bad_request(
     client: FlaskClient,
     cleanup_registry,
 ) -> None:
-    """Verifica il 400 per selezione multi-dataset con multim-forecast."""
+    """Verifica il 400 di GET /fields per piu dataset insieme a multim-forecast."""
     # arrange
     db = sqlalchemy.get_instance()
     multim_dataset = get_or_create_multim_forecast_dataset(db, cleanup_registry)
@@ -479,7 +499,10 @@ def test_fields_forecast_only_summary_stats_returns_stats_only(
     client: FlaskClient,
     cleanup_registry,
 ) -> None:
-    """Verifica onlySummaryStats=true sul forecast nella sola finestra ammessa."""
+    """Verifica che GET /fields con onlySummaryStats=true dia solo le statistiche.
+
+    Scenario forecast nella sola finestra ammessa.
+    """
     # arrange
     forecast_case = require_forecast_fields_case(client, cleanup_registry)
 
@@ -512,7 +535,7 @@ def test_fields_forecast_summary_stats_false_is_skipped_for_known_backend_bug(
     - Nel ramo FOR il runtime può quindi sollevare `UnboundLocalError`, che il wrapper
       restapi in questo ambiente espone come `400` o `500`.
 
-    Politica della suite EXT:
+    Politica della suite:
     - niente `xfail` stabile in suite;
     - se il bug è ancora presente, il test viene skippato in modo esplicito e verboso;
     - quando il backend verrà corretto, questo stesso test dovrà tornare verde con

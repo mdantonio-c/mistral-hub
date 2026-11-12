@@ -1,13 +1,11 @@
-# EXTENSION TRACEABILITY - Prompt 06, endpoint admin license groups.
-# Origine: questo modulo aggiunge copertura deterministica per
-# projects/mistral/backend/endpoints/admin_license_groups.py.
+# Test CRUD dell'endpoint admin /api/admin/licensegroups
+# (projects/mistral/backend/endpoints/admin_license_groups.py).
 # Ambito: verifica create/list/update/delete, preservazione di is_public e dballe_dsn,
 # listing delle license annidate e 404 su update/delete di gruppo mancante.
 # Finestra dati: nessun dataset meteorologico reale viene usato; le license sono record
 # metadata sintetici creati via API admin.
 # Runtime fake: nessun fake richiesto, solo Flask test client e database SQLAlchemy.
 # Cleanup: support registra cleanup di license e gruppi con ordine relazionale LIFO.
-# Baseline non toccata: il file e un nuovo modulo di estensione nel dominio integration/admin.
 
 from __future__ import annotations
 
@@ -38,7 +36,8 @@ def test_admin_license_group_create_list_update_delete(
 
     Il payload dichiara esplicitamente is_public e dballe_dsn per proteggere campi che
     influenzano autorizzazioni e observed; il test aggiorna entrambi prima di cancellare
-    il record via endpoint.
+    il record via endpoint. Endpoint esercitati: GET/POST /api/admin/licensegroups e
+    PUT/DELETE /api/admin/licensegroups/<id>.
     """
     # arrange - creazione attraverso helper API con cleanup registrato immediatamente.
     create_payload = license_group_payload(is_public=False, dballe_dsn="DBALLE_EXT")
@@ -111,6 +110,7 @@ def test_admin_license_group_list_includes_nested_licenses(
 
     Il gruppo e la license sono creati via API admin. Questo copre il loop su gl.license
     senza dipendere da gruppi o licenze inizializzate dal progetto.
+    Endpoint esercitato: GET /api/admin/licensegroups.
     """
     # arrange - gruppo e license sintetici con cleanup automatico.
     group_license_id = create_license_group_via_api(
@@ -147,6 +147,7 @@ def test_admin_license_group_missing_update_delete_return_404(
     La suite non testa un duplicate conflict per questo modello perche modello e
     migration dichiarano l'indice name non unique; non esiste quindi un oracolo 409
     stabile senza cambiare il backend applicativo.
+    Endpoint esercitati: PUT e DELETE /api/admin/licensegroups/<id>.
     """
     # arrange - id mancante verificato sul DB e payload valido per il ramo PUT.
     db = sqlalchemy.get_instance()

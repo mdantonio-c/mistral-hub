@@ -1,15 +1,16 @@
-"""Integration tests for periodic schedules driven by ``/data/ready`` events.
+"""Test di integrazione delle schedule periodiche attivate da ``/data/ready``.
 
-These tests deliberately mix real application logic with a small amount of test
-double infrastructure:
+Questi test mescolano di proposito logica applicativa reale e una piccola
+infrastruttura di fake:
 
-- the HTTP call to ``/data/ready`` is real,
-- the periodic-schedule decision logic is real,
-- the Celery transport layer is replaced with in-process fakes,
-- the expensive extraction worker is replaced with a synthetic DB write.
+- la chiamata HTTP a ``/data/ready`` e reale,
+- la logica di decisione delle schedule periodiche e reale
+  (``launch_all_on_data_ready_extractions`` in tasks/on_data_ready_extractions.py),
+- il trasporto Celery e sostituito da fake in-process,
+- il costoso worker di estrazione e sostituito da una scrittura sintetica nel DB.
 
-This gives deterministic tests for the scheduling rules without depending on the
-timing of external workers or on full data extraction side effects.
+Si ottengono cosi test deterministici sulle regole di scheduling, senza dipendere
+dai tempi dei worker esterni ne dagli effetti di una vera estrazione dati.
 """
 
 from datetime import timedelta
@@ -41,15 +42,14 @@ def _create_two_day_periodic_schedule(
     data_ready_base,
     data_ready_user,
 ) -> tuple[str, object, str]:
-    """Create a reusable two-day schedule and remove the automatic first request.
+    """Crea una schedule periodica di due giorni e ne rimuove la prima richiesta.
 
-    Creating a schedule can immediately generate an initial request row. The
-    periodic tests need full control over the request history, so this helper
-    removes that eager row and returns the schedule metadata the caller needs to
-    build a precise scenario around elapsed time.
+    Creare una schedule con ``POST /api/schedules`` puo generare subito una prima
+    richiesta. I test periodici devono controllare tutta la storia delle richieste,
+    quindi l'helper cancella quella riga (``DELETE /api/requests/<id>``) e
+    restituisce i dati della schedule che servono al chiamante per costruire uno
+    scenario preciso sul tempo trascorso.
     """
-    # Entriamo nel blocco operativo dell'helper data-ready, mantenendo esplicito quale
-    # stato viene letto o prodotto.
     dataset_window = fetch_dataset_window(
         client, data_ready_user.headers, DATA_READY_DATASET_NAME
     )
@@ -57,8 +57,6 @@ def _create_two_day_periodic_schedule(
     ref_to = dataset_window.ref_to.replace(second=0, microsecond=1)
     date_from = ref_from.strftime("%Y-%m-%dT%H:%M:%S.%f")
     date_to = ref_to.strftime("%Y-%m-%dT%H:%M:%S.%f")
-    # Prepariamo la schedule con parametri espliciti, rendendo chiara la condizione che
-    # deve attivare o bloccare il backend.
     schedule_body = build_periodic_schedule(
         request_name="test_periodic_days",
         date_from=date_from,
@@ -70,16 +68,12 @@ def _create_two_day_periodic_schedule(
         on_data_ready=True,
         opendata=True,
     )
-    # Prepariamo la schedule con parametri espliciti, rendendo chiara la condizione che
-    # deve attivare o bloccare il backend.
     schedule_id = create_schedule(
         data_ready_base,
         client,
         data_ready_user.headers,
         schedule_body,
     )
-    # Scorriamo gli elementi restituiti dal backend per trovare solo quelli rilevanti
-    # per questo scenario.
     for request in list_schedule_requests(
         data_ready_base,
         client,
@@ -87,8 +81,6 @@ def _create_two_day_periodic_schedule(
         schedule_id,
     ):
         delete_request(client, data_ready_user.headers, request["id"])
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return schedule_id, ref_from, date_from
 
 
@@ -100,21 +92,18 @@ def test_data_ready_creates_request_when_daily_period_has_elapsed(
     data_ready_db,
     data_ready_user,
 ) -> None:
-    """A one-day schedule must create a second request after exactly one elapsed day.
+    """Una schedule giornaliera deve creare una seconda richiesta dopo un giorno esatto.
 
-    The test seeds one successful previous request dated one day earlier, sends a
-    new ``/data/ready`` event, and then checks that the schedule now exposes two
-    request rows: the original seeded row plus the newly generated one.
+    Il test inserisce nel DB una richiesta precedente riuscita datata un giorno prima,
+    invia un nuovo evento ``POST /api/data/ready`` e controlla che la schedule esponga
+    ora due richieste: quella inserita dal test piu quella appena generata dal task
+    ``launch_all_on_data_ready_extractions``.
     """
     # arrange
-    # Prepariamo lo scenario data-ready con dati minimi e controllati, cosi la verifica
-    # successiva resta legata a un comportamento preciso.
     dataset_window = fetch_dataset_window(
         client, data_ready_user.headers, DATA_READY_DATASET_NAME
     )
     trigger_rundate = dataset_window.ref_from.strftime("%Y%m%d%H")
-    # Prepariamo la schedule con parametri espliciti, rendendo chiara la condizione che
-    # deve attivare o bloccare il backend.
     schedule_body = build_periodic_schedule(
         request_name="test_daily_period_elapsed",
         date_from=dataset_window.date_from,
@@ -126,8 +115,6 @@ def test_data_ready_creates_request_when_daily_period_has_elapsed(
         on_data_ready=True,
         opendata=True,
     )
-    # Prepariamo la schedule con parametri espliciti, rendendo chiara la condizione che
-    # deve attivare o bloccare il backend.
     schedule_id = create_schedule(
         data_ready_base,
         client,
@@ -148,8 +135,6 @@ def test_data_ready_creates_request_when_daily_period_has_elapsed(
     )
 
     # act
-    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-    # verifica dal setup.
     response = trigger_data_ready_inline(
         monkeypatch,
         client,
@@ -161,8 +146,6 @@ def test_data_ready_creates_request_when_daily_period_has_elapsed(
     )
 
     # assert
-    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-    # questo test vuole proteggere.
     assert response.status_code == 202
     requests = wait_for_schedule_requests(
         data_ready_base,
@@ -173,8 +156,6 @@ def test_data_ready_creates_request_when_daily_period_has_elapsed(
         timeout=5,
         interval=1,
     )
-    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
-    # arrivato fin qui senza eccezioni.
     assert len(requests) == 2
 
 
@@ -186,15 +167,14 @@ def test_data_ready_creates_request_when_two_day_period_has_elapsed(
     data_ready_db,
     data_ready_user,
 ) -> None:
-    """A two-day schedule must fire again only when two full days have passed.
+    """Una schedule ogni due giorni deve ripartire solo dopo due giorni interi.
 
-    The test creates a previous successful request two days in the past and then
-    submits a matching data-ready event. A new row should be generated because
-    the schedule interval has been completely satisfied.
+    Il test crea una richiesta precedente riuscita di due giorni prima e poi invia un
+    evento data-ready corrispondente (``POST /api/data/ready``). Il task
+    ``launch_all_on_data_ready_extractions`` deve generare una nuova riga, perche
+    l'intervallo della schedule e stato rispettato del tutto.
     """
     # arrange
-    # Prepariamo lo scenario data-ready con dati minimi e controllati, cosi la verifica
-    # successiva resta legata a un comportamento preciso.
     schedule_id, ref_from, date_from = _create_two_day_periodic_schedule(
         client,
         data_ready_base,
@@ -212,8 +192,6 @@ def test_data_ready_creates_request_when_two_day_period_has_elapsed(
     )
 
     # act
-    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-    # verifica dal setup.
     response = trigger_data_ready_inline(
         monkeypatch,
         client,
@@ -225,8 +203,6 @@ def test_data_ready_creates_request_when_two_day_period_has_elapsed(
     )
 
     # assert
-    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-    # questo test vuole proteggere.
     assert response.status_code == 202
     requests = wait_for_schedule_requests(
         data_ready_base,
@@ -237,8 +213,6 @@ def test_data_ready_creates_request_when_two_day_period_has_elapsed(
         timeout=5,
         interval=1,
     )
-    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
-    # arrivato fin qui senza eccezioni.
     assert len(requests) == 2
 
 
@@ -250,15 +224,14 @@ def test_data_ready_skips_request_before_two_day_period_elapses(
     data_ready_db,
     data_ready_user,
 ) -> None:
-    """A two-day schedule must not fire early after only one elapsed day.
+    """Una schedule ogni due giorni non deve ripartire dopo un solo giorno.
 
-    Here the seeded request is only one day old, so the periodic rule is not yet
-    satisfied. The test still expects the endpoint to accept the event, but the
-    schedule request count must remain unchanged.
+    Qui la richiesta inserita ha solo un giorno, quindi la regola periodica di
+    ``launch_all_on_data_ready_extractions`` non e ancora soddisfatta. Il test si
+    aspetta comunque che ``POST /api/data/ready`` accetti l'evento, ma il numero di
+    richieste della schedule deve restare invariato.
     """
     # arrange
-    # Prepariamo lo scenario data-ready con dati minimi e controllati, cosi la verifica
-    # successiva resta legata a un comportamento preciso.
     schedule_id, ref_from, date_from = _create_two_day_periodic_schedule(
         client,
         data_ready_base,
@@ -276,8 +249,6 @@ def test_data_ready_skips_request_before_two_day_period_elapses(
     )
 
     # act
-    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-    # verifica dal setup.
     response = trigger_data_ready_inline(
         monkeypatch,
         client,
@@ -289,8 +260,6 @@ def test_data_ready_skips_request_before_two_day_period_elapses(
     )
 
     # assert
-    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-    # questo test vuole proteggere.
     assert response.status_code == 202
     requests = wait_for_schedule_requests(
         data_ready_base,
@@ -301,6 +270,4 @@ def test_data_ready_skips_request_before_two_day_period_elapses(
         timeout=5,
         interval=1,
     )
-    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
-    # arrivato fin qui senza eccezioni.
     assert len(requests) == 1

@@ -1,4 +1,8 @@
-"""Integration tests for chaining multiple forecast postprocessors in one request."""
+"""Test di integrazione su piu postprocessori forecast in catena nella stessa request.
+
+Esercitano il task Celery ``data_extract`` (tasks/data_extraction.py) sul
+dataset ``lm5``.
+"""
 
 import pytest
 
@@ -24,15 +28,17 @@ pytestmark = [
 
 
 class TestForecastChaining:
-    """Verify that multiple forecast postprocessors can be composed without losing key outputs."""
+    """Verifica che piu postprocessori forecast in catena non perdano output chiave."""
 
     def test_combined_postprocessors_keep_derived_statistic_and_geometry(
         self, pp_forecast_env
     ) -> None:
-        """Verify that chained postprocessors preserve derived values, statistics, and grid geometry."""
+        """Verifica che la catena mantenga variabile derivata, statistica e geometria.
+
+        Combina ``derived_variables``, ``statistic_elaboration``,
+        ``grid_interpolation`` e ``grid_cropping`` nel task ``data_extract``.
+        """
         # arrange
-        # Prepariamo lo scenario post-processing con dati minimi e controllati, cosi la
-        # verifica successiva resta legata a un comportamento preciso.
         request_id = pp_forecast_env.create_request()
         y_min = -10
         nx = 12
@@ -46,8 +52,6 @@ class TestForecastChaining:
         ]
 
         # act
-        # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-        # verifica dal setup.
         pp_forecast_env.execute(
             request_id,
             filters=forecast_chaining_filters(),
@@ -55,8 +59,6 @@ class TestForecastChaining:
         )
 
         # assert
-        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-        # questo test vuole proteggere.
         output_path = pp_forecast_env.assert_success(request_id)
         assert_grib_contains_short_name(output_path, "relhum_2m")
         assert_grib_contains_step_range(output_path, "tp", "3-6")
@@ -65,10 +67,12 @@ class TestForecastChaining:
     def test_combined_postprocessors_can_export_json_after_spare_point(
         self, pp_forecast_env
     ) -> None:
-        """Verify that a chained spare-point workflow can still export the final output as JSON."""
+        """Verifica che una catena con spare-point possa esportare l'output in JSON.
+
+        Combina variabili derivate, statistica e ``spare_point_interpolation`` nel
+        task ``data_extract``, con ``output_format="json"``.
+        """
         # arrange
-        # Prepariamo lo scenario post-processing con dati minimi e controllati, cosi la
-        # verifica successiva resta legata a un comportamento preciso.
         request_id = pp_forecast_env.create_request()
         archive_path = require_spare_point_template_archive()
         upload_dir = pp_forecast_env.unzip_upload(archive_path)
@@ -80,8 +84,6 @@ class TestForecastChaining:
         ]
 
         # act
-        # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-        # verifica dal setup.
         pp_forecast_env.execute(
             request_id,
             filters=forecast_chaining_filters(),
@@ -90,12 +92,6 @@ class TestForecastChaining:
         )
 
         # assert
-        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-        # questo test vuole proteggere.
         output_path = pp_forecast_env.assert_success(request_id)
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert output_path.suffix == ".json"
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert "grib" not in output_path.name

@@ -1,16 +1,14 @@
-# EXTENSION TRACEABILITY: questo modulo e stato aggiunto dal piano di estensione
-# della copertura backend, fase quick wins, per proteggere un helper puro dei task
-# senza modificare la baseline legacy gia rifattorizzata.
-# EXTENSION SCOPE: i test coprono solo `queue_sorting`, cioe la scelta della coda
-# Celery in base a categoria dataset e freschezza del reftime; non dispatchano task,
-# non aprono connessioni al broker e non leggono dataset reali.
-# EXTENSION DATA WINDOW: nessun dato meteorologico reale viene usato. Il tempo e
+# Ambito: i test coprono solo `queue_sorting` di tasks/data_extraction_utilities.py,
+# cioe la scelta della coda Celery in base a categoria dataset e freschezza del
+# reftime; non dispatchano task, non aprono connessioni al broker e non leggono
+# dataset reali.
+# Finestra dati: nessun dato meteorologico reale viene usato. Il tempo e
 # congelato con un fake locale per rendere deterministica la distinzione tra code
 # operative e archiviate.
-# EXTENSION RUNTIME: il fake basta perche il contratto osservabile della funzione e
+# Runtime: il fake basta perche il contratto osservabile della funzione e
 # una stringa di routing calcolata da input Python gia normalizzati; il runtime Celery
 # reale non aggiungerebbe informazione a questo livello.
-# EXTENSION CLEANUP: non vengono creati file, record DB o risorse esterne; il solo
+# Cleanup: non vengono creati file, record DB o risorse esterne; il solo
 # side effect e il monkeypatch dell'orologio del modulo, ripristinato da pytest.
 
 import datetime as dt
@@ -27,6 +25,8 @@ pytestmark = [pytest.mark.integration, pytest.mark.deterministic]
 # `queue_sorting`. Rimane qui, invece che in un support module, perche serve a un solo
 # file e perche evita dipendenze da data corrente, dataset reali o worker Celery.
 class _FixedQueueSortingDateTime(dt.datetime):
+    """Sottoclasse di ``datetime`` con ``now`` fisso a 2026-05-28 12:00 UTC."""
+
     @classmethod
     def now(cls, tz=None):
         fixed_now = cls(2026, 5, 28, 12, 0, 0, tzinfo=dt.timezone.utc)
@@ -37,7 +37,10 @@ class _FixedQueueSortingDateTime(dt.datetime):
 
 @pytest.fixture
 def frozen_queue_sorting_now(monkeypatch):
-    """Freeze the task utility clock so queue freshness checks are deterministic."""
+    """Congela l'orologio di ``queue_sorting`` per rendere deterministiche le verifiche.
+
+    Restituisce l'istante fisso (aware, UTC) usato come "adesso" dalla funzione.
+    """
     # arrange
     # Il helper sotto test importa direttamente la classe `datetime`, quindi il
     # monkeypatch viene applicato al simbolo del modulo target e non al modulo standard.
@@ -47,7 +50,7 @@ def frozen_queue_sorting_now(monkeypatch):
 
 
 class TestQueueSorting:
-    """Verify deterministic queue routing for forecast and observed categories."""
+    """Verifica la scelta deterministica della coda per dataset forecast e observed."""
 
     @pytest.mark.parametrize(
         ("dataset_type", "expected_recent", "expected_old"),
@@ -65,7 +68,10 @@ class TestQueueSorting:
         expected_recent,
         expected_old,
     ):
-        """Recent reftimes use operational queues, older ones use archived queues."""
+        """Verifica che ``queue_sorting`` scelga la coda in base alla freschezza.
+
+        I reftime recenti vanno sulle code operative, quelli vecchi sulle archiviate.
+        """
         # arrange
         # Prepariamo due reftime sintetici rispetto all'orologio congelato: uno dentro
         # la finestra operativa di tre giorni e uno appena oltre. La matrice copre tutte
@@ -74,16 +80,12 @@ class TestQueueSorting:
         old_reftime = {"date_from": frozen_queue_sorting_now - dt.timedelta(days=4)}
 
         # act
-        # Eseguiamo la funzione pura con input minimi e gia normalizzati, mantenendo il
-        # test sul contratto di routing e non sul chiamante HTTP/task.
         recent_queue = data_extraction_utilities.queue_sorting(
             dataset_type, recent_reftime
         )
         old_queue = data_extraction_utilities.queue_sorting(dataset_type, old_reftime)
 
         # assert
-        # Verifichiamo le stringhe esposte ai task Celery: sono l'effetto osservabile
-        # che un errore di regressione cambierebbe immediatamente.
         assert recent_queue == expected_recent
         assert old_queue == expected_old
 
@@ -100,7 +102,7 @@ class TestQueueSorting:
         dataset_type,
         expected_queue,
     ):
-        """Naive datetimes are promoted to UTC before freshness is evaluated."""
+        """Verifica che ``queue_sorting`` tratti come UTC i datetime senza timezone."""
         # arrange
         # Il ramo naive e importante per i chiamanti che passano datetime senza tzinfo.
         # La data sintetica e recente rispetto al fake, quindi deve finire sulle code
@@ -131,7 +133,7 @@ class TestQueueSorting:
         dataset_type,
         expected_queue,
     ):
-        """A missing reftime cannot be operational and must use archived routing."""
+        """Verifica che senza reftime ``queue_sorting`` scelga la coda archiviata."""
         # arrange
         # `None` rappresenta il chiamante che non puo stimare la freschezza della
         # richiesta. Il fake clock resta attivo per simmetria con gli altri test, ma il

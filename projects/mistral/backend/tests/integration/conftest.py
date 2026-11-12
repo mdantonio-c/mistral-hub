@@ -1,9 +1,9 @@
-"""Shared integration fixtures for API scenarios under the modularized suite.
+"""Fixture condivise dai test di integrazione delle API.
 
-These fixtures provide a small authenticated baseline that many subtrees can
-reuse: standard auth headers, a temporary access-key owner with a fresh key, and
-the perimeter that confines the global request-cleanup task. Keeping them here
-prevents every integration area from duplicating the same bootstrap code.
+Forniscono una base autenticata minima riusabile da tutte le aree: header di
+login dell'utente di default, un utente temporaneo proprietario di una access
+key nuova e il perimetro che limita il task globale di pulizia delle richieste.
+Tenerle qui evita di ripetere lo stesso setup in ogni area di ``integration/``.
 """
 
 from pathlib import Path
@@ -26,30 +26,29 @@ from mistral.tests.integration.access_key.support import ACCESS_KEY_ENDPOINT
 
 @pytest.fixture
 def auth_headers(client: FlaskClient):
-    """Log in the default test user and return reusable authenticated headers."""
-    # Prepariamo la fixture suite di test: crea lo stato riusabile e lascia al test solo
-    # la verifica del comportamento.
+    """Esegue il login con l'utente di default e restituisce gli header autenticati.
+
+    L'account e condiviso da tutti i test che usano questa fixture: va usato solo
+    per letture, non per creare o ruotare access key.
+    """
     base = BaseTests()
-    # Effettuiamo il login per ottenere header autentici, identici a quelli usati dalle
-    # chiamate API successive.
     headers, _ = base.do_login(client, None, None)
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return headers
 
 
 def _revoke_access_key(client: FlaskClient, headers: Any) -> None:
-    """Revoke the owner's key, if any, before the owner itself is deleted."""
+    """Revoca la access key del proprietario (``DELETE /access-key``), se esiste."""
     response = client.delete(ACCESS_KEY_ENDPOINT, headers=headers)
     assert response.status_code in (204, 404)
 
 
 @pytest.fixture
 def access_key_owner(client: FlaskClient, cleanup_registry) -> AuthenticatedTestUser:
-    """Create the temporary user that owns the access keys issued by a test.
+    """Crea un utente temporaneo a cui intestare le access key create dal test.
 
-    Creating a key revokes the previous key of the logged user. A throwaway owner
-    keeps these writes away from the configured default account.
+    Creare una access key revoca quella precedente dell'utente loggato: usare un
+    utente usa-e-getta evita di toccare l'account di default. A fine test la key
+    viene revocata e l'utente cancellato.
     """
     base = BaseTests()
     user = create_authenticated_test_user(base, client)
@@ -68,24 +67,15 @@ def access_key_owner(client: FlaskClient, cleanup_registry) -> AuthenticatedTest
 
 @pytest.fixture
 def fresh_access_key(client: FlaskClient, access_key_owner: AuthenticatedTestUser):
-    """Create a fresh key for ``access_key_owner`` and return headers and key.
+    """Crea una access key nuova per ``access_key_owner`` con ``POST /access-key``.
 
-    Tests that need both a logged-in user and a newly issued key can depend on
-    this fixture instead of manually calling the access-key creation endpoint.
-    BasicAuth scenarios pair the key with ``access_key_owner.email``.
+    Restituisce la coppia ``(header, key)``. I test BasicAuth usano la key insieme
+    a ``access_key_owner.email``.
     """
-    # Prepariamo la fixture suite di test: crea lo stato riusabile e lascia al test solo
-    # la verifica del comportamento.
     resp = client.post(ACCESS_KEY_ENDPOINT, headers=access_key_owner.headers)
-    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
-    # usare il payload.
     assert resp.status_code == 200
     data = resp.json
-    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
-    # arrivato fin qui senza eccezioni.
     assert "key" in data
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return access_key_owner.headers, data["key"]
 
 
@@ -94,9 +84,10 @@ def requests_cleanup_perimeter(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> RequestsCleanupPerimeter:
-    """Confine ``automatic_cleanup`` to the rows and files registered by the test.
+    """Limita il task ``automatic_cleanup`` alle righe e ai file creati dal test.
 
-    Tests must call ``allow(...)`` with the users and requests they created; the
-    orphan-file scan only sees ``download_root``, a temporary directory.
+    Il test deve chiamare ``allow(...)`` con gli utenti e le richieste che ha
+    creato; la ricerca dei file orfani vede solo ``download_root``, una cartella
+    temporanea. Cosi il task non tocca dati reali di altri utenti.
     """
     return confine_requests_cleanup(monkeypatch, tmp_path / "downloads")

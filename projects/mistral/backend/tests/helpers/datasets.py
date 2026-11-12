@@ -1,4 +1,4 @@
-"""Helpers for isolated dataset records used by integration tests."""
+"""Helper per record di dataset isolati usati dai test di integrazione."""
 
 from __future__ import annotations
 
@@ -10,7 +10,10 @@ from mistral.services.arkimet import BeArkimet
 
 
 def require_dataset(db, dataset_name: str):
-    """Return a real catalog dataset by name or arkimet_id, or skip when missing."""
+    """Restituisce un dataset reale del catalogo (tabella ``Datasets``).
+
+    Cerca per ``name`` o ``arkimet_id``; se il dataset manca, salta il test.
+    """
     dataset = db.Datasets.query.filter(
         (db.Datasets.name == dataset_name) | (db.Datasets.arkimet_id == dataset_name)
     ).first()
@@ -27,11 +30,12 @@ def delete_test_dataset_bundle(
     group_license_id: int,
     attribution_id: int | None,
 ) -> None:
-    """Remove a synthetic dataset and all of its supporting records.
+    """Rimuove un dataset sintetico e tutti i suoi record di supporto.
 
-    Cleanup is defensive: rows already gone are skipped, so a half-built setup does not
-    mask the original failure. Pass ``attribution_id=None`` when the dataset reuses a
-    real attribution that must be preserved.
+    Il cleanup e difensivo: le righe gia sparite vengono saltate, cosi un setup
+    costruito a meta non nasconde il fallimento originale. Passare
+    ``attribution_id=None`` quando il dataset riusa un'attribution reale che va
+    conservata.
     """
     db.session.rollback()
     dataset = db.Datasets.query.get(dataset_id)
@@ -72,7 +76,11 @@ def create_test_dataset(
     is_public: bool,
     prefix: str = "dataset_test",
 ):
-    """Create an isolated dataset bundle and register its complete teardown."""
+    """Crea un bundle di dataset isolato e ne registra il teardown completo.
+
+    Il bundle comprende ``GroupLicense`` (pubblica o privata secondo ``is_public``),
+    ``Attribution``, ``License`` e un ``Datasets`` OBS/BUFR con nome univoco.
+    """
     dataset_name = f"{prefix}_{uuid4().hex[:12]}"
     group_license = db.GroupLicense(
         name=f"{dataset_name}_group",
@@ -131,11 +139,12 @@ def create_private_test_network(
     *,
     prefix: str = "private_network_test",
 ) -> str:
-    """Create a private synthetic dataset reachable through a synthetic network.
+    """Crea un dataset privato sintetico raggiungibile tramite una rete sintetica.
 
-    Only the synthetic network is routed to the private dataset; every other network
-    keeps the real Arkimet mapping and dataset authorization stays real, so users
-    without an explicit grant get a portable 401 without touching the real catalog.
+    Solo la rete sintetica viene instradata verso il dataset privato; ogni altra rete
+    mantiene la mappatura Arkimet reale (``BeArkimet.from_network_to_dataset``) e
+    l'autorizzazione sui dataset resta reale, cosi gli utenti senza grant esplicito
+    ricevono un 401 portabile senza toccare il catalogo reale.
     """
     dataset = create_test_dataset(
         db,

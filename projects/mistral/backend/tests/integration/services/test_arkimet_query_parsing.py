@@ -1,15 +1,13 @@
-# EXTENSION TRACEABILITY: questo modulo e stato aggiunto dal piano di estensione
-# della copertura backend, fase quick wins, per coprire parser puri del service
-# Arkimet senza modificare la suite legacy esistente.
-# EXTENSION SCOPE: i test verificano `is_filter_allowed`, `parse_reftime`,
+# Test dei parser puri del service Arkimet (BeArkimet in services/arkimet.py).
+# Ambito: i test verificano `is_filter_allowed`, `parse_reftime`,
 # `parse_matchers` e `decode_run`, cioe trasformazioni di dizionari/stringhe in query
 # Arkimet. Non chiamano `arki-query`, non aprono configurazioni dataset e non eseguono
 # estrazioni.
-# EXTENSION DATA WINDOW: nessun dataset reale viene usato. Le date sono stringhe
+# Finestra dati: nessun dataset reale viene usato. Le date sono stringhe
 # sintetiche scelte solo per verificare la formattazione inclusiva del reftime.
-# EXTENSION RUNTIME: il fake non e necessario perche le funzioni esercitate sono pure;
+# Runtime: il fake non e necessario perche le funzioni esercitate sono pure;
 # eventuali errori di toolchain Arkimet reale appartengono agli smoke gia presenti.
-# EXTENSION CLEANUP: nessuna risorsa esterna viene creata; i test non hanno side effect
+# Cleanup: nessuna risorsa esterna viene creata; i test non hanno side effect
 # da ripulire oltre allo stato locale Python.
 
 import pytest
@@ -21,10 +19,10 @@ pytestmark = [pytest.mark.integration, pytest.mark.deterministic]
 
 
 class TestArkimetQueryParsing:
-    """Verify pure Arkimet query parsing helpers."""
+    """Verifica gli helper puri di BeArkimet che traducono filtri e date in query."""
 
     def test_is_filter_allowed_accepts_known_filter_and_rejects_unknown(self):
-        """The allow-list exposes supported filter names without runtime access."""
+        """BeArkimet.is_filter_allowed accetta un filtro noto e rifiuta gli altri."""
         # arrange
         # Usiamo un filtro noto e uno inventato per proteggere il contratto booleano
         # minimo dell'allow-list, senza costruire una query Arkimet completa.
@@ -40,7 +38,10 @@ class TestArkimetQueryParsing:
         assert unknown_result is False
 
     def test_parse_reftime_formats_inclusive_arkimet_bounds(self):
-        """ISO-like bounds are converted to the Arkimet reftime matcher string."""
+        """BeArkimet.parse_reftime converte due date ISO in un matcher reftime.
+
+        Gli estremi sono inclusivi (>= e <=) e formattati come "YYYY-MM-DD HH:MM".
+        """
         # arrange
         # Le date sono sintetiche e non corrispondono a finestre dataset reali: qui si
         # testa solo la conversione stringa -> matcher con operatori inclusivi.
@@ -54,7 +55,7 @@ class TestArkimetQueryParsing:
         assert matcher == "reftime: >=2026-05-28 00:00,<=2026-05-28 03:30"
 
     def test_parse_matchers_decodes_run_and_quantity_filters(self):
-        """Structured filters are joined in the matcher syntax expected by Arkimet."""
+        """BeArkimet.parse_matchers unisce i filtri nella sintassi matcher Arkimet."""
         # arrange
         # Il filtro usa solo decoder puri: `run` esercita la conversione minuti -> HH:MM
         # e `quantity` protegge il join di valori multipli. Nessun matcher viene inviato
@@ -76,7 +77,7 @@ class TestArkimetQueryParsing:
         )
 
     def test_decode_run_valid_minute_style_returns_hour_minute(self):
-        """A MINUTE run dictionary is normalized to zero-padded HH:MM syntax."""
+        """BeArkimet.decode_run converte un run in stile MINUTE nel formato HH:MM."""
         # arrange
         # Settantacinque minuti coprono sia il quoziente ora sia il resto minuti, piu
         # utile di un valore tondo per intercettare regressioni sulla formattazione.
@@ -89,7 +90,7 @@ class TestArkimetQueryParsing:
         assert decoded_run == "MINUTE,01:15"
 
     def test_decode_run_invalid_input_type_raises_type_error(self):
-        """Non-dictionary input is rejected before style-specific parsing."""
+        """BeArkimet.decode_run solleva TypeError se l'input non e un dizionario."""
         # arrange
         invalid_run_filter = "MINUTE,01:00"
 
@@ -98,7 +99,7 @@ class TestArkimetQueryParsing:
             BeArkimet.decode_run(invalid_run_filter)
 
     def test_decode_run_invalid_style_raises_value_error(self):
-        """Unsupported run styles fail explicitly instead of producing a matcher."""
+        """BeArkimet.decode_run solleva ValueError se lo stile del run non e MINUTE."""
         # arrange
         invalid_run_filter = {"style": "HOUR", "value": 1}
 

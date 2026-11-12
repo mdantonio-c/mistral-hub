@@ -30,12 +30,12 @@
 |---|---|---|---|
 | `app` | fixture | `tests/conftest.py` di restapi | Garantisce l'app context Flask richiesto dal connettore SQLAlchemy. |
 | `monkeypatch` | fixture | pytest | Sostituisce `session.commit`, `celery.get_instance` e `arki.load_datasets`; ripristinati a fine test. |
-| `initializer_harness` | fixture locale | [test_initializer_seed.py](./test_initializer_seed.py#L258) | Rollback iniziale, snapshot `(id, name)` delle 4 tabelle, `commit → flush`, dataset sintetico uuid, recorder Celery. In teardown esegue `rollback` e **asserisce** che le tabelle siano identiche allo snapshot iniziale. |
-| `_InitializerHarness` | dataclass locale | [test_initializer_seed.py](./test_initializer_seed.py#L176) | `run()` istanzia l'`Initializer` reale e chiama `expire_all()`, così le letture successive vanno al DB; `commits` conta i commit. |
-| `_RecordingCelery` | fake locale | [test_initializer_seed.py](./test_initializer_seed.py#L149) | Stato `installed` + log `calls`. `get` restituisce il task solo se creato; `create` **fallisce** se il task esiste già (duplicato). |
-| `_hide_existing_seed_rows` | helper | [test_initializer_seed.py](./test_initializer_seed.py#L220) | Rinomina tutte le righe `GroupLicense` / `License` / `Attribution` nella transazione per simulare un DB non inizializzato. Le FK dei dataset reali impediscono di cancellarle. |
-| `_capture_writes` | context manager | [test_initializer_seed.py](./test_initializer_seed.py#L133) | Listener `before_cursor_execute` sull'engine: registra gli statement `INSERT` / `UPDATE` / `DELETE` realmente inviati. |
-| `_seed_snapshot` / `_row_values` | helper | [test_initializer_seed.py](./test_initializer_seed.py#L236) | Snapshot di **tutte le colonne** delle righe seed e del dataset sintetico, più `(id, name)` di ogni tabella. |
+| `initializer_harness` | fixture locale | [test_initializer_seed.py](./test_initializer_seed.py#L257) | Rollback iniziale, snapshot `(id, name)` delle 4 tabelle, `commit → flush`, dataset sintetico uuid, recorder Celery. In teardown esegue `rollback` e **asserisce** che le tabelle siano identiche allo snapshot iniziale. |
+| `_InitializerHarness` | dataclass locale | [test_initializer_seed.py](./test_initializer_seed.py#L175) | `run()` istanzia l'`Initializer` reale e chiama `expire_all()`, così le letture successive vanno al DB; `commits` conta i commit. |
+| `_RecordingCelery` | fake locale | [test_initializer_seed.py](./test_initializer_seed.py#L148) | Stato `installed` + log `calls`. `get` restituisce il task solo se creato; `create` **fallisce** se il task esiste già (duplicato). |
+| `_hide_existing_seed_rows` | helper | [test_initializer_seed.py](./test_initializer_seed.py#L219) | Rinomina tutte le righe `GroupLicense` / `License` / `Attribution` nella transazione per simulare un DB non inizializzato. Le FK dei dataset reali impediscono di cancellarle. |
+| `_capture_writes` | context manager | [test_initializer_seed.py](./test_initializer_seed.py#L132) | Listener `before_cursor_execute` sull'engine: registra gli statement `INSERT` / `UPDATE` / `DELETE` realmente inviati. |
+| `_seed_snapshot` / `_row_values` | helper | [test_initializer_seed.py](./test_initializer_seed.py#L235) | Snapshot di **tutte le colonne** delle righe seed e del dataset sintetico, più `(id, name)` di ogni tabella. |
 | `EXPECTED_*` | costanti | [test_initializer_seed.py](./test_initializer_seed.py) | Aspettative scritte a mano, senza importarle dal codice di produzione. Coprono gruppi e licenze completi, tutti i nomi delle attribution, `descr` / `url` di 3 attribution campione e il cron atteso. |
 
 ## 4. Analisi dettagliata di ogni test

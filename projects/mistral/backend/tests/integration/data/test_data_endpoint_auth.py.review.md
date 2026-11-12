@@ -1,7 +1,7 @@
 # Review — `test_data_endpoint_auth.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo **baseline**: è il test legacy di autenticazione del dominio `data`. Le coperture aggiuntive sono separate e non ne spostano le fixture.
+> Modulo: test di autenticazione del dominio `data`. Gli altri test del dominio sono in moduli separati e non ne spostano le fixture.
 
 ## 1. Informazioni generali
 
@@ -49,7 +49,7 @@ POST /api/data  (nessuna credenziale)
 ## 6. Comportamenti nascosti
 
 - **Stop pre-schema**: il `401` precede la deserializzazione di `DataExtraction`; inviare body assente o malformato è irrilevante per questo test.
-- **Baseline preservata**: i moduli `test_data_endpoint_submission.py` e `test_data_endpoint_validation.py` dichiarano in testata di non toccare questo file; è il punto di ancoraggio della copertura auth del dominio.
+- **Copertura auth centralizzata**: è il punto di ancoraggio della copertura auth del dominio; `test_data_endpoint_submission.py` e `test_data_endpoint_validation.py` coprono gli altri rami di `Data.post`.
 - **Nessun cleanup**: non crea utenti, request o file → nessuna registrazione in `cleanup_registry`.
 
 ## 7. Checklist di revisione

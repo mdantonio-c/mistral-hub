@@ -1,7 +1,7 @@
 # Review — `test_data_extraction_quota_and_notifications.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** (prompt 07) sui rami ad alto rischio di `tasks.data_extraction` non esercitati dagli happy path postprocessing.
+> Modulo: copertura dei rami ad alto rischio di `tasks.data_extraction` non esercitati dagli happy path postprocessing.
 
 ## 1. Informazioni generali
 
@@ -102,7 +102,7 @@
 - **Flusso**: `tmp_path` con `task-output.grib` + `license.txt` → `package_data_license(...)`.
 - **Setup**: `tmp_path` registrata anche in `cleanup_registry.add_path`.
 - **Assert**: tar esiste; `out_file` assente; `license_file` presente; membri `["LICENSE","task-output.grib"]`; contenuti verificati.
-- **Casi coperti**: duplica volutamente il contratto già visto nei quick wins, accanto ai side effect di `data_extraction`.
+- **Casi coperti**: duplica volutamente il contratto già visto in `test_data_extraction_helpers.py`, accanto ai side effect di `data_extraction`.
 
 ## 5. Call chain
 
@@ -153,7 +153,7 @@ notify_by_amqp_queue(queue, request)
 
 ## 8. Possibili criticità
 
-- **Over-mocking elevato (rischio segnalato dal prompt)**:
+- **Over-mocking elevato**:
   - quota: Arkimet (`estimate_data_size`) e `du` (`subprocess.check_output`) sono stub → si testa solo la **logica di confronto**, non l'integrazione reale;
   - notifiche: SMTP, RabbitMQ, `get_backend_url` e `time.sleep` restano fake e la `request` è un `SimpleNamespace`; il rendering email è reale ma non prova la consegna end-to-end. Per `notify_by_amqp_queue` si verifica di fatto solo l'assemblaggio di un dict;
   - schedule disabling: `CeleryExt.delete_periodic_task` è un fake → non si verifica la rimozione reale in RedBeat.

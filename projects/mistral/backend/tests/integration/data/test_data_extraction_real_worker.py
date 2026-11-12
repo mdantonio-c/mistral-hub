@@ -1,14 +1,14 @@
-"""Real-worker tests for ``POST /data``, the most used extraction flow.
+"""Test con worker reali per ``POST /data``, il flusso di estrazione piu usato.
 
-The endpoint stores the request and sends ``data_extract`` to the broker.
-Nothing is replaced here: a real Celery worker runs the extraction. The tests
-cover the successful download, the failure notification and the cleanup of a
-request that the workers have not finished.
+L'endpoint salva la request e invia ``data_extract`` al broker.
+Qui non si sostituisce nulla: un worker Celery reale esegue l'estrazione. I test
+coprono il download riuscito, l'email di fallimento e il cleanup di una
+request che i worker non hanno ancora finito.
 
-The tests stay inside their perimeter: the temporary users are created by
-``create_data_ready_user`` (no real emails), the root ``conftest.py`` skips
-them unless the workers use the SMTP mock, and the cleanup stops the user's
-tasks before deleting the user's requests, output files and directory.
+I test restano nel loro perimetro: gli utenti temporanei sono creati da
+``create_data_ready_user`` (nessuna email reale), il ``conftest.py`` radice li
+salta se i worker non usano il mock SMTP, e il cleanup ferma i task dell'utente
+prima di cancellarne request, file di output e cartella.
 """
 
 from __future__ import annotations
@@ -54,7 +54,10 @@ def _create_real_worker_user(
     test_runtime,
     **limits: int,
 ) -> AuthenticatedTestUser:
-    """Create a temporary user whose extractions can run on the real workers."""
+    """Crea un utente temporaneo le cui estrazioni girano sui worker reali.
+
+    Registra il cleanup dell'utente e salta il test se il dataset ``lm5`` manca.
+    """
     base = BaseTests()
     try:
         user = create_data_ready_user(
@@ -80,7 +83,7 @@ def real_worker_user(
     cleanup_registry,
     test_runtime,
 ) -> AuthenticatedTestUser:
-    """Create a temporary user whose extractions can run on the real workers."""
+    """Fixture: utente temporaneo le cui estrazioni girano sui worker reali."""
     return _create_real_worker_user(client, cleanup_registry, test_runtime)
 
 
@@ -89,7 +92,10 @@ def _submit_one_run(
     user: AuthenticatedTestUser,
     name_prefix: str,
 ) -> tuple[str, dict[str, Any]]:
-    """Submit ``POST /data`` for one run of the real ``lm5`` window."""
+    """Invia ``POST /data`` per una sola run della finestra reale di ``lm5``.
+
+    Restituisce il nome della request e il body della risposta 202.
+    """
     dataset_window = fetch_dataset_window(
         client,
         user.headers,
@@ -117,7 +123,7 @@ def _find_user_request(
     headers: Any,
     request_id: int,
 ) -> dict[str, Any] | None:
-    """Return one request of the user as listed by ``GET /requests``."""
+    """Restituisce una request dell'utente letta da ``GET /requests``, o None."""
     for request in list_user_requests(BaseTests(), client, headers):
         if request.get("id") == request_id:
             return request
@@ -129,7 +135,7 @@ def _wait_for_user_request(
     user: AuthenticatedTestUser,
     request_id: int,
 ) -> dict[str, Any]:
-    """Wait until the real workers finish one request of the user."""
+    """Attende che i worker reali concludano una request dell'utente."""
     return wait_for_finished_request(
         lambda: _find_user_request(client, user.headers, request_id),
         description=f"request {request_id}",
@@ -137,7 +143,7 @@ def _wait_for_user_request(
 
 
 def _final_task_state(task_id: str) -> str | bool:
-    """Return the final Celery state of a task, or False while it is not final."""
+    """Restituisce lo stato Celery finale di un task, o False finche non e finale."""
     state = celery.get_instance().celery_app.AsyncResult(task_id).state
     return state if state in FINISHED_STATES else False
 
@@ -146,7 +152,10 @@ def test_data_request_is_extracted_by_real_worker(
     client: FlaskClient,
     real_worker_user: AuthenticatedTestUser,
 ) -> None:
-    """Verify that a real worker extracts a ``POST /data`` request end to end."""
+    """Verifica che un worker reale estragga end to end una request di ``POST /data``.
+
+    Il file prodotto deve poi essere scaricabile con ``GET /data/<filename>``.
+    """
     # act
     _, submitted = _submit_one_run(client, real_worker_user, "real-worker-data")
     request = _wait_for_user_request(client, real_worker_user, submitted["request_id"])
@@ -175,7 +184,7 @@ def test_failed_data_request_notifies_owner_through_smtp_mock(
     cleanup_registry,
     test_runtime,
 ) -> None:
-    """Verify that the failure email of a real worker ends in the SMTP mock."""
+    """Verifica che l'email di fallimento di ``data_extract`` arrivi al mock SMTP."""
     # arrange
     # Con un limite di 1 byte il worker rifiuta l'estrazione per quota: data_extract
     # segna FAILURE e invia sempre l'email di esito al proprietario.
@@ -210,7 +219,10 @@ def test_cleanup_timeout_revokes_queued_request_on_real_workers(
     client: FlaskClient,
     real_worker_user: AuthenticatedTestUser,
 ) -> None:
-    """Verify that a cleanup timeout stops the user's task before deleting its request."""
+    """Verifica che un cleanup scaduto revochi il task prima di cancellare la request.
+
+    Usa ``register_wait_for_user_requests`` con worker Celery reali.
+    """
     # arrange
     base = BaseTests()
     db = sqlalchemy.get_instance()

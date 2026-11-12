@@ -1,23 +1,20 @@
-# EXTENSION TRACEABILITY: added by coverage extension prompt 04
-# EXTENSION SCOPE: integrates the refactored suite without modifying legacy baseline
-# EXTENSION DATA WINDOW: no real runtime data required; uses DB-seeded request rows
-# EXTENSION RUNTIME: deterministic fake request rows; no async dependencies
-# EXTENSION CLEANUP: request rows and temporary users cleaned via cleanup_registry
+# Finestra dati: non servono dati runtime reali; usa righe di richiesta inserite nel DB.
+# Runtime: righe di richiesta finte e deterministiche; nessuna dipendenza asincrona.
+# Cleanup: righe di richiesta e utenti temporanei rimossi tramite cleanup_registry.
 #
-# This module extends the requests integration area with tests for:
-# - GET /requests response shape and pagination
-# - get_total=true returns 206 with total count
-# - archived=true/false filtering
-# - PUT /requests/<id> archive success
-# - PUT /requests/<id> archive pending request forbidden
-# - PUT /requests/<id> owner mismatch
-# - GET /requests/<id>/clone success with dataset specs
-# - GET /requests/<id>/clone missing request
-# - GET /requests/<id>/clone foreign request
+# Questo modulo copre, nell'area delle richieste (endpoints/requests.py):
+# - forma della risposta e paginazione di GET /requests
+# - get_total=true restituisce 206 con il conteggio totale
+# - filtro archived=true/false
+# - PUT /requests/<id>: archiviazione riuscita
+# - PUT /requests/<id>: archiviazione vietata per una richiesta pendente
+# - PUT /requests/<id>: richiesta di un altro utente
+# - GET /requests/<id>/clone: clone riuscito con i dettagli dei dataset
+# - GET /requests/<id>/clone: richiesta inesistente
+# - GET /requests/<id>/clone: richiesta di un altro utente
 #
-# The baseline already covers DELETE /requests/<id> thoroughly in
-# test_delete_pending_request.py. This extension focuses on the remaining
-# request-management surfaces.
+# DELETE /requests/<id> e gia coperto in dettaglio da test_delete_pending_request.py;
+# qui si coprono le altre operazioni di gestione delle richieste.
 
 from __future__ import annotations
 
@@ -46,7 +43,7 @@ GRACE_PERIOD = timedelta(days=grace_period_days)
 
 
 # =============================================================================
-# Local helper: seed a request row with controlled age and status
+# Helper locale: inserisce una riga di richiesta con eta e stato controllati
 # =============================================================================
 
 
@@ -60,14 +57,13 @@ def seed_request_row(
     age_days: int = 0,
     dataset_names: list[str] | None = None,
 ) -> int:
-    """Seed one request row directly in the database for deterministic scenarios.
+    """Inserisce direttamente nel DB una riga di richiesta per scenari deterministici.
 
-    The helper bypasses the endpoint creation path so tests can focus on the
-    listing, archive, and clone contract without depending on extraction workers
-    or real forecast runtime.
+    L'helper salta il percorso di creazione tramite endpoint, cosi i test possono
+    concentrarsi sul contratto di listing, archiviazione e clone di
+    endpoints/requests.py senza dipendere dai worker di estrazione o da dati di
+    previsione reali.
     """
-    # Costruiamo lo stato controllato richiesto dal test, usando un DB seed diretto
-    # quando l'endpoint POST richiederebbe troppo contesto esterno.
     submission_date = datetime.now() - timedelta(days=age_days)
     request_row = db.Request(
         user_id=user_id,
@@ -77,22 +73,19 @@ def seed_request_row(
         status=status,
         archived=archived,
     )
-    # Persistiamo la modifica nel database di test, altrimenti le chiamate successive
-    # non vedrebbero lo scenario preparato.
     db.session.add(request_row)
     db.session.commit()
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return request_row.id
 
 
 def dataset_ids_for_user(db: Any, dataset_names: list[str]) -> str:
-    """Return the JSON dataset-id list expected by the user creation endpoint.
+    """Restituisce la lista JSON di id dataset richiesta dalla creazione utenti.
 
-    The clone endpoint enriches request args through the authenticated user's
-    dataset visibility. This helper grants the temporary user explicit access to
-    the datasets used by the seeded request so the test stays portable between a
-    local setup with private forecast datasets and CI setups with looser defaults.
+    L'endpoint di clone (``GET /api/requests/<id>/clone``) arricchisce gli args
+    della richiesta in base ai dataset visibili all'utente autenticato. L'helper
+    concede all'utente temporaneo l'accesso esplicito ai dataset della richiesta
+    inserita, cosi il test resta portabile tra un setup locale con dataset di
+    previsione privati e setup di CI con default piu permissivi.
     """
     # Leggiamo i dataset dal DB applicativo gia inizializzato, senza usare file meteo
     # reali: qui serve solo l'anagrafica necessaria alla serializzazione del clone.
@@ -108,21 +101,15 @@ def dataset_ids_for_user(db: Any, dataset_names: list[str]) -> str:
 
 
 def delete_request_row(db: Any, request_id: int) -> None:
-    """Delete one seeded request row from the database if still present."""
-    # Rimuoviamo lo stato creato dal test per non lasciare dati che possano influenzare
-    # gli scenari successivi.
+    """Cancella dal DB (modello ``Request``) la riga inserita, se esiste ancora."""
     request = db.Request.query.get(request_id)
-    # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve succedere
-    # quando lo stato non e quello ideale.
     if request is not None:
-        # Persistiamo la modifica nel database di test, altrimenti le chiamate
-        # successive non vedrebbero lo scenario preparato.
         db.session.delete(request)
         db.session.commit()
 
 
 # =============================================================================
-# Fixture: temporary authenticated user for request-listing scenarios
+# Fixture: utente temporaneo autenticato per gli scenari sul listing delle richieste
 # =============================================================================
 
 
@@ -131,13 +118,13 @@ def requests_user(
     client: FlaskClient,
     cleanup_registry,
 ) -> AuthenticatedTestUser:
-    """Create a temporary authenticated user for request listing and archive tests."""
-    # Prepariamo la fixture richieste utente: crea lo stato riusabile e lascia al test
-    # solo la verifica del comportamento.
+    """Crea un utente temporaneo autenticato per i test di listing e archiviazione.
+
+    L'utente nasce tramite l'API admin degli utenti di restapi, con accesso al
+    dataset ``agrmet``; il cleanup a fine test rimuove utente e cartelle di output.
+    """
     base = BaseTests()
     db = sqlalchemy.get_instance()
-    # Creiamo un utente temporaneo con permessi mirati, cosi il test non dipende da
-    # account preesistenti.
     user = create_authenticated_test_user(
         base,
         client,
@@ -153,18 +140,16 @@ def requests_user(
         user_uuid=user.uuid,
         root_path=user.output_dir.parent,
     )
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return user
 
 
 # =============================================================================
-# Tests: GET /requests - listing, pagination, and archived filter
+# Test: GET /requests - listing, paginazione e filtro archived
 # =============================================================================
 
 
 class TestRequestsListing:
-    """Verify the shape and filtering behavior of GET /requests."""
+    """Verifica forma e filtri della risposta di GET /requests."""
 
     def test_get_requests_returns_expected_shape(
         self,
@@ -173,10 +158,8 @@ class TestRequestsListing:
         requests_user: AuthenticatedTestUser,
         cleanup_registry,
     ):
-        """GET /requests must return a list with standard request fields."""
-        # arrange - seed one completed request
-        # Costruiamo lo stato controllato richiesto dal test, usando un DB seed diretto
-        # quando l'endpoint POST richiederebbe troppo contesto esterno.
+        """GET /requests deve restituire una lista con i campi standard di richiesta."""
+        # arrange - inserisce una richiesta completata
         db = sqlalchemy.get_instance()
         request_id = seed_request_row(
             db,
@@ -184,30 +167,20 @@ class TestRequestsListing:
             requests_user.user_id,
             status="SUCCESS",
         )
-        # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta
-        # affidabile anche in caso di fallimento.
         cleanup_registry.add(lambda: delete_request_row(db, request_id))
 
-        # act - list user requests
-        # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
-        # autorizzazione e serializzazione vengono verificati insieme.
+        # act - elenca le richieste dell'utente
         response = client.get(
             f"{API_URI}/requests",
             headers=requests_user.headers,
         )
 
-        # assert - response shape
-        # Verifichiamo che la risposta confermi che l'operazione richiesta e andata
-        # a buon fine prima di usare il payload.
+        # assert - forma della risposta
         assert response.status_code == 200
         data = BaseTests().get_content(response)
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il
-        # codice sia arrivato fin qui senza eccezioni.
         assert isinstance(data, list)
         assert len(data) >= 1
         request_item = next((r for r in data if r["id"] == request_id), None)
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il
-        # codice sia arrivato fin qui senza eccezioni.
         assert request_item is not None
         assert "id" in request_item
         assert "name" in request_item
@@ -223,35 +196,25 @@ class TestRequestsListing:
         requests_user: AuthenticatedTestUser,
         cleanup_registry,
     ):
-        """GET /requests?get_total=true must return 206 with total field."""
-        # arrange - seed a few requests
-        # Costruiamo lo stato controllato richiesto dal test, usando un DB seed diretto
-        # quando l'endpoint POST richiederebbe troppo contesto esterno.
+        """GET /requests?get_total=true deve restituire 206 con il campo total."""
+        # arrange - inserisce alcune richieste
         db = sqlalchemy.get_instance()
         request_ids = [
             seed_request_row(db, faker, requests_user.user_id, status="SUCCESS")
             for _ in range(3)
         ]
         for request_id in request_ids:
-            # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta
-            # affidabile anche in caso di fallimento.
             cleanup_registry.add(lambda rid=request_id: delete_request_row(db, rid))
 
-        # act - get total count
-        # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
-        # autorizzazione e serializzazione vengono verificati insieme.
+        # act - chiede il conteggio totale
         response = client.get(
             f"{API_URI}/requests?get_total=true",
             headers=requests_user.headers,
         )
 
-        # assert - 206 with total
-        # Verifichiamo che la risposta confermi l'uso del codice parziale prima di
-        # usare il payload.
+        # assert - 206 con il campo total
         assert response.status_code == 206
         data = BaseTests().get_content(response)
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il
-        # codice sia arrivato fin qui senza eccezioni.
         assert "total" in data
         assert data["total"] >= 3
 
@@ -262,10 +225,8 @@ class TestRequestsListing:
         requests_user: AuthenticatedTestUser,
         cleanup_registry,
     ):
-        """GET /requests?archived=false must exclude archived requests from result."""
-        # arrange - seed one active and one archived request
-        # Costruiamo lo stato controllato richiesto dal test, usando un DB seed diretto
-        # quando l'endpoint POST richiederebbe troppo contesto esterno.
+        """GET /requests?archived=false deve escludere le richieste archiviate."""
+        # arrange - inserisce una richiesta attiva e una archiviata
         db = sqlalchemy.get_instance()
         active_id = seed_request_row(
             db,
@@ -281,28 +242,20 @@ class TestRequestsListing:
             archived=True,
             status="SUCCESS",
         )
-        # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta
-        # affidabile anche in caso di fallimento.
         cleanup_registry.add(lambda: delete_request_row(db, active_id))
         cleanup_registry.add(lambda: delete_request_row(db, archived_id))
 
-        # act - list non-archived requests
-        # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
-        # autorizzazione e serializzazione vengono verificati insieme.
+        # act - elenca le richieste non archiviate
         response = client.get(
             f"{API_URI}/requests?archived=false",
             headers=requests_user.headers,
         )
 
-        # assert - archived request is excluded
-        # Verifichiamo che la risposta confermi che l'operazione richiesta e andata
-        # a buon fine prima di usare il payload.
+        # assert - la richiesta archiviata e esclusa
         assert response.status_code == 200
         data = BaseTests().get_content(response)
         active_present = any(r["id"] == active_id for r in data)
         archived_present = any(r["id"] == archived_id for r in data)
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il
-        # codice sia arrivato fin qui senza eccezioni.
         assert active_present
         assert not archived_present
 
@@ -313,10 +266,8 @@ class TestRequestsListing:
         requests_user: AuthenticatedTestUser,
         cleanup_registry,
     ):
-        """GET /requests?archived=true must return only archived requests."""
-        # arrange - seed one active and one archived request
-        # Costruiamo lo stato controllato richiesto dal test, usando un DB seed diretto
-        # quando l'endpoint POST richiederebbe troppo contesto esterno.
+        """GET /requests?archived=true deve restituire solo le richieste archiviate."""
+        # arrange - inserisce una richiesta attiva e una archiviata
         db = sqlalchemy.get_instance()
         active_id = seed_request_row(
             db,
@@ -332,39 +283,31 @@ class TestRequestsListing:
             archived=True,
             status="SUCCESS",
         )
-        # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta
-        # affidabile anche in caso di fallimento.
         cleanup_registry.add(lambda: delete_request_row(db, active_id))
         cleanup_registry.add(lambda: delete_request_row(db, archived_id))
 
-        # act - list archived requests
-        # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
-        # autorizzazione e serializzazione vengono verificati insieme.
+        # act - elenca le richieste archiviate
         response = client.get(
             f"{API_URI}/requests?archived=true",
             headers=requests_user.headers,
         )
 
-        # assert - only archived request is returned
-        # Verifichiamo che la risposta confermi che l'operazione richiesta e andata
-        # a buon fine prima di usare il payload.
+        # assert - torna solo la richiesta archiviata
         assert response.status_code == 200
         data = BaseTests().get_content(response)
         active_present = any(r["id"] == active_id for r in data)
         archived_present = any(r["id"] == archived_id for r in data)
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il
-        # codice sia arrivato fin qui senza eccezioni.
         assert not active_present
         assert archived_present
 
 
 # =============================================================================
-# Tests: PUT /requests/<id> - archive operation
+# Test: PUT /requests/<id> - archiviazione
 # =============================================================================
 
 
 class TestRequestsArchive:
-    """Verify the archive operation for completed requests."""
+    """Verifica l'archiviazione delle richieste completate con PUT /requests/<id>."""
 
     def test_archive_success_for_old_completed_request(
         self,
@@ -373,10 +316,12 @@ class TestRequestsArchive:
         requests_user: AuthenticatedTestUser,
         cleanup_registry,
     ):
-        """PUT /requests/<id> must archive a completed request outside grace period."""
-        # arrange - seed one old completed request
-        # Costruiamo lo stato controllato richiesto dal test, usando un DB seed diretto
-        # quando l'endpoint POST richiederebbe troppo contesto esterno.
+        """PUT /requests/<id> deve archiviare una richiesta completata.
+
+        La richiesta e piu vecchia del grace period; dopo la chiamata la riga nel DB
+        ha ``archived`` a True.
+        """
+        # arrange - inserisce una richiesta completata vecchia
         db = sqlalchemy.get_instance()
         request_id = seed_request_row(
             db,
@@ -385,27 +330,17 @@ class TestRequestsArchive:
             status="SUCCESS",
             age_days=grace_period_days + 1,
         )
-        # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta
-        # affidabile anche in caso di fallimento.
         cleanup_registry.add(lambda: delete_request_row(db, request_id))
 
-        # act - archive the request
-        # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
-        # autorizzazione e serializzazione vengono verificati insieme.
+        # act - archivia la richiesta
         response = client.put(
             f"{API_URI}/requests/{request_id}",
             headers=requests_user.headers,
         )
 
-        # assert - archive success
-        # Verifichiamo che la risposta confermi che l'operazione richiesta e andata
-        # a buon fine prima di usare il payload.
+        # assert - archiviazione riuscita
         assert response.status_code == 200
-        # Leggiamo lo stato dal database di test per collegare la risposta API agli
-        # effetti persistiti dal backend.
         request_row = db.Request.query.get(request_id)
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il
-        # codice sia arrivato fin qui senza eccezioni.
         assert request_row.archived is True
 
     def test_archive_pending_request_forbidden(
@@ -415,10 +350,11 @@ class TestRequestsArchive:
         requests_user: AuthenticatedTestUser,
         cleanup_registry,
     ):
-        """PUT /requests/<id> must reject archiving a pending request inside grace period."""
-        # arrange - seed one recent pending request
-        # Costruiamo lo stato controllato richiesto dal test, usando un DB seed diretto
-        # quando l'endpoint POST richiederebbe troppo contesto esterno.
+        """PUT /requests/<id> deve rifiutare con 403 una richiesta pendente.
+
+        La richiesta e appena stata creata, quindi e ancora dentro il grace period.
+        """
+        # arrange - inserisce una richiesta pendente recente
         db = sqlalchemy.get_instance()
         request_id = seed_request_row(
             db,
@@ -427,21 +363,15 @@ class TestRequestsArchive:
             status="PENDING",
             age_days=0,
         )
-        # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta
-        # affidabile anche in caso di fallimento.
         cleanup_registry.add(lambda: delete_request_row(db, request_id))
 
-        # act - attempt to archive pending request
-        # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
-        # autorizzazione e serializzazione vengono verificati insieme.
+        # act - prova ad archiviare la richiesta pendente
         response = client.put(
             f"{API_URI}/requests/{request_id}",
             headers=requests_user.headers,
         )
 
-        # assert - forbidden
-        # Verifichiamo che la risposta confermi il diniego esplicito prima di usare
-        # il payload.
+        # assert - accesso negato
         assert response.status_code == 403
 
     def test_archive_owner_mismatch_unauthorized(
@@ -451,14 +381,10 @@ class TestRequestsArchive:
         requests_user: AuthenticatedTestUser,
         cleanup_registry,
     ):
-        """PUT /requests/<id> must reject archiving another user's request."""
-        # arrange - seed request owned by a different user
-        # Costruiamo lo stato controllato richiesto dal test, usando un DB seed diretto
-        # quando l'endpoint POST richiederebbe troppo contesto esterno.
+        """PUT /requests/<id> deve rifiutare con 401 la richiesta di un altro utente."""
+        # arrange - inserisce una richiesta di un altro utente
         db = sqlalchemy.get_instance()
         base = BaseTests()
-        # Creiamo un utente temporaneo con permessi mirati, cosi il test non dipende da
-        # account preesistenti.
         other_user = create_authenticated_test_user(base, client)
         register_test_user_cleanup(
             base,
@@ -475,31 +401,25 @@ class TestRequestsArchive:
             status="SUCCESS",
             age_days=grace_period_days + 1,
         )
-        # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta
-        # affidabile anche in caso di fallimento.
         cleanup_registry.add(lambda: delete_request_row(db, request_id))
 
-        # act - attempt to archive with wrong user
-        # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
-        # autorizzazione e serializzazione vengono verificati insieme.
+        # act - prova ad archiviare con l'utente sbagliato
         response = client.put(
             f"{API_URI}/requests/{request_id}",
             headers=requests_user.headers,
         )
 
-        # assert - unauthorized
-        # Verifichiamo che la risposta confermi il diniego esplicito prima di usare
-        # il payload.
+        # assert - non autorizzato
         assert response.status_code == 401
 
 
 # =============================================================================
-# Tests: GET /requests/<id>/clone - clone request args with dataset specs
+# Test: GET /requests/<id>/clone - clone degli args con i dettagli dei dataset
 # =============================================================================
 
 
 class TestRequestsClone:
-    """Verify the clone endpoint returns request args with enriched dataset specs."""
+    """Verifica che GET /requests/<id>/clone restituisca args e dettagli dei dataset."""
 
     def test_clone_returns_args_with_dataset_specs(
         self,
@@ -508,10 +428,8 @@ class TestRequestsClone:
         requests_user: AuthenticatedTestUser,
         cleanup_registry,
     ):
-        """GET /requests/<id>/clone must return args with expanded dataset specs."""
-        # arrange - seed one completed request
-        # Costruiamo lo stato controllato richiesto dal test, usando un DB seed diretto
-        # quando l'endpoint POST richiederebbe troppo contesto esterno.
+        """GET /requests/<id>/clone deve restituire gli args con i dataset espansi."""
+        # arrange - inserisce una richiesta completata
         db = sqlalchemy.get_instance()
         request_id = seed_request_row(
             db,
@@ -520,25 +438,17 @@ class TestRequestsClone:
             status="SUCCESS",
             dataset_names=["agrmet"],
         )
-        # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta
-        # affidabile anche in caso di fallimento.
         cleanup_registry.add(lambda: delete_request_row(db, request_id))
 
-        # act - clone the request
-        # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
-        # autorizzazione e serializzazione vengono verificati insieme.
+        # act - clona la richiesta
         response = client.get(
             f"{API_URI}/requests/{request_id}/clone",
             headers=requests_user.headers,
         )
 
-        # assert - args with dataset specs
-        # Verifichiamo che la risposta confermi che l'operazione richiesta e andata
-        # a buon fine prima di usare il payload.
+        # assert - args con i dettagli dei dataset
         assert response.status_code == 200
         data = BaseTests().get_content(response)
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il
-        # codice sia arrivato fin qui senza eccezioni.
         assert "datasets" in data
         assert isinstance(data["datasets"], list)
         assert len(data["datasets"]) >= 1
@@ -551,21 +461,17 @@ class TestRequestsClone:
         client: FlaskClient,
         requests_user: AuthenticatedTestUser,
     ):
-        """GET /requests/<id>/clone must return 404 for nonexistent request."""
-        # arrange - use a request id that does not exist
+        """GET /requests/<id>/clone deve restituire 404 se la richiesta non esiste."""
+        # arrange - usa un id di richiesta inesistente
         missing_request_id = 999999
 
-        # act - attempt to clone missing request
-        # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
-        # autorizzazione e serializzazione vengono verificati insieme.
+        # act - prova a clonare la richiesta inesistente
         response = client.get(
             f"{API_URI}/requests/{missing_request_id}/clone",
             headers=requests_user.headers,
         )
 
-        # assert - not found
-        # Verifichiamo che la risposta confermi l'assenza della risorsa prima di usare
-        # il payload.
+        # assert - richiesta non trovata
         assert response.status_code == 404
 
     def test_clone_foreign_request_unauthorized(
@@ -575,14 +481,10 @@ class TestRequestsClone:
         requests_user: AuthenticatedTestUser,
         cleanup_registry,
     ):
-        """GET /requests/<id>/clone must reject cloning another user's request."""
-        # arrange - seed request owned by a different user
-        # Costruiamo lo stato controllato richiesto dal test, usando un DB seed diretto
-        # quando l'endpoint POST richiederebbe troppo contesto esterno.
+        """GET /requests/<id>/clone deve dare 401 sulla richiesta di un altro utente."""
+        # arrange - inserisce una richiesta di un altro utente
         db = sqlalchemy.get_instance()
         base = BaseTests()
-        # Creiamo un utente temporaneo con permessi mirati, cosi il test non dipende da
-        # account preesistenti.
         other_user = create_authenticated_test_user(base, client)
         register_test_user_cleanup(
             base,
@@ -599,19 +501,13 @@ class TestRequestsClone:
             status="SUCCESS",
             dataset_names=["agrmet"],
         )
-        # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta
-        # affidabile anche in caso di fallimento.
         cleanup_registry.add(lambda: delete_request_row(db, request_id))
 
-        # act - attempt to clone with wrong user
-        # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
-        # autorizzazione e serializzazione vengono verificati insieme.
+        # act - prova a clonare con l'utente sbagliato
         response = client.get(
             f"{API_URI}/requests/{request_id}/clone",
             headers=requests_user.headers,
         )
 
-        # assert - unauthorized
-        # Verifichiamo che la risposta confermi il diniego esplicito prima di usare
-        # il payload.
+        # assert - non autorizzato
         assert response.status_code == 401

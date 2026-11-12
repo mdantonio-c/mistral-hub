@@ -1,14 +1,15 @@
-"""High-level helpers shared by the data-ready and schedule integration tests.
+"""Helper di alto livello condivisi dai test di integrazione data-ready e schedule.
 
-The data-ready area of the suite repeatedly performs the same kinds of setup:
+L'area data-ready della suite ripete spesso lo stesso tipo di setup:
 
-- build a payload for ``/api/data/ready``,
-- create a temporary user with the right dataset permissions,
-- create or delete schedules and synthetic request rows,
-- poll the API until asynchronous side effects become visible.
+- costruire un payload per ``/api/data/ready``,
+- creare un utente temporaneo con i giusti permessi sui dataset,
+- creare o cancellare schedule e righe di richiesta sintetiche,
+- interrogare l'API finche gli effetti asincroni diventano visibili.
 
-Keeping that logic here lets the test modules read as short behavior stories,
-instead of being buried under repetitive API plumbing and cleanup details.
+Tenere qui questa logica permette ai moduli di test di leggersi come brevi storie
+di comportamento, invece di restare sepolti sotto chiamate API ripetitive e
+dettagli di cleanup.
 """
 
 from __future__ import annotations
@@ -50,14 +51,12 @@ def build_data_ready_payload(
     cluster: str = "g100",
     rundate: str,
 ) -> str:
-    """Return the exact JSON body expected by the ``/api/data/ready`` endpoint.
+    """Restituisce il body JSON esatto atteso dall'endpoint ``POST /api/data/ready``.
 
-    Tests call this helper when they want to trigger the data-ready workflow with
-    a specific forecast model, cluster name, and run date, without repeating the
-    request-shaping logic inline in every scenario.
+    I test usano questo helper per avviare il flusso data-ready con un modello di
+    previsione, un nome di cluster e una data di run precisi, senza ripetere in
+    ogni scenario la costruzione della richiesta.
     """
-    # Componiamo il payload in un solo punto, cosi i test possono concentrarsi sulla
-    # regola di business invece che sulla forma JSON.
     return json.dumps({"Model": model, "Cluster": cluster, "rundate": rundate})
 
 
@@ -69,21 +68,19 @@ def create_data_ready_user(
     *,
     max_output_size: int = 1073741824,
 ) -> AuthenticatedTestUser:
-    """Create and log in a temporary user tailored to data-ready scenarios.
+    """Crea un utente temporaneo per gli scenari data-ready ed esegue il login.
 
-    The returned user is configured with enough quota and permissions to create
-    schedules, trigger data-ready events, and access the datasets listed in
-    ``dataset_names``. The helper also resolves dataset names to the numeric ids
-    required by the user-creation API. A small ``max_output_size`` makes the
-    worker reject the extraction for quota.
+    L'utente restituito ha quota e permessi sufficienti per creare schedule, avviare
+    eventi data-ready e accedere ai dataset elencati in ``dataset_names``. L'helper
+    converte anche i nomi dei dataset negli id numerici richiesti dall'API di
+    creazione utenti. Un ``max_output_size`` piccolo fa rifiutare l'estrazione dal
+    worker per superamento della quota.
 
-    The user never receives real emails: success notifications are disabled and
-    the address belongs to a reserved domain, used by the failure notifications
-    that ``data_extract`` always sends. Real Celery workers use the SMTP mock only
-    on stacks initialized with ``rapydo --testing``.
+    L'utente non riceve mai email reali: le notifiche di successo sono disattivate e
+    l'indirizzo appartiene a un dominio riservato, usato dalle notifiche di errore
+    che ``data_extract`` invia sempre. I worker Celery reali usano il mock SMTP solo
+    negli stack inizializzati con ``rapydo --testing``.
     """
-    # Costruiamo lo stato controllato richiesto dal test, usando gli stessi canali che
-    # il backend espone in produzione quando possibile.
     db = sqlalchemy.get_instance()
     dataset_ids = [str(test_runtime.dataset_id(db, name)) for name in dataset_names]
 
@@ -100,28 +97,18 @@ def create_data_ready_user(
         "email": f"data-ready-{uuid4().hex[:12]}@{UNDELIVERABLE_EMAIL_DOMAIN}",
     }
 
-    # Creiamo un utente temporaneo con permessi mirati, cosi il test non dipende da
-    # account preesistenti.
     uuid, created_user = base.create_user(client, data, ["admin_root"])
-    # Effettuiamo il login per ottenere header autentici, identici a quelli usati dalle
-    # chiamate API successive.
     headers, _ = base.do_login(
         client, created_user.get("email"), created_user.get("password")
     )
 
-    # Leggiamo lo stato dal database di test per collegare la risposta API agli effetti
-    # persistiti dal backend.
     user = db.User.query.filter_by(uuid=uuid).first()
-    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
-    # arrivato fin qui senza eccezioni.
     assert user is not None
     # Se il campo sparisse dallo schema admin varrebbe il default True del customizer:
     # meglio fermarsi qui che lasciar partire email dai worker reali.
     assert user.notify_on_successful_request is False
     assert user.email.endswith(f"@{UNDELIVERABLE_EMAIL_DOMAIN}")
 
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return AuthenticatedTestUser(
         uuid=uuid,
         user_id=user.id,
@@ -137,25 +124,19 @@ def create_schedule(
     headers: Any,
     body: str,
 ) -> str:
-    """Submit one schedule definition through the public API and return its id.
+    """Crea una schedule con ``POST /api/schedules`` e ne restituisce l'id.
 
-    The helper keeps tests focused on schedule behavior instead of on response
-    parsing. It asserts that the schedule was accepted and extracts the created
-    identifier from the JSON payload returned by the endpoint.
+    Cosi i test restano concentrati sul comportamento delle schedule invece che sul
+    parsing della risposta. L'helper verifica che la schedule sia stata accettata
+    (202) ed estrae l'identificativo creato dal payload JSON restituito.
     """
-    # Costruiamo lo stato controllato richiesto dal test, usando gli stessi canali che
-    # il backend espone in produzione quando possibile.
     response = client.post(
         f"{API_URI}/schedules",
         headers=headers,
         data=body,
         content_type="application/json",
     )
-    # Verifichiamo che la risposta confermi che il backend ha accettato il lavoro
-    # asincrono prima di usare il payload.
     assert response.status_code == 202
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return str(base.get_content(response).get("schedule_id"))
 
 
@@ -166,50 +147,38 @@ def set_schedule_active(
     *,
     is_active: bool,
 ) -> None:
-    """Enable or disable an existing schedule through the public API.
+    """Attiva o disattiva una schedule con ``PATCH /api/schedules/<id>``.
 
-    Several data-ready scenarios need the same schedule definition but with a
-    different activation state. This helper centralizes the ``PATCH`` request and
-    asserts that the state change succeeded.
+    Diversi scenari data-ready usano la stessa definizione di schedule ma con uno
+    stato di attivazione diverso. Questo helper centralizza la richiesta ``PATCH``
+    e verifica che il cambio di stato sia riuscito.
     """
-    # Entriamo nel blocco operativo dell'helper condiviso, mantenendo esplicito
-    # quale stato viene letto o prodotto.
     response = client.patch(
         f"{API_URI}/schedules/{schedule_id}",
         headers=headers,
         data=json.dumps({"is_active": is_active}),
         content_type="application/json",
     )
-    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
-    # usare il payload.
     assert response.status_code == 200
 
 
 def delete_request(client: FlaskClient, headers: Any, request_id: int | str) -> None:
-    """Delete one request row through the public requests endpoint.
+    """Cancella una richiesta con ``DELETE /api/requests/<id>``.
 
-    Tests use this during cleanup or when they need to remove an automatically
-    created request row before building a more controlled scenario.
+    I test lo usano durante il cleanup o quando devono rimuovere una richiesta
+    creata automaticamente prima di costruire uno scenario piu controllato.
     """
-    # Rimuoviamo lo stato creato dal test per non lasciare dati che possano influenzare
-    # gli scenari successivi.
     response = client.delete(f"{API_URI}/requests/{request_id}", headers=headers)
-    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
-    # usare il payload.
     assert response.status_code == 200
 
 
 def delete_schedule(client: FlaskClient, headers: Any, schedule_id: int | str) -> None:
-    """Delete one schedule through the public schedules endpoint.
+    """Cancella una schedule con ``DELETE /api/schedules/<id>``.
 
-    This is a small convenience wrapper used mainly by cleanup code so that test
-    bodies do not need to repeat status-code assertions for schedule teardown.
+    Piccolo wrapper di comodo usato soprattutto dal codice di cleanup, cosi il corpo
+    dei test non deve ripetere le asserzioni sullo status code del teardown.
     """
-    # Rimuoviamo lo stato creato dal test per non lasciare dati che possano influenzare
-    # gli scenari successivi.
     response = client.delete(f"{API_URI}/schedules/{schedule_id}", headers=headers)
-    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
-    # usare il payload.
     assert response.status_code == 200
 
 
@@ -218,20 +187,14 @@ def list_user_requests(
     client: FlaskClient,
     headers: Any,
 ) -> list[dict[str, Any]]:
-    """Return the authenticated user's visible requests as a plain Python list.
+    """Restituisce le richieste visibili all'utente autenticato come semplice lista.
 
-    The requests endpoint may legitimately return an empty payload. This helper
-    normalizes that case to ``[]`` so tests can reason about cardinality without
-    repeating defensive response handling.
+    Chiama ``GET /api/requests``, che puo restituire legittimamente un payload
+    vuoto. L'helper normalizza quel caso a ``[]``, cosi i test ragionano sul numero
+    di elementi senza ripetere la gestione difensiva della risposta.
     """
-    # Interroghiamo il backend e normalizziamo la risposta in una struttura semplice da
-    # usare nelle asserzioni.
     response = client.get(f"{API_URI}/requests", headers=headers)
-    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
-    # usare il payload.
     assert response.status_code == 200
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return base.get_content(response) or []
 
 
@@ -240,20 +203,14 @@ def list_user_schedules(
     client: FlaskClient,
     headers: Any,
 ) -> list[dict[str, Any]]:
-    """Return the authenticated user's visible schedules as a plain list.
+    """Restituisce le schedule visibili all'utente autenticato come semplice lista.
 
-    Like the matching request helper, this function hides small response-shape
-    details and guarantees that callers always receive a list they can iterate or
-    count safely.
+    Come l'helper analogo per le richieste, chiama ``GET /api/schedules``, nasconde
+    piccoli dettagli sulla forma della risposta e garantisce che il chiamante riceva
+    sempre una lista da scorrere o contare senza rischi.
     """
-    # Interroghiamo il backend e normalizziamo la risposta in una struttura semplice da
-    # usare nelle asserzioni.
     response = client.get(f"{API_URI}/schedules", headers=headers)
-    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
-    # usare il payload.
     assert response.status_code == 200
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return base.get_content(response) or []
 
 
@@ -263,24 +220,19 @@ def list_schedule_requests(
     headers: Any,
     schedule_id: str,
 ) -> list[dict[str, Any]]:
-    """Return only the concrete request rows generated by one schedule.
+    """Restituisce solo le righe di richiesta concrete generate da una schedule.
 
-    The schedule-requests endpoint can include entries that are not plain request
-    dictionaries. This helper filters those out so the calling tests can compare
-    request counts and inspect request payloads without additional guarding code.
+    L'endpoint ``GET /api/schedules/<id>/requests`` puo includere elementi che non
+    sono semplici dizionari di richiesta. L'helper li scarta, cosi i test possono
+    confrontare il numero di richieste e ispezionarne il payload senza altri
+    controlli.
     """
-    # Interroghiamo il backend e normalizziamo la risposta in una struttura semplice da
-    # usare nelle asserzioni.
     response = client.get(
         f"{API_URI}/schedules/{schedule_id}/requests?last=False",
         headers=headers,
     )
-    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
-    # usare il payload.
     assert response.status_code == 200
     content = base.get_content(response) or []
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return [item for item in content if isinstance(item, dict)]
 
 
@@ -294,25 +246,18 @@ def wait_for_schedule_requests(
     timeout: float = 60,
     interval: float = 5,
 ) -> list[dict[str, Any]]:
-    """Poll one schedule until the API exposes the expected number of requests.
+    """Interroga una schedule finche l'API espone il numero atteso di richieste.
 
-    Even in tests, the observable state can lag slightly behind the triggering
-    action. This helper performs the retry loop and returns the final request list
-    only when the desired count is visible.
+    Anche nei test lo stato osservabile puo arrivare con un leggero ritardo rispetto
+    all'azione che lo ha causato. Questo helper esegue il ciclo di retry e
+    restituisce la lista finale delle richieste solo quando il conteggio desiderato
+    e visibile.
     """
-    # Avviamo il polling su una condizione osservabile, evitando attese fisse che
-    # renderebbero il test fragile.
     def expected_requests():
-        """Expose the request list only when the target count has been reached."""
-        # Entriamo nel blocco operativo dell'helper condiviso, mantenendo
-        # esplicito quale stato viene letto o prodotto.
+        """Restituisce la lista delle richieste solo se ha la lunghezza attesa."""
         requests = list_schedule_requests(base, client, headers, schedule_id)
-        # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo
-        # direttamente nelle asserzioni.
         return requests if len(requests) == expected_count else False
 
-    # Aspettiamo finche lo stato osservabile diventa quello atteso, invece di usare
-    # sleep ciechi.
     return wait_until(
         expected_requests,
         timeout=timeout,
@@ -332,25 +277,19 @@ def post_data_ready(
     rundate: str,
     cluster: str = "g100",
 ) -> tuple[Any, Any]:
-    """Submit one data-ready event and return both the raw and parsed responses.
+    """Invia un evento a ``POST /api/data/ready`` e restituisce risposta e contenuto.
 
-    Some tests need access to the raw Flask response object, while others care
-    mainly about the decoded JSON body. This helper returns both so the caller can
-    assert on status code and payload without issuing the request twice.
+    Alcuni test hanno bisogno dell'oggetto risposta Flask grezzo, altri soprattutto
+    del body JSON decodificato. L'helper restituisce entrambi, cosi il chiamante puo
+    verificare status code e payload senza inviare la richiesta due volte.
     """
-    # Entriamo nel blocco operativo dell'helper condiviso, mantenendo esplicito
-    # quale stato viene letto o prodotto.
     body = build_data_ready_payload(model=model, rundate=rundate, cluster=cluster)
-    # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
-    # autorizzazione e serializzazione vengono verificati insieme.
     response = client.post(
         f"{API_URI}/data/ready",
         headers=headers,
         data=body,
         content_type="application/json",
     )
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return response, base.get_content(response)
 
 
@@ -364,33 +303,25 @@ def trigger_data_ready_and_wait_accepted(
     timeout: float = 30,
     interval: float = 3,
 ):
-    """Retry ``/api/data/ready`` until the endpoint accepts the event with ``202``.
+    """Ripete ``POST /api/data/ready`` finche l'endpoint accetta l'evento con ``202``.
 
-    The endpoint can briefly reject or delay acceptance while the surrounding
-    runtime settles. Instead of making each test sleep blindly, this helper polls
-    the endpoint until the expected acceptance response appears or the timeout is
-    reached.
+    L'endpoint puo rifiutare o ritardare per poco l'accettazione mentre il runtime
+    circostante si stabilizza. Invece di far dormire ogni test alla cieca, l'helper
+    interroga l'endpoint finche compare la risposta di accettazione attesa o scade
+    il timeout.
     """
-    # Entriamo nel blocco operativo dell'helper condiviso, mantenendo esplicito
-    # quale stato viene letto o prodotto.
     body = build_data_ready_payload(model=model, rundate=rundate, cluster=cluster)
 
     def data_ready_accepted():
-        """Yield the response object only when the endpoint reports acceptance."""
-        # Entriamo nel blocco operativo dell'helper condiviso, mantenendo
-        # esplicito quale stato viene letto o prodotto.
+        """Restituisce la risposta solo quando l'endpoint segnala l'accettazione."""
         response = client.post(
             f"{API_URI}/data/ready",
             headers=headers,
             data=body,
             content_type="application/json",
         )
-        # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo
-        # direttamente nelle asserzioni.
         return response if response.status_code == 202 else False
 
-    # Aspettiamo finche lo stato osservabile diventa quello atteso, invece di usare
-    # sleep ciechi.
     return wait_until(
         data_ready_accepted,
         timeout=timeout,
@@ -410,10 +341,12 @@ def trigger_data_ready_inline(
     schedule_ids: Iterable[int | str],
     cluster: str = "g100",
 ):
-    """Submit a data-ready event and execute its launcher fully in-process.
+    """Invia un evento data-ready ed esegue il launcher dentro il processo del test.
 
-    The real launcher scans every schedule in the database: ``schedule_ids``
-    limits it to the schedules created by the calling test.
+    Esercita ``POST /api/data/ready`` e il task
+    ``launch_all_on_data_ready_extractions``. Il launcher reale scorre tutte le
+    schedule del database: ``schedule_ids`` lo limita alle schedule create dal
+    test chiamante.
     """
     endpoint_celery = AcceptTasksWithoutRunningCelery(
         "launch_all_on_data_ready_extractions"
@@ -456,14 +389,14 @@ def create_schedule_request_record(
     submission_date: datetime | None = None,
     status: str | None = None,
 ):
-    """Insert a synthetic schedule request row directly into the test database.
+    """Inserisce una richiesta sintetica di schedule direttamente nel database di test.
 
-    Periodic-schedule tests often need a pre-existing request history in order to
-    verify whether a new data-ready event should generate an additional request.
-    This helper seeds that history without invoking the real extraction worker.
+    I test sulle schedule periodiche hanno spesso bisogno di una storia di richieste
+    gia esistente per verificare se un nuovo evento data-ready debba generare una
+    richiesta in piu. Questo helper prepara quella storia (tramite
+    ``SqlApiDbManager.create_request_record``) senza invocare il vero worker di
+    estrazione.
     """
-    # Costruiamo lo stato controllato richiesto dal test, usando gli stessi canali che
-    # il backend espone in produzione quando possibile.
     request = repo.create_request_record(
         db,
         user_id,
@@ -481,23 +414,13 @@ def create_schedule_request_record(
         True,
     )
 
-    # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve succedere
-    # quando lo stato non e quello ideale.
     if submission_date is not None:
         request.submission_date = submission_date
-    # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve succedere
-    # quando lo stato non e quello ideale.
     if status is not None:
         request.status = status
 
-    # Persistiamo la modifica nel database di test, altrimenti le chiamate successive
-    # non vedrebbero lo scenario preparato.
     db.session.add(request)
-    # Persistiamo la modifica nel database di test, altrimenti le chiamate successive
-    # non vedrebbero lo scenario preparato.
     db.session.commit()
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
     return request
 
 
@@ -506,9 +429,10 @@ def delete_all_user_requests(
     client: FlaskClient,
     headers: Any,
 ) -> None:
-    """Best-effort cleanup helper that deletes every request visible to the user."""
-    # Rimuoviamo lo stato creato dal test per non lasciare dati che possano influenzare
-    # gli scenari successivi.
+    """Cancella tutte le richieste visibili all'utente (``DELETE /api/requests/<id>``).
+
+    Ogni cancellazione deve rispondere 200: un errore interrompe il cleanup.
+    """
     for request in list_user_requests(base, client, headers):
         delete_request(client, headers, request.get("id"))
 
@@ -518,13 +442,13 @@ def delete_all_user_schedules(
     client: FlaskClient,
     headers: Any,
 ) -> None:
-    """Best-effort cleanup helper that deletes every schedule visible to the user."""
-    # Rimuoviamo lo stato creato dal test per non lasciare dati che possano influenzare
-    # gli scenari successivi.
+    """Cancella tutte le schedule visibili all'utente (``DELETE /api/schedules/<id>``).
+
+    Le voci senza id vengono saltate; ogni cancellazione deve rispondere 200,
+    altrimenti il cleanup si interrompe.
+    """
     for schedule in list_user_schedules(base, client, headers):
         schedule_id = schedule.get("schedule_id") or schedule.get("id")
-        # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve
-        # succedere quando lo stato non e quello ideale.
         if schedule_id is None:
             continue
         delete_schedule(client, headers, schedule_id)
@@ -536,14 +460,14 @@ def register_data_ready_user_cleanup(
     cleanup_registry,
     user: AuthenticatedTestUser,
 ) -> None:
-    """Register all cleanup actions typically needed by a data-ready scenario.
+    """Registra le azioni di cleanup tipiche di uno scenario data-ready.
 
-    Data-ready tests can create schedules, requests, user files, and the user
-    itself. This helper registers teardown in the correct order so later tests do
-    not inherit residual state from earlier scenarios.
+    I test data-ready possono creare schedule, richieste, file dell'utente e l'utente
+    stesso. Questo helper registra il teardown nell'ordine corretto, cosi i test
+    successivi non ereditano stato residuo dagli scenari precedenti: per il LIFO del
+    registro vengono cancellate prima le richieste, poi le schedule e infine
+    l'utente con i suoi file.
     """
-    # Registriamo subito il cleanup: anche se il test fallisce a meta, le risorse
-    # temporanee verranno rimosse.
     register_test_user_cleanup(
         base,
         client,
@@ -551,13 +475,9 @@ def register_data_ready_user_cleanup(
         user_uuid=user.uuid,
         root_path=user.output_dir.parent,
     )
-    # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta affidabile
-    # anche in caso di fallimento.
     cleanup_registry.add(
         lambda: delete_all_user_schedules(base, client, user.headers)
     )
-    # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta affidabile
-    # anche in caso di fallimento.
     cleanup_registry.add(
         lambda: delete_all_user_requests(base, client, user.headers)
     )
@@ -569,12 +489,10 @@ def register_schedule_cleanup(
     headers: Any,
     schedule_id: str,
 ) -> None:
-    """Register deferred deletion for a schedule created during the current test.
+    """Registra la cancellazione differita di una schedule creata nel test corrente.
 
-    Tests that create schedules usually want cleanup to happen even if an assert
-    fails midway. This helper attaches that teardown step to the shared cleanup
-    registry.
+    I test che creano schedule vogliono di solito che il cleanup avvenga anche se
+    un'asserzione fallisce a meta. Questo helper aggancia quel passo di teardown al
+    registro di cleanup condiviso.
     """
-    # Registriamo subito il cleanup: anche se il test fallisce a meta, le risorse
-    # temporanee verranno rimosse.
     cleanup_registry.add(lambda: delete_schedule(client, headers, schedule_id))

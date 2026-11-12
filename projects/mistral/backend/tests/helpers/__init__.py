@@ -1,7 +1,7 @@
-"""Shared helper package for the modularized Meteo-Hub backend test suite.
+"""Package di helper condivisi dalla suite di test backend di Meteo-Hub.
 
-The modules under this package collect reusable building blocks such as user
-creation, cleanup orchestration, polling, dataset lookups, and schedule payload
-construction. Their main purpose is to keep individual test files focused on the
-behavior they verify instead of repeating low-level setup code.
+I moduli di questo package raccolgono blocchi riutilizzabili come creazione di
+utenti, gestione del cleanup, polling, ricerca di dataset e costruzione dei
+payload degli schedule. Lo scopo e tenere ogni file di test concentrato sul
+comportamento che verifica, senza ripetere codice di setup a basso livello.
 """

@@ -1,7 +1,7 @@
 # Review — `test_initializer_smoke.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: smoke deterministico **di estensione** su `mistral.initialization.Initializer`, superficie finora coperta solo indirettamente dallo startup.
+> Modulo: smoke deterministico su `mistral.initialization.Initializer`, superficie finora coperta solo indirettamente dallo startup.
 > **Aggiornamento**: i limiti segnalati in §6 e §8 (fake permissivi, assenza di prima creazione/idempotenza reale/aggiornamento per campo, solo ramo cron "esistente") sono coperti su DB reale da [test_initializer_seed.py](./test_initializer_seed.py) — vedi [test_initializer_seed.py.review.md](./test_initializer_seed.py.review.md).
 
 ## 1. Informazioni generali

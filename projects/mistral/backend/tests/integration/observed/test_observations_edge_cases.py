@@ -1,6 +1,6 @@
-# EXTENSION TRACEABILITY - Prompt 03, dominio integration/observed GET edge cases.
-# Origine: questo modulo aggiunge solo rami controller GET non gia coperti dalla suite
-# baseline observed, evitando duplicazioni dei filtri principali gia migrati.
+# Test di GET /observations: casi limite del controller (MapsObservations.get in
+# endpoints/maps_observed.py). I filtri principali sono testati in
+# test_observations_filters.py e test_observations_station_details.py.
 # Ambito: copre limiti di intervallo, conflict interval/timerange, daily, last,
 # stationDetails senza/multi network, stazione inesistente e allStationProducts=false.
 # Finestra dati: i rami positivi usano agrmet DBALLE 2020-04-06 00:00-01:00; i limiti
@@ -8,9 +8,7 @@
 # Runtime fake: BeDballe.LASTDAYS viene patchato solo per classificare la finestra
 # storica 2020-04-06 come DBALLE recente durante il test; nessun dato viene simulato.
 # Cleanup: non vengono creati record persistenti, salvo eventuali risorse gestite dalle
-# fixture globali; non si modifica alcun conftest.py.
-# Baseline non toccata: i casi core GET restano nei moduli legacy rifattorizzati e qui
-# compaiono soltanto varianti controller-only richieste dal prompt.
+# fixture globali.
 
 from __future__ import annotations
 
@@ -52,8 +50,6 @@ def _require_dballe_product(client: FlaskClient, headers: Any, test_runtime) -> 
 
 def _get_observations(client: FlaskClient, headers: Any | None = None, **params: Any):
     """Esegue GET /observations con parametri espliciti."""
-    # Manteniamo una sola azione HTTP per test, lasciando ai chiamanti la costruzione
-    # dello scenario e delle asserzioni.
     return client.get(api_url(OBSERVATIONS_ENDPOINT, **params), headers=headers)
 
 
@@ -62,7 +58,10 @@ def _require_station_coordinates(
     headers: Any,
     test_runtime,
 ) -> tuple[float, float]:
-    """Ricava lat/lon di una stazione reale dalla finestra agrmet DBALLE ammessa."""
+    """Ricava lat/lon di una stazione reale dalla finestra agrmet DBALLE ammessa.
+
+    Interroga GET /observations e salta il test se la finestra non ha stazioni.
+    """
     # Usiamo una risposta observed reale per evitare coordinate hardcoded non portabili.
     product = _require_dballe_product(client, headers, test_runtime)
     query = f"{DBALLE_QUERY};product:{product}"
@@ -87,7 +86,7 @@ def _require_station_coordinates(
 def test_observations_anonymous_interval_over_three_days_returns_unauthorized(
     client: FlaskClient,
 ) -> None:
-    """Verifica il limite anonimo >3 giorni senza leggere dati reali fuori finestra.
+    """Verifica il 401 di GET /observations per un anonimo oltre 3 giorni.
 
     Le date attraversano piu giorni solo per colpire il controllo MAX_REQ_DAYS, che
     avviene prima della selezione DBALLE/Arkimet e prima di qualsiasi query dati.
@@ -106,7 +105,10 @@ def test_observations_authenticated_interval_over_ten_days_returns_unauthorized(
     client: FlaskClient,
     auth_headers,
 ) -> None:
-    """Verifica il limite autenticato >10 giorni prima dell'accesso ai dati reali."""
+    """Verifica il 401 di GET /observations per un utente autenticato oltre 10 giorni.
+
+    Il limite MAX_REQ_DAYS_AUTHENTICATED scatta prima dell'accesso ai dati reali.
+    """
     # arrange
     query = "reftime:>=2020-04-06 00:00,<=2020-04-17 00:00;license:CCBY_COMPLIANT"
 
@@ -121,7 +123,10 @@ def test_observations_interval_greater_than_timerange_returns_conflict(
     client: FlaskClient,
     auth_headers,
 ) -> None:
-    """Verifica il 409 quando interval richiesto e minore del timerange query."""
+    """Verifica il 409 di GET /observations se interval e minore del timerange.
+
+    Il timerange della query ha un intervallo di 2 ore, mentre interval vale 1.
+    """
     # arrange
     query = (
         f"reftime:>={OBS_DBALLE_FROM},<={OBS_DBALLE_TO};"
@@ -140,7 +145,10 @@ def test_observations_daily_returns_valid_payload_on_dballe_window(
     auth_headers,
     test_runtime,
 ) -> None:
-    """Esegue daily=true sulla finestra agrmet DBALLE 2020-04-06 00:00-01:00."""
+    """Verifica che GET /observations con daily=true risponda 200 con ``data``.
+
+    Usa la finestra agrmet DBALLE 2020-04-06 00:00-01:00.
+    """
     # arrange
     product = _require_dballe_product(client, auth_headers, test_runtime)
     query = f"{DBALLE_QUERY};product:{product}"
@@ -161,7 +169,7 @@ def test_observations_last_smoke_returns_valid_payload_on_dballe_window(
     auth_headers,
     test_runtime,
 ) -> None:
-    """Esegue last=true come smoke sulla finestra agrmet DBALLE consentita.
+    """Smoke test di GET /observations con last=true sulla finestra DBALLE ammessa.
 
     Con una sola giornata DBALLE disponibile, il test protegge il ramo controller e non
     pretende un confronto storico piu robusto; ulteriori giorni consecutivi renderebbero
@@ -186,7 +194,7 @@ def test_observations_station_details_without_networks_returns_bad_request(
     client: FlaskClient,
     auth_headers,
 ) -> None:
-    """Verifica il 400 per stationDetails=true senza networks."""
+    """Verifica il 400 di GET /observations per stationDetails=true senza networks."""
     # arrange
     query = DBALLE_QUERY
 
@@ -209,7 +217,10 @@ def test_observations_station_details_with_multiple_networks_returns_bad_request
     auth_headers,
     test_runtime,
 ) -> None:
-    """Verifica il 400 per stationDetails=true con piu network validi."""
+    """Verifica il 400 di GET /observations con stationDetails=true e piu network.
+
+    Il rifiuto avviene anche se i network indicati sono validi.
+    """
     # arrange
     lat, lon = _require_station_coordinates(client, auth_headers, test_runtime)
     duplicate_valid_networks = f"{OBSERVED_NETWORK} or {OBSERVED_NETWORK}"
@@ -234,7 +245,7 @@ def test_observations_station_details_unknown_station_returns_not_found(
     auth_headers,
     test_runtime,
 ) -> None:
-    """Verifica il 404 per stationDetails su stazione inesistente nella finestra DBALLE.
+    """Verifica il 404 di GET /observations con stationDetails su stazione inesistente.
 
     Il controller dichiara `ident` come stringa, quindi il primo tentativo usa un ident
     fittizio. Se il runtime restituisce invece un `200` vuoto, il test riprova senza
@@ -297,9 +308,10 @@ def test_observations_all_station_products_false_limits_station_details_products
 ) -> None:
     """Verifica che allStationProducts=false mantenga solo il prodotto richiesto.
 
-    Il test usa una stazione reale della finestra DBALLE 2020-04-06 e un prodotto scelto
-    via /fields; se il runtime espone un payload senza prodotti, lo scenario non e
-    significativo e viene saltato esplicitamente.
+    Il test chiama GET /observations con stationDetails=true su una stazione reale
+    della finestra DBALLE 2020-04-06 e un prodotto scelto via /fields; se il runtime
+    espone un payload senza prodotti, lo scenario non e significativo e viene saltato
+    esplicitamente.
     """
     # arrange
     product = _require_dballe_product(client, auth_headers, test_runtime)

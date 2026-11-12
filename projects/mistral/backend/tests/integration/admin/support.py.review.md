@@ -5,7 +5,7 @@
 ## 1. Informazioni generali
 
 - **Percorso**: [projects/mistral/backend/tests/integration/admin/support.py](projects/mistral/backend/tests/integration/admin/support.py)
-- **Scopo**: centralizzare costanti URL, payload builder, helper di creazione via API (con cleanup registrato) e cleanup DB per i quattro moduli `test_admin_*.py`. Evita duplicazione e tiene fuori dalla baseline legacy l'infrastruttura dei nuovi test admin.
+- **Scopo**: centralizzare costanti URL, payload builder, helper di creazione via API (con cleanup registrato) e cleanup DB per i quattro moduli `test_admin_*.py`. Evita duplicazione fra i test admin.
 - **Tipologia**: modulo di supporto (costanti + dataclass + helper), importato per nome dai test. La fixture di login e' definita nel [conftest locale](conftest.py), non nel supporto.
 
 ## 2. Backend realmente esercitato (indirettamente)

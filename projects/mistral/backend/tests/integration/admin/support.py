@@ -1,7 +1,5 @@
-# EXTENSION TRACEABILITY - Prompt 06, supporto locale per il dominio admin.
-# Origine: questo modulo e stato aggiunto per evitare duplicazione fra i nuovi test
-# di estensione degli endpoint metadata admin. La baseline legacy non viene rinominata ne
-# modificata: i test nuovi importano questo supporto in modo esplicito.
+# Supporto locale ai test degli endpoint admin dei metadata (endpoints/admin_*.py):
+# evita duplicazione fra i moduli test_admin_*.py, che lo importano in modo esplicito.
 # Ambito: prepara payload HTTP per attributions, license groups, licenses e datasets,
 # e registra cleanup DB per ogni record sintetico creato dal singolo test.
 # Il login admin locale e fornito dalla fixture nel conftest.py di questo dominio.
@@ -11,8 +9,6 @@
 # attraversano solo API Flask e database SQLAlchemy deterministici.
 # Cleanup: i record vengono rimossi in ordine dataset -> license -> license group ->
 # attribution, rimuovendo anche eventuali associazioni many-to-many user/dataset.
-# Baseline non toccata: il modulo e un nuovo artefatto di estensione confinato alla cartella
-# integration/admin e non introduce fixture globali.
 
 from __future__ import annotations
 
@@ -181,7 +177,7 @@ def response_content(response) -> Any:
 def created_id_from_response(response) -> int:
     """Estrae l'id scalare restituito dagli endpoint admin POST.
 
-    Gli endpoint Prompt 06 ritornano direttamente l'id creato con status 200, non un
+    Gli endpoint admin POST ritornano direttamente l'id creato con status 200, non un
     documento JSON annidato. Questo helper rende quell'assunzione visibile nei test.
     """
     content = response_content(response)

@@ -1,7 +1,7 @@
 # Review — `test_schedule_opendata_bridge.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo **baseline**: copre il ponte storico *schedule → request opendata → listing/download*.
+> Modulo: copre il ponte *schedule → request opendata → listing/download*.
 > **Due percorsi in un solo file**: un test `deterministic` (fake Celery inline) e un test `async_real` (catena reale beat → broker → worker). Documentati separatamente in §6.
 
 ## 1. Informazioni generali
@@ -31,7 +31,7 @@
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L39) | Teardown **LIFO** (schedule + utente; nel crontab prima attende i worker). |
+| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO** (schedule + utente; nel crontab prima attende i worker). |
 | `schedules_base` | fixture **conftest locale** | [schedules/conftest.py](projects/mistral/backend/tests/integration/schedules/conftest.py) | `BaseTests()` + **override** `SingleSchedule.ON_DATA_READY_DATASETS` su `lm5` (indispensabile per il ramo on-data-ready). |
 | `schedules_admin_headers` | fixture **conftest locale** | [schedules/conftest.py](projects/mistral/backend/tests/integration/schedules/conftest.py) | Login admin di default; usata per `POST /data/ready`. |
 | `schedules_user` | fixture **conftest locale** | [schedules/conftest.py](projects/mistral/backend/tests/integration/schedules/conftest.py) | **Super-utente `admin_root`** via `create_data_ready_user`; `pytest.skip` se `lm5` assente. |

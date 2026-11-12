@@ -1,7 +1,10 @@
-"""Named endpoint constants shared by access-key tests and fixtures.
+"""Costanti con gli URL degli endpoint usati dai test e dalle fixture access key.
 
-Keeping these URLs in one place avoids repeating literal endpoint strings across
-tests that exercise access-key creation, retrieval, regeneration, and validation.
+Tenere questi URL in un solo punto evita di ripetere le stringhe degli endpoint nei
+test che verificano creazione, lettura, rigenerazione e validazione delle access key.
+
+- ``ACCESS_KEY_ENDPOINT``: crea, legge e rigenera la chiave dell'utente corrente.
+- ``ACCESS_KEY_VALIDATE_ENDPOINT``: valida le credenziali email piu access key.
 """
 
 from restapi.tests import API_URI

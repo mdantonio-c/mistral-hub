@@ -1,4 +1,8 @@
-"""Integration tests for observed-data extraction and observed postprocessor chaining."""
+"""Test di integrazione sull'estrazione observed e sui postprocessori in catena.
+
+Esercitano il task Celery ``data_extract`` (tasks/data_extraction.py) sul
+dataset ``agrmet`` con dati DBALLE reali.
+"""
 
 import pytest
 
@@ -19,38 +23,33 @@ pytestmark = [
 
 
 class TestObservedPostprocessing:
-    """Verify successful observed postprocessing flows for plain and chained requests."""
+    """Verifica i casi di successo del postprocessing observed, semplice e in catena."""
 
     def test_simple_observed_extraction_creates_output(self, pp_observed_env) -> None:
-        """Verify that a plain observed extraction produces an output file."""
+        """Verifica che un'estrazione observed senza postprocessori produca un file.
+
+        Esercita l'estrazione observed (``observed_extraction``) nel task
+        ``data_extract``.
+        """
         # arrange
-        # Prepariamo lo scenario post-processing con dati minimi e controllati, cosi la
-        # verifica successiva resta legata a un comportamento preciso.
         request_id = pp_observed_env.create_request()
 
         # act
-        # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-        # verifica dal setup.
         pp_observed_env.execute(request_id)
 
         # assert
-        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-        # questo test vuole proteggere.
         output_path = pp_observed_env.assert_success(request_id)
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert output_path.exists()
 
     def test_observed_derived_variables_create_output(self, pp_observed_env) -> None:
-        """Verify that observed derived-variable postprocessing succeeds with the required inputs."""
+        """Verifica che le variabili derivate observed riescano con gli input richiesti.
+
+        Esercita ``tools/derived_variables.py`` dentro il task ``data_extract``.
+        """
         # arrange
-        # Prepariamo lo scenario post-processing con dati minimi e controllati, cosi la
-        # verifica successiva resta legata a un comportamento preciso.
         request_id = pp_observed_env.create_request()
 
         # act
-        # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-        # verifica dal setup.
         pp_observed_env.execute(
             request_id,
             filters=observed_derived_variable_filters(),
@@ -58,25 +57,20 @@ class TestObservedPostprocessing:
         )
 
         # assert
-        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-        # questo test vuole proteggere.
         output_path = pp_observed_env.assert_success(request_id)
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert output_path.exists()
 
     def test_observed_statistic_elaboration_creates_output(
         self, pp_observed_env
     ) -> None:
-        """Verify that observed statistic-elaboration postprocessing succeeds with the required inputs."""
+        """Verifica che la statistica observed riesca con gli input richiesti.
+
+        Esercita ``tools/statistic_elaboration.py`` dentro il task ``data_extract``.
+        """
         # arrange
-        # Prepariamo lo scenario post-processing con dati minimi e controllati, cosi la
-        # verifica successiva resta legata a un comportamento preciso.
         request_id = pp_observed_env.create_request()
 
         # act
-        # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-        # verifica dal setup.
         pp_observed_env.execute(
             request_id,
             filters=observed_statistic_elaboration_filters(),
@@ -84,18 +78,16 @@ class TestObservedPostprocessing:
         )
 
         # assert
-        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-        # questo test vuole proteggere.
         output_path = pp_observed_env.assert_success(request_id)
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert output_path.exists()
 
     def test_combined_observed_postprocessors_export_json(self, pp_observed_env) -> None:
-        """Verify that chaining observed postprocessors can export JSON output."""
+        """Verifica che i postprocessori observed in catena possano esportare in JSON.
+
+        Combina variabili derivate e statistica nel task ``data_extract``, con
+        ``output_format="json"`` e ``only_reliable=True``.
+        """
         # arrange
-        # Prepariamo lo scenario post-processing con dati minimi e controllati, cosi la
-        # verifica successiva resta legata a un comportamento preciso.
         request_id = pp_observed_env.create_request()
         postprocessors = [
             observed_derived_variable_postprocessor(),
@@ -103,8 +95,6 @@ class TestObservedPostprocessing:
         ]
 
         # act
-        # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
-        # verifica dal setup.
         pp_observed_env.execute(
             request_id,
             filters=observed_chaining_filters(),
@@ -114,9 +104,5 @@ class TestObservedPostprocessing:
         )
 
         # assert
-        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
-        # questo test vuole proteggere.
         output_path = pp_observed_env.assert_success(request_id)
-        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
-        # sia arrivato fin qui senza eccezioni.
         assert output_path.suffix == ".json"

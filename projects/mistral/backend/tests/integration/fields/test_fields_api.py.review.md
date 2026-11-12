@@ -1,8 +1,8 @@
 # Review — `test_fields_api.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: prima copertura **di estensione** dedicata a `Fields.get`, sopra la baseline observed.
-> Runtime-sensitive: i rami happy path interrogano dati reali nelle finestre consentite dal Prompt 03.
+> Modulo: copertura dedicata a `Fields.get`.
+> Runtime-sensitive: i rami happy path interrogano dati reali nelle finestre dati consentite.
 
 ## 1. Informazioni generali
 
@@ -30,9 +30,9 @@
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient`. |
-| `auth_headers` | fixture | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py#L15) | Utente **DEFAULT** loggato, header condivisi (admin di default → `allowed_obs_archive` non garantito). |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L39) | Teardown LIFO per utenti/dataset/licenze sintetici. |
-| `test_runtime` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L31) | Singleton di sessione; fornisce `override_attr` per il patch di `LASTDAYS`. |
+| `auth_headers` | fixture | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py#L28) | Utente **DEFAULT** loggato, header condivisi (admin di default → `allowed_obs_archive` non garantito). |
+| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L59) | Teardown LIFO per utenti/dataset/licenze sintetici. |
+| `test_runtime` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L49) | Singleton di sessione; fornisce `override_attr` per il patch di `LASTDAYS`. |
 | `monkeypatch` | fixture | pytest | Patch di `fields_endpoint_module.arki.get_datasets_category` (test 17, 18). |
 | `dballe_window_override`, `require_observed_dataset_user`, `parse_response`, costanti `OBSERVED_*` | helper condivisi | [helpers/observed_windows.py](projects/mistral/backend/tests/helpers/observed_windows.py) | Override di `BeDballe.LASTDAYS` per il 2020-04-06; utente agrmet (**`pytest.skip`** se agrmet manca); decodifica risposta; costanti comuni con `observed`. |
 | `require_forecast_fields_case` | helper | [fields/support.py](projects/mistral/backend/tests/integration/fields/support.py) | Scenario forecast reale; **`pytest.skip`** se nessuna finestra lm5/lm2.2 espone dati. |
@@ -43,7 +43,7 @@
 
 ## 4. Analisi dettagliata di ogni test
 
-> Legenda: **R** = dipende da dati reali nelle finestre Prompt 03 (può **fallire** se assenti); **S** = può eseguire `pytest.skip` silenzioso; **D** = deterministico (sintetico/validazione, niente dati reali).
+> Legenda: **R** = dipende da dati reali nelle finestre dati consentite (può **fallire** se assenti); **S** = può eseguire `pytest.skip` silenzioso; **D** = deterministico (sintetico/validazione, niente dati reali).
 
 ### Gruppo A — OBS map mode (happy path su agrmet DBALLE 2020-04-06)
 

@@ -1,7 +1,6 @@
 # Review — `test_templates_listing.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** sopra la baseline legacy.
 
 ## 1. Informazioni generali
 
@@ -26,7 +25,7 @@
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `cleanup_registry` | fixture | [tests/conftest.py#L39](projects/mistral/backend/tests/conftest.py#L39) | Teardown **LIFO** (`CleanupRegistry`); non ingoia eccezioni. |
+| `cleanup_registry` | fixture | [tests/conftest.py#L59](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO** (`CleanupRegistry`); non ingoia eccezioni. |
 | `TEMPLATES_ENDPOINT` | costante | [templates/support.py](projects/mistral/backend/tests/integration/templates/support.py) | URL `{API_URI}/templates`. |
 | `create_templates_user` | helper | [templates/support.py](projects/mistral/backend/tests/integration/templates/support.py) | Crea utente via API admin con `max_templates`/`disk_quota` espliciti; registra cleanup dell'utente e di `/data/<uuid>`. |
 | `seed_template_file` | helper | [templates/support.py](projects/mistral/backend/tests/integration/templates/support.py) | Scrive un file sintetico in `uploads/grib` o `uploads/shp` (dedotto dall'estensione) e registra `uploads` nel cleanup. |

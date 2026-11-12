@@ -1,7 +1,7 @@
 # Review — `data/support.py` (infrastruttura di dominio)
 
 > File di review per modulo di supporto. Non contiene test. Non modifica codice.
-> Modulo: infrastruttura introdotta **solo** per i nuovi test di estensione del dominio `integration/data` (contratto HTTP di `POST /data` e `GET /data/<filename>`). Non sposta fixture in `conftest.py` e non tocca il baseline legacy.
+> Modulo: infrastruttura di supporto per i test del dominio `integration/data` (contratto HTTP di `POST /data` e `GET /data/<filename>`). Non sposta fixture in `conftest.py`.
 
 ## 1. Informazioni generali
 

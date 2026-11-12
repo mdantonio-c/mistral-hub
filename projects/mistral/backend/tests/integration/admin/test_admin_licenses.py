@@ -1,6 +1,5 @@
-# EXTENSION TRACEABILITY - Prompt 06, endpoint admin licenses.
-# Origine: questo modulo copre i contratti CRUD e relazionali di
-# projects/mistral/backend/endpoints/admin_licenses.py.
+# Test CRUD e relazionali dell'endpoint admin /api/admin/licenses
+# (projects/mistral/backend/endpoints/admin_licenses.py).
 # Ambito: verifica create con group license, listing con group e datasets annidati,
 # update di group license, delete, 404 su license mancante e comportamento documentato
 # quando si richiede un group license inesistente.
@@ -8,7 +7,6 @@
 # righe metadata sintetiche create via API admin.
 # Runtime fake: nessun fake o worker; solo controller Flask e SQLAlchemy.
 # Cleanup: support rimuove dataset, license, group license e attribution sintetici.
-# Baseline non toccata: il file e un nuovo modulo di estensione nel dominio integration/admin.
 
 from __future__ import annotations
 
@@ -40,6 +38,8 @@ def test_admin_license_create_list_update_delete(
 
     Il test crea due gruppi sintetici, inserisce la license nel primo e poi la sposta nel
     secondo. L'URL vuota nell'update attraversa anche il pre_load null_url della schema.
+    Endpoint esercitati: GET/POST /api/admin/licenses e PUT/DELETE
+    /api/admin/licenses/<id>.
     """
     # arrange - due gruppi creati prima della license per mantenere cleanup LIFO sicuro.
     original_group_id = create_license_group_via_api(
@@ -118,6 +118,7 @@ def test_admin_license_list_includes_group_and_datasets(
 
     Il bundle crea un dataset catalografico collegato alla license. Il listing deve
     quindi esporre sia il gruppo licenza sia il dataset figlio con arkimet_id come id.
+    Endpoint esercitato: GET /api/admin/licenses.
     """
     # arrange - bundle metadata completo via API admin.
     bundle = create_dataset_bundle_via_api(
@@ -147,6 +148,7 @@ def test_admin_license_missing_license_returns_404(
 
     Il group license valido serve solo a superare la schema dinamica del PUT, cosi il
     test misura il ramo endpoint che cerca la license path e non una validazione body.
+    Endpoint esercitati: PUT e DELETE /api/admin/licenses/<id>.
     """
     # arrange - gruppo valido per costruire un payload PUT accettato dallo schema.
     db = sqlalchemy.get_instance()
@@ -182,6 +184,7 @@ def test_admin_license_missing_group_returns_400(
 
     La OneOf dinamica rifiuta l'id prima del controller e nessuna license viene creata.
     Il ramo NotFound del controller non e raggiungibile via HTTP (ADMIN-001).
+    Endpoint esercitato: POST /api/admin/licenses.
     """
     # arrange - payload con id gruppo inesistente e campi license validi.
     db = sqlalchemy.get_instance()

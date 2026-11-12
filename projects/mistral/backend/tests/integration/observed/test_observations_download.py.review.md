@@ -1,14 +1,14 @@
 # Review — `test_observations_download.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** (Prompt 03) su `MapsObservations.post` (download), **senza** toccare i test GET baseline.
+> Modulo: copertura di `MapsObservations.post` (download).
 
 ## 1. Informazioni generali
 
 - **Percorso**: [projects/mistral/backend/tests/integration/observed/test_observations_download.py](projects/mistral/backend/tests/integration/observed/test_observations_download.py)
 - **Scopo**: coprire il **download** osservato `POST /api/observations`: stream JSON/BUFR, smoke `reliabilityCheck`, validazioni di schema/controller (`output_format`, bbox, license, `singleStation`), mismatch licenza, network inesistente/non autorizzato e autorizzazione ai dati archiviati.
 - **Tipologia**: test di **integrazione HTTP** su **dati reali** (DBALLE/Arkimet) con finestre `agrmet` **fisse**. Marker di modulo: `integration`, `deterministic`, `runtime_sensitive`.
-- **Finestre dati fisse** (dall'intestazione di tracciabilità del file): DBALLE `agrmet 2020-04-06 00:00–01:00`; Arkimet `agrmet 2020-03-31/2020-04-01`. Le date fuori da queste finestre servono solo come trigger di validazione, non come oracolo dati.
+- **Finestre dati fisse** (dall'intestazione del file): DBALLE `agrmet 2020-04-06 00:00–01:00`; Arkimet `agrmet 2020-03-31/2020-04-01`. Le date fuori da queste finestre servono solo come trigger di validazione, non come oracolo dati.
 
 ## 2. Backend realmente testato
 
@@ -30,8 +30,8 @@
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
 | `auth_headers` | fixture | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | Utente DEFAULT (`allowed_obs_archive=True` via [customization.py](projects/mistral/backend/customization.py#L33)). |
-| `test_runtime` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L31) | Singleton di sessione; usato per `override_attr(BeDballe, "LASTDAYS", ...)`. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L39) | Teardown **LIFO**; raccoglie utenti temporanei e il dataset privato sintetico. |
+| `test_runtime` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L49) | Singleton di sessione; usato per `override_attr(BeDballe, "LASTDAYS", ...)`. |
+| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO**; raccoglie utenti temporanei e il dataset privato sintetico. |
 | `create_dataset_test_user` | helper condiviso | [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) | Crea utente via API admin + login + cleanup (FS + delete utente). |
 | `sqlalchemy.get_instance()` | connettore | `restapi.connectors` | Accesso DB diretto (dataset privato sintetico). |
 | `dballe_window_override`, `api_url`, costanti `OBS_*`/`OBSERVED_*` | helper condivisi | [helpers/observed_windows.py](projects/mistral/backend/tests/helpers/observed_windows.py) | Patch di `BeDballe.LASTDAYS` perché `2020-04-06` sia classificata **dballe** anche eseguendo nel 2026; URL e finestre dati comuni con `/fields`. |

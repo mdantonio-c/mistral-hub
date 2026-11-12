@@ -1,17 +1,14 @@
-# EXTENSION TRACEABILITY: questo modulo e stato aggiunto dal Prompt 08 per
-# coprire il connector S3 custom di Meteo-Hub senza modificare il codice
-# applicativo e senza dipendere da MinIO, AWS o rete reale.
-# EXTENSION SCOPE: i test verificano parametri obbligatori, costruzione endpoint,
+# Test del connector S3 custom di Meteo-Hub (`mistral.connectors.s3.S3Ext`), senza
+# dipendere da MinIO, AWS o rete reale.
+# Ambito: i test verificano parametri obbligatori, costruzione endpoint,
 # endpoint esplicito, `verify_ssl`, gestione fallimento `list_buckets`, stato di
 # connessione e cleanup di `disconnect`.
-# EXTENSION DATA WINDOW: nessun dataset meteorologico, bucket reale o oggetto S3
+# Finestra dati: nessun dataset meteorologico, bucket reale o oggetto S3
 # viene letto. I bucket sono rappresentati da un fake client in memoria.
-# EXTENSION RUNTIME: `boto3.Session` viene monkeypatchato in ogni test che chiama
+# Runtime: `boto3.Session` viene monkeypatchato in ogni test che chiama
 # `connect`, cosi nessuna credenziale reale e nessun endpoint esterno vengono usati.
-# EXTENSION CLEANUP: `monkeypatch` ripristina `Connector.services`, `S3Ext.app` e
+# Cleanup: `monkeypatch` ripristina `Connector.services`, `S3Ext.app` e
 # `boto3.Session` a fine test. Gli oggetti connector sono locali al singolo test.
-# EXTENSION BASELINE: non vengono introdotti `conftest.py` o helper condivisi; la
-# copertura resta confinata a questo file di test nel dominio `connectors`.
 
 from __future__ import annotations
 

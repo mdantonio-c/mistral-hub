@@ -1,7 +1,6 @@
 # Review — `test_user_customizer.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: copertura **di estensione** sopra la baseline legacy.
 
 ## 1. Informazioni generali
 
@@ -27,7 +26,7 @@
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L38) | Teardown **LIFO**; usata solo dal test "associates valid" per rimuovere il bundle sintetico. |
+| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO**; usata solo dal test "associates valid" per rimuovere il bundle sintetico. |
 | `sqlalchemy.get_instance()` | connettore | `restapi.connectors` | Istanza DB **reale** (read/write su tabelle dataset/license/group/attribution). |
 | `DummyCustomizerUser` | dataclass | (questo file) | Utente fittizio con i soli attributi custom; **non** è un model ORM. |
 | `seed_customizer_dataset` | helper | (questo file) | Crea group→license→attribution→dataset (commit) e registra il cleanup; ritorna `dataset.id`. |
@@ -35,9 +34,9 @@
 | `BaseCustomizer.ADMIN/PROFILE/REGISTRATION` | costanti | `restapi.customizer` | Selettori di scope per `get_custom_input_fields`. |
 | `NotFound` | eccezione | `restapi.exceptions` | Target di `pytest.raises`. |
 | `uuid4` | stdlib | `uuid` | Nomi unici per evitare collisioni con dati iniziali / test paralleli. |
-| `pytest.mark.integration` / `deterministic` | marker | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L9) | Solo classificazione. |
+| `pytest.mark.integration` / `deterministic` | marker | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L13) | Solo classificazione. |
 
-> **Nota infra**: nessun `conftest.py`/`support` locale in `integration/customizer/`. L'unica fixture condivisa usata è [`cleanup_registry`](projects/mistral/backend/tests/conftest.py#L38); `auth_headers`/`fresh_access_key` ([integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py#L15)) **non** sono richieste, perché i test non passano da HTTP.
+> **Nota infra**: nessun `conftest.py`/`support` locale in `integration/customizer/`. L'unica fixture condivisa usata è [`cleanup_registry`](projects/mistral/backend/tests/conftest.py#L59); `auth_headers`/`fresh_access_key` ([integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py#L28)) **non** sono richieste, perché i test non passano da HTTP.
 
 ## 4. Analisi dettagliata di ogni test
 
