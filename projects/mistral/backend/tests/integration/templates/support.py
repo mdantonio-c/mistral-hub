@@ -167,6 +167,8 @@ def upload_payload(content: bytes | io.BytesIO, filename: str) -> dict[str, obje
     che i test stanno attraversando il vero endpoint HTTP e non chiamando direttamente
     Uploader.upload o funzioni interne del controller.
     """
+    # Normalizziamo i bytes in BytesIO solo qui, lasciando ai test il compito di indicare
+    # quale nome file e quale estensione vogliono esercitare.
     stream = content if isinstance(content, io.BytesIO) else io.BytesIO(content)
     stream.seek(0)
     return {"file": (stream, filename)}
