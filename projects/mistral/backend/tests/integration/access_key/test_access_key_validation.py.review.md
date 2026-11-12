@@ -1,31 +1,32 @@
 # Review — `test_access_key_validation.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/access_key/test_access_key_validation.py](projects/mistral/backend/tests/integration/access_key/test_access_key_validation.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/access_key/test_access_key_validation.py`
 - **Scopo**: verificare quali combinazioni di `email` + `access key` sono accettate o rifiutate dall'endpoint di validazione via HTTP Basic.
 - **Tipologia**: test di **integrazione HTTP**. Marker: `integration`, `deterministic`.
+- **Prerequisiti**: app, autenticazione e DB reali; nessuna patch e nessuno storage S3.
 
 ## 2. Backend realmente testato
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `AccessKeyValidationResource.get` | [endpoints/access_key.py](projects/mistral/backend/endpoints/access_key.py) | `GET /api/access-key/validate` — entry point pubblico (no `auth.require`), delega al service. |
-| `validate_access_key_from_request` | [services/access_key_service.py](projects/mistral/backend/services/access_key_service.py) | Estrae `request.authorization`; senza credenziali → `Unauthorized`. |
-| `access_key_get_by_user` | [services/access_key_service.py](projects/mistral/backend/services/access_key_service.py) | Risolve la chiave dall'email; email inesistente → `None` → `401`. |
-| `is_access_key_valid` | [services/access_key_service.py](projects/mistral/backend/services/access_key_service.py) | Confronto chiave + controllo scadenza. |
+| `AccessKeyValidationResource.get` | `projects/mistral/backend/endpoints/access_key.py` | `GET /api/access-key/validate` — entry point pubblico (no `auth.require`), delega al service. |
+| `validate_access_key_from_request` | `projects/mistral/backend/services/access_key_service.py` | Estrae `request.authorization`; senza credenziali → `Unauthorized`. |
+| `access_key_get_by_user` | `projects/mistral/backend/services/access_key_service.py` | Risolve la chiave dall'email; email inesistente → `None` → `401`. |
+| `is_access_key_valid` | `projects/mistral/backend/services/access_key_service.py` | Confronto chiave + controllo scadenza. |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | Client HTTP di test. |
-| `access_key_owner` | fixture | [integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | Utente temporaneo proprietario delle chiavi; fornisce header ed `email` per la BasicAuth. |
-| `fresh_access_key` | fixture | [integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | Crea una chiave per `access_key_owner`. |
-| `make_basic_auth` | helper | [helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) | Costruisce header Basic `email:key`. |
-| `ACCESS_KEY_ENDPOINT` / `ACCESS_KEY_VALIDATE_ENDPOINT` | costanti | [access_key/support.py](projects/mistral/backend/tests/integration/access_key/support.py) | URL endpoint. |
+| `access_key_owner` | fixture | `projects/mistral/backend/tests/integration/conftest.py` | Utente temporaneo proprietario delle chiavi; fornisce header ed `email` per la BasicAuth. |
+| `fresh_access_key` | fixture | `projects/mistral/backend/tests/integration/conftest.py` | Crea una chiave per `access_key_owner`. |
+| `make_basic_auth` | helper | `projects/mistral/backend/tests/helpers/auth.py` | Costruisce header Basic `email:key`. |
+| `ACCESS_KEY_ENDPOINT` / `ACCESS_KEY_VALIDATE_ENDPOINT` | costanti | `projects/mistral/backend/tests/integration/access_key/support.py` | URL endpoint. |
 
 ## 4. Analisi dettagliata di ogni test
 
@@ -34,6 +35,8 @@
 - **Backend**: `validate_access_key_from_request` ramo `if not auth`.
 - **Assert**: `401`. Garantisce che l'endpoint non sia aperto.
 - **Casi coperti**: error path.
+- **Cosa non dimostra**: il trattamento di credenziali malformate né il body dell'errore.
+- **Se fallisce, guarda**: la guardia iniziale `if not auth` di `validate_access_key_from_request` in `projects/mistral/backend/services/access_key_service.py`.
 
 ### `test_02_invalid_email`
 - **Obiettivo**: email inesistente → 401.
@@ -41,6 +44,8 @@
 - **Setup**: `make_basic_auth("nonexistent@example.com", "whatever")`.
 - **Assert**: `401`. Distingue "utente non trovato" da chiave errata, ma il contratto HTTP è lo stesso 401.
 - **Casi coperti**: error path / validazione input.
+- **Cosa non dimostra**: che l'email fissa sia davvero assente dal DB: è una precondizione non verificata dal test.
+- **Se fallisce, guarda**: il lookup di `access_key_get_by_user`; un 200 inatteso può indicare un utente `nonexistent@example.com` presente nel DB di test.
 
 ### `test_03_invalid_access_key`
 - **Obiettivo**: email valida ma chiave errata → 401.
@@ -48,6 +53,8 @@
 - **Setup**: crea chiave reale via `fresh_access_key`, poi presenta `"WRONG-KEY"`.
 - **Assert**: `401`. Prova che il confronto della chiave è effettivo.
 - **Casi coperti**: error path.
+- **Cosa non dimostra**: il ramo della scadenza né il comportamento del proxy ARCO/S3.
+- **Se fallisce, guarda**: il confronto del token in `is_access_key_valid`, non le credenziali dell'utente predefinito.
 
 ### `test_04_valid_access_key`
 - **Obiettivo**: email + chiave corretti → 200 con `status == "OK"`.
@@ -55,13 +62,17 @@
 - **Setup**: `fresh_access_key` fornisce la chiave valida.
 - **Assert**: `200`; `resp.json["status"] == "OK"`. Happy path end-to-end.
 - **Casi coperti**: happy path.
+- **Cosa non dimostra**: autorizzazioni sui dataset né lo `scope` ARCO della chiave.
+- **Se fallisce, guarda**: `AccessKeyValidationResource.get`, il service di validazione, la relazione `user.access_key` e la forma della risposta `{"status": "OK"}`.
 
 ### `test_05_validate_access_key_without_expiration`
 - **Obiettivo**: una chiave creata senza scadenza resta accettabile alla validazione.
 - **Backend**: `is_access_key_valid` ramo `expiration is None` → sempre valida.
-- **Setup**: `POST` con `lifetime_seconds=None`, poi valida la chiave ottenuta.
+- **Setup**: `POST` con `lifetime_seconds=None`, poi valida la chiave ottenuta. Lo status della `POST` non è asserito: un errore emerge solo alla lettura di `resp.json["key"]`.
 - **Assert**: `200`; `status == "OK"`. Complementa il `test_04` lato creazione (in `test_access_key_api.py`) col comportamento lato validazione.
 - **Casi coperti**: edge case (chiave senza scadenza) / happy path.
+- **Cosa non dimostra**: la persistenza della chiave nel lungo periodo o dopo un riavvio.
+- **Se fallisce, guarda**: default e nullabilità di `AccessKey.expiration`; leggerlo insieme a `test_04_create_access_key_without_expiration` in [test_access_key_api.py.review.md](test_access_key_api.py.review.md).
 
 ## 5. Call chain
 

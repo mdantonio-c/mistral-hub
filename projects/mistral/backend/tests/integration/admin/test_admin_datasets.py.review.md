@@ -1,10 +1,10 @@
 # Review — `test_admin_datasets.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/admin/test_admin_datasets.py](projects/mistral/backend/tests/integration/admin/test_admin_datasets.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/admin/test_admin_datasets.py`
 - **Scopo**: verificare il CRUD admin dei *dataset* catalografici, il cambio delle relazioni `license`/`attribution` in update, la normalizzazione `sort_index=""`→`None`, il **409 su vincoli unique** (`arkimet_id`/`name`) e i rami `404`.
 - **Tipologia**: test di **integrazione HTTP** (controller reale + schema dinamica + DB SQLAlchemy). Marker: `integration`, `deterministic`.
 
@@ -12,28 +12,28 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `AdminDatasets.get` | [endpoints/admin_datasets.py](projects/mistral/backend/endpoints/admin_datasets.py) | `GET /api/admin/datasets` — lista tutti i dataset; `category` serializzata come `d.category.name`; `license` e `attribution` annidati (`{id,name,descr}`). |
-| `AdminDatasets.post` | [endpoints/admin_datasets.py](projects/mistral/backend/endpoints/admin_datasets.py) | `POST /api/admin/datasets` — crea il dataset, collega `license_id`/`attribution_id`, ritorna l'**id** (200); `Conflict` (409) su `DatabaseDuplicatedEntry`. |
-| `AdminDatasets.put` | [endpoints/admin_datasets.py](projects/mistral/backend/endpoints/admin_datasets.py) | `PUT /api/admin/datasets/<id>` — `NotFound` (404) se assente; `setattr`; eventuale cambio `license_id`/`attribution_id` → `empty_response()` (**204**). |
-| `AdminDatasets.delete` | [endpoints/admin_datasets.py](projects/mistral/backend/endpoints/admin_datasets.py) | `DELETE /api/admin/datasets/<id>` — `NotFound` (404) se assente; delete → **204**. |
-| `getInputSchema` (POST/PUT) | [endpoints/admin_datasets.py](projects/mistral/backend/endpoints/admin_datasets.py) | **Schema dinamica a runtime**: `license`/`attribution` sono `OneOf` sugli id esistenti; `category`/`source` `OneOf` su valori fissi; `source` default `arkimet`, `supports_variable_browsing` default `False`. |
-| `DatasetInput` + `@pre_load null_sort_index` | [endpoints/admin_datasets.py](projects/mistral/backend/endpoints/admin_datasets.py) | Converte `sort_index == ""` in `None`. |
-| `get_output_schema` | [endpoints/admin_datasets.py](projects/mistral/backend/endpoints/admin_datasets.py) | Output: `sort_index` `Int(allow_none=True)`, `license`/`attribution` nested, ecc. |
-| Modello `Datasets` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L146) | `arkimet_id` **unique** (nullable), `name` **unique** (not null), `category` `Enum(DatasetCategories)`, `sort_index` Int nullable, m2m `users`. |
+| `AdminDatasets.get` | `projects/mistral/backend/endpoints/admin_datasets.py` | `GET /api/admin/datasets` — lista tutti i dataset; `category` serializzata come `d.category.name`; `license` e `attribution` annidati (`{id,name,descr}`). |
+| `AdminDatasets.post` | `projects/mistral/backend/endpoints/admin_datasets.py` | `POST /api/admin/datasets` — crea il dataset, collega `license_id`/`attribution_id`, ritorna l'**id** (200); `Conflict` (409) su `DatabaseDuplicatedEntry`. |
+| `AdminDatasets.put` | `projects/mistral/backend/endpoints/admin_datasets.py` | `PUT /api/admin/datasets/<id>` — `NotFound` (404) se assente; `setattr`; eventuale cambio `license_id`/`attribution_id` → `empty_response()` (**204**). |
+| `AdminDatasets.delete` | `projects/mistral/backend/endpoints/admin_datasets.py` | `DELETE /api/admin/datasets/<id>` — `NotFound` (404) se assente; delete → **204**. |
+| `getInputSchema` (POST/PUT) | `projects/mistral/backend/endpoints/admin_datasets.py` | **Schema dinamica a runtime**: `license`/`attribution` sono `OneOf` sugli id esistenti; `category`/`source` `OneOf` su valori fissi; `source` default `arkimet`, `supports_variable_browsing` default `False`. |
+| `DatasetInput` + `@pre_load null_sort_index` | `projects/mistral/backend/endpoints/admin_datasets.py` | Converte `sort_index == ""` in `None`. |
+| `get_output_schema` | `projects/mistral/backend/endpoints/admin_datasets.py` | Output: `sort_index` `Int(allow_none=True)`, `license`/`attribution` nested, ecc. |
+| Modello `Datasets` | `projects/mistral/backend/models/sqlalchemy.py` | `arkimet_id` **unique** (nullable), `name` **unique** (not null), `category` `Enum(DatasetCategories)`, `sort_index` Int nullable, m2m `users`. |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO**; non ingoia eccezioni. |
-| `admin_headers` | fixture | [admin/conftest.py](conftest.py) | Scoperta automaticamente da pytest; login admin di **default**. |
-| `dataset_payload` | helper | [admin/support.py](projects/mistral/backend/tests/integration/admin/support.py) | Payload dataset sintetico; default `arkimet_id == name == token`, `sort_index=10`, `supports_variable_browsing=True`; `license`/`attribution` come stringhe. |
-| `create_attribution_via_api` / `create_license_group_via_api` / `create_license_via_api` | helper | [admin/support.py](projects/mistral/backend/tests/integration/admin/support.py) | Creano le dipendenze relazionali (ognuno asserisce 200 + cleanup) necessarie per le `OneOf` dinamiche. |
-| `create_dataset_via_api` | helper | [admin/support.py](projects/mistral/backend/tests/integration/admin/support.py) | POST dataset (asserisce 200) + cleanup DB. |
-| `delete_admin_records` | helper | [admin/support.py](projects/mistral/backend/tests/integration/admin/support.py) | Cleanup; per i dataset rimuove anche le associazioni m2m `dataset.users` prima del delete. |
-| `find_list_item`, `response_content` | helper | [admin/support.py](projects/mistral/backend/tests/integration/admin/support.py) | Ricerca item per id stringa; decodifica body. |
-| `ADMIN_DATASETS_ENDPOINT`, `ADMIN_MISSING_ID` | costanti | [admin/support.py](projects/mistral/backend/tests/integration/admin/support.py) | URL `/api/admin/datasets` e id sentinella. |
+| `cleanup_registry` | fixture | `projects/mistral/backend/tests/conftest.py` | Teardown **LIFO**; non ingoia eccezioni. |
+| `admin_headers` | fixture | `projects/mistral/backend/tests/integration/admin/conftest.py` | Scoperta automaticamente da pytest; login admin di **default**. |
+| `dataset_payload` | helper | `projects/mistral/backend/tests/integration/admin/support.py` | Payload dataset sintetico; default `arkimet_id == name == token`, `sort_index=10`, `supports_variable_browsing=True`; `license`/`attribution` come stringhe. |
+| `create_attribution_via_api` / `create_license_group_via_api` / `create_license_via_api` | helper | `projects/mistral/backend/tests/integration/admin/support.py` | Creano le dipendenze relazionali (ognuno asserisce 200 + cleanup) necessarie per le `OneOf` dinamiche. |
+| `create_dataset_via_api` | helper | `projects/mistral/backend/tests/integration/admin/support.py` | POST dataset (asserisce 200) + cleanup DB. |
+| `delete_admin_records` | helper | `projects/mistral/backend/tests/integration/admin/support.py` | Cleanup; per i dataset rimuove anche le associazioni m2m `dataset.users` prima del delete. |
+| `find_list_item`, `response_content` | helper | `projects/mistral/backend/tests/integration/admin/support.py` | Ricerca item per id stringa; decodifica body. |
+| `ADMIN_DATASETS_ENDPOINT`, `ADMIN_MISSING_ID` | costanti | `projects/mistral/backend/tests/integration/admin/support.py` | URL `/api/admin/datasets` e id sentinella. |
 | `sqlalchemy.get_instance()` | connettore | `restapi.connectors` | Precondizioni DB, verifica post-delete e conteggio dopo il 409. |
 
 ## 4. Analisi dettagliata di ogni test
@@ -48,6 +48,8 @@
   - `update_response.status_code == 204`; poi `name`/`description` aggiornati, `sort_index is None` (pre_load), `supports_variable_browsing is False`, `license.id`/`attribution.id` = **secondo** set → la PUT è un replace completo con cambio FK.
   - `delete` → 204 e `Datasets.query.get(id) is None`.
 - **Casi coperti**: happy path completo + validation/normalization (`sort_index`) + cambio FK + side effect DB.
+- **Cosa non dimostra**: nulla sull'archivio Arkimet o sulla correttezza scientifica del dataset: sono solo metadata di catalogo.
+- **Se fallisce, guarda**: `DatasetInput.null_sort_index`, `get_output_schema` e il cambio FK in `put`; per `put`/`delete` vale il 204 di `empty_response()`, non i `responses` 200 dichiarati.
 
 ### `test_admin_dataset_duplicate_unique_fields_return_conflict`
 - **Obiettivo**: verificare il **409** sul duplicato, dove esistono **vincoli unique reali** (`arkimet_id`/`name`).
@@ -57,6 +59,8 @@
 - **Assert**: `duplicate_response.status_code == 409`; `Datasets.query.get(first_dataset_id) is not None`; `filter_by(arkimet_id=...).count() == 1` → il conflitto non crea un secondo record e l'originale sopravvive.
 - **Casi coperti**: error path / **conflict** (l'unico endpoint admin dove il 409 è genuinamente esercitabile).
 - **Dipendenza implicita**: il 409 richiede che restapi traduca l'`IntegrityError` SQLAlchemy in `DatabaseDuplicatedEntry`; il test verifica indirettamente anche questo ponte.
+- **Cosa non dimostra**: quale dei due vincoli scatti: il payload duplica insieme `name` e `arkimet_id`, quindi i due unique non sono isolati.
+- **Se fallisce, guarda**: vincoli unique del modello `Datasets` e relative migrazioni, poi la gestione di `DatabaseDuplicatedEntry` in `post`.
 
 ### `test_admin_dataset_missing_update_delete_return_404`
 - **Obiettivo**: `NotFound` per `put`/`delete` su dataset inesistente.
@@ -65,6 +69,8 @@
 - **Setup**: `admin_headers`, `cleanup_registry` (per le dipendenze).
 - **Assert**: `update_response.status_code == 404` e `delete_response.status_code == 404`.
 - **Casi coperti**: error path. Le dipendenze valide isolano il test dal ramo di validazione: il 404 misura la ricerca del **dataset** path.
+- **Cosa non dimostra**: il comportamento con FK license/attribution invalide.
+- **Se fallisce, guarda**: la guardia `NotFound` sul dataset; se arriva 400 controllare prima lo schema dinamico (`OneOf`) e la creazione delle dipendenze.
 
 ## 5. Call chain
 
@@ -86,7 +92,7 @@ DELETE /api/admin/datasets/<id>   → require_all(ADMIN) → filter_by(id).first
 ## 6. Comportamenti nascosti
 
 - **Schema dinamica a runtime**: `license`/`attribution` sono `OneOf` sugli id esistenti; per questo i test creano sempre le dipendenze **prima** del dataset. Un id mancante sarebbe **400 (validation)**, non 404.
-- **Bug `.first` senza `()`** (stesso pattern di `admin_licenses.py`): in `post`/`put`, `db.License.query.filter_by(...).first` e `db.Attribution...first` sono *bound method* sempre truthy → i rami `NotFound("This license"/"This attribution")` sono **codice morto**. Questi test **non** li esercitano (testano solo dataset id mancante), quindi il bug resta latente e non coperto.
+- **ADMIN-001 — bug `.first` senza `()`** (stesso pattern di `admin_licenses.py`): in `post`/`put`, `db.License.query.filter_by(...).first` e `db.Attribution...first` sono *bound method* sempre truthy → i rami `NotFound("This license"/"This attribution")` sono **codice morto**. Questi test **non** li esercitano (testano solo dataset id mancante), quindi il bug resta latente e non coperto.
 - **Mismatch doc/impl sugli status**: l'endpoint dichiara `responses={200: "Dataset successfully modified"}` / `{200: "Dataset successfully deleted"}`, ma `put`/`delete` ritornano `empty_response()` → **204** (asserito correttamente dai test).
 - **`category` via Enum reale**: il payload invia la stringa `"FOR"`; il modello la mappa su `DatasetCategories` e il GET rilegge `d.category.name`. Il round-trip passa per l'enum SQLAlchemy, non per una semplice stringa.
 - **`source`/`supports_variable_browsing` hanno default di schema** (`arkimet`/`False`): compaiono nei kwargs anche se non inviati; nel test sono comunque espliciti nel payload.
@@ -97,14 +103,14 @@ DELETE /api/admin/datasets/<id>   → require_all(ADMIN) → filter_by(id).first
 
 - [ ] Confermare che `409` derivi dai vincoli unique `arkimet_id`/`name` e che restapi traduca davvero l'`IntegrityError` in `DatabaseDuplicatedEntry`.
 - [ ] Verificare che 204 (non 200) sia il contratto reale di `put`/`delete` e correggere la doc OpenAPI dell'endpoint.
-- [ ] Segnalare il bug `.first` senza `()` per license/attribution in `post`/`put` (rami NotFound morti); valutare un test dedicato dopo il fix.
+- [ ] **ADMIN-001**: segnalare il bug `.first` senza `()` per license/attribution in `post`/`put` (rami NotFound morti); valutare un test dedicato dopo il fix.
 - [ ] Verificare che `sort_index is None` derivi dal `pre_load null_sort_index` e non da altro default.
 - [ ] Confermare che il cambio license/attribution in PUT sia coperto end-to-end (lo è).
 - [ ] Verificare che il cleanup m2m `dataset.users` non lasci righe orfane in `auth_association`.
 
 ## 8. Possibili criticità
 
-- **Bug di backend non coperto**: il `.first` senza `()` per license/attribution rende morti i rami NotFound in `post`/`put`; il test missing-404 verifica solo il dataset id, quindi il difetto resta invisibile alla suite (rischio falso negativo su quel contratto).
+- **Bug di backend non coperto (ADMIN-001)**: il `.first` senza `()` per license/attribution rende morti i rami NotFound in `post`/`put`; il test missing-404 verifica solo il dataset id, quindi il difetto resta invisibile alla suite (rischio falso negativo su quel contratto).
 - **Doc/implementazione divergenti**: `responses` dichiara 200 dove il codice ritorna 204; i test sono corretti ma l'OpenAPI è fuorviante.
 - **Dipendenza dalla traduzione errori restapi**: se cambiasse il mapping `IntegrityError → DatabaseDuplicatedEntry`, il test 409 diventerebbe fragile (potrebbe emergere un 500 non gestito).
 - **Setup pesante**: il primo test crea 7 record sintetici; la robustezza del teardown dipende interamente dal cleanup LIFO e dalla rimozione m2m. Un fallimento a metà arrange potrebbe lasciare residui (mitigato dall'idempotenza di `delete_admin_records`).

@@ -1,11 +1,11 @@
 # Review — `test_data_endpoint_auth.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 > Modulo: test di autenticazione del dominio `data`. Gli altri test del dominio sono in moduli separati e non ne spostano le fixture.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/data/test_data_endpoint_auth.py](projects/mistral/backend/tests/integration/data/test_data_endpoint_auth.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/data/test_data_endpoint_auth.py`
 - **Scopo**: verificare che `POST /api/data` senza credenziali risponda `401`, cioè che il gate di autenticazione protegga l'endpoint di estrazione **prima** di qualsiasi validazione schema o logica applicativa.
 - **Tipologia**: test di **integrazione HTTP** minimale (1 solo test). Marker: `integration`, `deterministic`.
 - **Dimensione**: un singolo `client.post` anonimo + un solo assert sullo status code.
@@ -14,7 +14,7 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `Data.post` (decoratore auth) | [endpoints/data.py](projects/mistral/backend/endpoints/data.py) | `@decorators.auth.require()` sull'endpoint `POST /data`: in assenza di token la richiesta è respinta con **401** prima di entrare nel corpo della `post`. |
+| `Data.post` (decoratore auth) | `projects/mistral/backend/endpoints/data.py` | `@decorators.auth.require()` sull'endpoint `POST /data`: in assenza di token la richiesta è respinta con **401** prima di entrare nel corpo della `post`. |
 
 > Nota: nessuna parte del **corpo** di `Data.post` (validazione, quota, submit Celery) viene eseguita: il test si ferma al solo controllo di autenticazione. Lo schema `DataExtraction` non viene neppure valutato.
 
@@ -24,7 +24,7 @@
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test; nessuna autenticazione applicata. |
 | `API_URI` | costante | `restapi.tests` | Prefisso `/api`. |
-| `pytest.mark.integration` / `deterministic` | marker | `pytest` (registrati in [tests/conftest.py](projects/mistral/backend/tests/conftest.py)) | Classificazione della suite. |
+| `pytest.mark.integration` / `deterministic` | marker | `pytest` (registrati in `projects/mistral/backend/tests/conftest.py`) | Classificazione della suite. |
 
 - **Nessun** uso di `support.py`, `cleanup_registry`, `monkeypatch`, utenti temporanei o fake: il test è volutamente autosufficiente e senza side effect.
 
@@ -37,6 +37,8 @@
 - **Setup**: nessuno (nessuna fixture oltre a `client`).
 - **Assert**: `response.status_code == 401`.
 - **Casi coperti**: error path / gate di sicurezza. Non verifica il body della risposta né attiva alcuna logica di validazione o submit.
+- **Cosa non dimostra**: input, quote, routing o creazione della request.
+- **Se fallisce, guarda**: il decoratore auth e il wiring dell'endpoint; un `400` al posto di `401` può indicare un diverso ordine dei controlli (schema valutato prima dell'autenticazione).
 
 ## 5. Call chain
 

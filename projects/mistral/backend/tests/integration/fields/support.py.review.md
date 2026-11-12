@@ -5,7 +5,7 @@
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/fields/support.py](projects/mistral/backend/tests/integration/fields/support.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/fields/support.py`
 - **Scopo**: centralizzare URL, **finestre dati ammesse**, utenti temporanei, dataset/licenze sintetici, override runtime e cleanup per coprire i rami OBS/map, OBS/dataset e FOR/Arkimet di `Fields.get`.
 - **Tipologia**: modulo di supporto (costanti + dataclass + factory/helper con effetti su DB e su `cleanup_registry`).
 
@@ -45,8 +45,8 @@
 
 Helper non piu definiti qui e spostati in moduli condivisi, riusati anche dalla cartella `observed`:
 
-- [helpers/observed_windows.py](projects/mistral/backend/tests/helpers/observed_windows.py): costanti `OBSERVED_*`/`OBS_*`, `api_url`, `parse_response`, `dballe_window_override` (override di `BeDballe.LASTDAYS`, vedi §3), `require_observed_dataset_user`, `require_dballe_product`;
-- [helpers/datasets.py](projects/mistral/backend/tests/helpers/datasets.py): `require_dataset` (lookup per `name` o `arkimet_id`, **`pytest.skip`** se assente), `create_private_test_network` e `delete_test_dataset_bundle` (cleanup del bundle sintetico, che sostituisce il vecchio `delete_fields_dataset_bundle` locale).
+- `projects/mistral/backend/tests/helpers/observed_windows.py`: costanti `OBSERVED_*`/`OBS_*`, `api_url`, `parse_response`, `dballe_window_override` (override di `BeDballe.LASTDAYS`, vedi §3), `require_observed_dataset_user`, `require_dballe_product`;
+- `projects/mistral/backend/tests/helpers/datasets.py`: `require_dataset` (lookup per `name` o `arkimet_id`, **`pytest.skip`** se assente), `create_private_test_network` e `delete_test_dataset_bundle` (cleanup del bundle sintetico, che sostituisce il vecchio `delete_fields_dataset_bundle` locale).
 
 ## 3. Comportamenti nascosti
 
@@ -55,7 +55,7 @@ Helper non piu definiti qui e spostati in moduli condivisi, riusati anche dalla 
 - **Skip silenziosi centralizzati**: `require_dataset` e `require_forecast_fields_case` decidono autonomamente di saltare; i test che li usano ereditano lo skip senza un `pytest.skip` esplicito al proprio interno. `require_forecast_fields_case` può skippare **anche** dopo aver ottenuto 200 ma con `summarystats.c <= 0` (continua a provare la finestra successiva e infine skippa).
 - **Dataset sintetici "sufficienti"**: i rami multi-dataset falliscono **prima** del caricamento Arkimet reale; per questo il fake corretto è un catalogo SQL minimo (più, nei test, un monkeypatch del solo `get_datasets_category`). `dballe_dsn="DBALLE"` marca semanticamente un gruppo come OBS senza che alcun dato venga mai interrogato.
 - **Cleanup difensivo e idempotente**: `delete_test_dataset_bundle` (helper condiviso di `helpers/datasets.py`) e i restore controllano l'esistenza di ogni riga prima di eliminarla (`query.get(...) is not None`), così un fallimento a metà setup non genera errori secondari che mascherino la causa.
-- **Creazione utente via API admin**: `create_dataset_test_user` ([tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py)) usa `create_authenticated_test_user` + `register_test_user_cleanup`; il cleanup elimina utente e cartella output anche in caso di failure.
+- **Creazione utente via API admin**: `create_dataset_test_user` (`projects/mistral/backend/tests/helpers/auth.py`) usa `create_authenticated_test_user` + `register_test_user_cleanup`; il cleanup elimina utente e cartella output anche in caso di failure.
 - **Attribution opzionale**: `create_fields_synthetic_dataset` riusa un'`Attribution` reale se esiste, altrimenti ne crea una temporanea e la marca per cleanup (`created_attribution_id`), evitando di toccare attribution reali quando già presenti.
 
 ## 4. Checklist di revisione

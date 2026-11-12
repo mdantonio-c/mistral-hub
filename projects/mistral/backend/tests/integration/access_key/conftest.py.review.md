@@ -4,19 +4,19 @@
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/access_key/conftest.py](projects/mistral/backend/tests/integration/access_key/conftest.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/access_key/conftest.py`
 - **Scopo**: fornire fixture specifiche del dominio access-key che richiedono setup più ricco di quello condiviso.
 - **Tipologia**: `conftest.py` di dominio (solo fixture locali, visibili a `integration/access_key/**`).
 
 ## 2. Backend realmente esercitato
 
-- `AccessKeyResource.post` ([endpoints/access_key.py](projects/mistral/backend/endpoints/access_key.py)) tramite `POST /api/access-key` con `lifetime_seconds=3600`.
-- `AccessKey.generate` ([models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L191)) con scadenza finita.
+- `AccessKeyResource.post` (`projects/mistral/backend/endpoints/access_key.py`) tramite `POST /api/access-key` con `lifetime_seconds=3600`.
+- `AccessKey.generate` (`projects/mistral/backend/models/sqlalchemy.py`) con scadenza finita.
 
 ## 3. Elementi definiti
 
 ### Fixture `fresh_access_key_with_expiration`
-- **Dipende da**: `client`, `access_key_owner` (da [integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py)).
+- **Dipende da**: `client`, `access_key_owner` (da `projects/mistral/backend/tests/integration/conftest.py`).
 - **Cosa fa**: `POST /access-key` con `{"lifetime_seconds": 3600}`; asserisce `200`, presenza di `key` e di `expiration` non nullo; ritorna `(access_key_owner.headers, key)`.
 - **Usata da**: `test_access_key_api.py::test_06_validate_expired_access_key`.
 - **Effetti collaterali**: crea la chiave dell'utente temporaneo; revoca e cancellazione avvengono nel teardown di `access_key_owner`.

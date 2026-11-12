@@ -5,7 +5,7 @@
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/dataset/test_dataset_visibility.py](projects/mistral/backend/tests/integration/dataset/test_dataset_visibility.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/dataset/test_dataset_visibility.py`
 - **Scopo**: verificare lista e dettaglio pubblici senza autenticazione, oltre al `404` per un identificatore inesistente.
 - **Marker**: `integration`, `deterministic`.
 - **Numero di test**: 1.
@@ -24,9 +24,12 @@ Arrange:
 Act e assert:
 
 1. `GET /api/datasets` anonimo restituisce `200` e una lista;
-2. la lista contiene esattamente l'`arkimet_id` sintetico con `is_public is True`;
+2. la lista contiene (verifica con `any(...)`) l'`arkimet_id` sintetico con `is_public is True`;
 3. `GET /api/datasets/<arkimet_id>` restituisce `200` e un oggetto;
 4. un identificatore casuale inesistente restituisce `404`.
+
+- **Cosa non dimostra**: che il catalogo anonimo sia vuoto o composto solo dal seed; l'assert cerca il solo bundle sintetico.
+- **Se fallisce, guarda**: l'autenticazione opzionale degli endpoint e il ramo anonimo (`user=None`) di `get_datasets`. Il cleanup rimuove solo il bundle del test.
 
 Il test non seleziona piu il primo dataset del runtime e non usa
 `pytest.skip`: il target pubblico viene sempre preparato dal test.

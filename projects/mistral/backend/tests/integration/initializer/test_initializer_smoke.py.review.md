@@ -1,12 +1,12 @@
 # Review — `test_initializer_smoke.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 > Modulo: smoke deterministico su `mistral.initialization.Initializer`, superficie finora coperta solo indirettamente dallo startup.
-> **Aggiornamento**: i limiti segnalati in §6 e §8 (fake permissivi, assenza di prima creazione/idempotenza reale/aggiornamento per campo, solo ramo cron "esistente") sono coperti su DB reale da [test_initializer_seed.py](./test_initializer_seed.py) — vedi [test_initializer_seed.py.review.md](./test_initializer_seed.py.review.md).
+> **Aggiornamento**: i limiti segnalati in §6 e §8 (fake permissivi, assenza di prima creazione/idempotenza reale/aggiornamento per campo, solo ramo cron "esistente") sono coperti su DB reale da `projects/mistral/backend/tests/integration/initializer/test_initializer_seed.py` — vedi [test_initializer_seed.py.review.md](./test_initializer_seed.py.review.md).
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/initializer/test_initializer_smoke.py](projects/mistral/backend/tests/integration/initializer/test_initializer_smoke.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/initializer/test_initializer_smoke.py`
 - **Scopo**: proteggere invarianti **sostenibili** dell'initializer senza replicarne il seeding: (a) importabilità del modulo senza side effect, (b) importabilità strutturale delle revisioni Alembic, (c) **nessuna creazione duplicata** quando le righe esistono già + **ricreazione** del cron `requests_cleanup`.
 - **Tipologia**: smoke **deterministico** con **fake totali** (SQLAlchemy/Celery/Arkimet) e import-only delle migrazioni. **Nessun** DB/Celery/Arkimet reale, **nessun** dato meteo. Marker: `integration`, `deterministic` (**non** `runtime_sensitive`).
 - **Numero di test**: 3, nella classe `TestInitializerSmoke`.
@@ -15,10 +15,10 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `Initializer.__init__` | [initialization.py](projects/mistral/backend/initialization.py#L7) | Seed idempotente di `GroupLicense`/`License`/`Attribution`/`Datasets` + ricreazione cron `requests_cleanup`. **Esercitato solo via fake** nel test 3. |
-| Seed `GroupLicense`/`License`/`Attribution` | [initialization.py](projects/mistral/backend/initialization.py#L11) | Per ogni voce: `filter_by(name=...).first()` → se `None` crea, altrimenti aggiorna solo su differenza. 2 `commit()` complessivi (gruppi; licenze+attribution). |
-| Seed `Datasets` | [initialization.py](projects/mistral/backend/initialization.py#L296) | `arki.load_datasets()` → per ogni ds `filter_by(arkimet_id=...).first()`; update solo su differenza. 3° `commit()`. |
-| Cron `requests_cleanup` | [initialization.py](projects/mistral/backend/initialization.py#L347) | `get_periodic_task` → se presente `delete_periodic_task` → `create_crontab_task(task="automatic_cleanup", hour=3, minute=45, args=[])`. |
+| `Initializer.__init__` | `projects/mistral/backend/initialization.py` | Seed idempotente di `GroupLicense`/`License`/`Attribution`/`Datasets` + ricreazione cron `requests_cleanup`. **Esercitato solo via fake** nel test 3. |
+| Seed `GroupLicense`/`License`/`Attribution` | `projects/mistral/backend/initialization.py` | Per ogni voce: `filter_by(name=...).first()` → se `None` crea, altrimenti aggiorna solo su differenza. 2 `commit()` complessivi (gruppi; licenze+attribution). |
+| Seed `Datasets` | `projects/mistral/backend/initialization.py` | `arki.load_datasets()` → per ogni ds `filter_by(arkimet_id=...).first()`; update solo su differenza. 3° `commit()`. |
+| Cron `requests_cleanup` | `projects/mistral/backend/initialization.py` | `get_periodic_task` → se presente `delete_periodic_task` → `create_crontab_task(task="automatic_cleanup", hour=3, minute=45, args=[])`. |
 | Revisioni Alembic | `migrations/versions/*.py` | Importate come moduli isolati; **mai** eseguite (`upgrade`/`downgrade` solo verificate come callable). |
 
 ## 3. Mappa delle dipendenze
@@ -45,6 +45,8 @@
 - **Setup**: nessuno.
 - **Assert**: presenza dell'attributo `Initializer`.
 - **Casi coperti**: smoke di import. **⚠️ Può "passare in modo banale"**: l'asserzione è un semplice `hasattr`; il valore aggiunto è solo verificare che l'import non colleghi DB/Celery/Arkimet (assenza di side effect a import time), ma ciò **non è asserito esplicitamente** — è garantito solo dal fatto che il modulo non esegue logica a livello top.
+- **Cosa non dimostra**: l'assenza di ogni effetto all'import, perché non intercetta connessioni; non istanzia `Initializer`.
+- **Se fallisce, guarda**: il wiring e gli import di `projects/mistral/backend/initialization.py`; non scambiarlo per una prova del costruttore.
 
 ### `test_migration_versions_import_without_running_upgrade`
 - **Obiettivo**: ogni revisione Alembic è importabile e strutturalmente valida, senza toccare il DB.
@@ -53,6 +55,8 @@
 - **Setup**: nessun fake; usa il filesystem reale del backend.
 - **Assert**: lista non vuota; `revision` **univoche**; ogni `revision` è stringa non vuota; `upgrade`/`downgrade` presenti e **callable**; almeno una `down_revision is None` (base); almeno una revision **non** referenziata come `down_revision` (head).
 - **Casi coperti**: integrità strutturale della catena migrazioni. **Non** verifica la correttezza dello schema né esegue le migrazioni (delegate al runtime Alembic/CI). Non banale (asserzioni reali), ma puramente **strutturale**.
+- **Cosa non dimostra**: che le migrazioni siano applicabili, né la validità dello schema o dell'intero grafo delle revisioni (verifica solo l'esistenza di almeno una root e di almeno una head).
+- **Se fallisce, guarda**: l'import e i metadata (`revision`/`down_revision`) delle singole revisioni; gli errori ORM a runtime richiedono un'altra prova.
 
 ### `test_initializer_recreates_cleanup_cron_without_duplicate_seed`
 - **Obiettivo**: con righe già presenti, l'initializer **non crea duplicati** e **reinstalla** il cron cleanup.
@@ -67,6 +71,8 @@
   - `fake_celery.deleted_tasks == ["requests_cleanup"]`;
   - `fake_celery.created_crontab_tasks == [{name, task="automatic_cleanup", hour="3", minute="45", args=[]}]`.
 - **Casi coperti**: idempotenza del seed (nessun duplicato/aggiornamento spurio) + sequenza esatta di ricreazione del cron. **Doppia guardia** contro le creazioni: oltre a `added == []`, il costruttore dei model fake (`_NoDuplicateModel`) **solleverebbe `AssertionError`** se l'initializer provasse a istanziare una riga.
+- **Cosa non dimostra**: una vera idempotenza SQL: le uguaglianze del fake evitano gli update per costruzione.
+- **Se fallisce, guarda**: il wiring del costruttore e del cron; la prova sullo stato reale del DB è in [test_initializer_seed.py.review.md](test_initializer_seed.py.review.md).
 
 ## 5. Call chain
 

@@ -1,10 +1,10 @@
 # Review — `test_usage_and_hourly.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/user_limits/test_usage_and_hourly.py](projects/mistral/backend/tests/integration/user_limits/test_usage_and_hourly.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/user_limits/test_usage_and_hourly.py`
 - **Scopo**: verificare `GET /api/usage` (quota disco + uso reale misurato con `du`) e `GET /api/hourly` (richieste residue nell'ora corrente), inclusi i bordi auth, directory assente, file presente, profilo senza limite orario e conteggio nella finestra dell'ora.
 - **Tipologia**: test di **integrazione HTTP** con **DB reale** (mutazione diretta dei campi quota e seeding di righe `Request`) e **filesystem reale** sotto `/data/<uuid>`. Marker: `integration`, `deterministic`.
 - **Builder locali**: il modulo **non** ha un `support.py` dedicato; definisce in-line i propri builder e un `datetime` fisso (vedi §3).
@@ -14,13 +14,13 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `Usage.get` | [endpoints/usage.py](projects/mistral/backend/endpoints/usage.py) | `GET /api/usage` — `used=0` se `/data/<uuid>` non è dir; altrimenti `du -sb`; ritorna `{"quota": user.disk_quota, "used": used}`. |
-| `HourlyReport.get` | [endpoints/request_hourly_report.py](projects/mistral/backend/endpoints/request_hourly_report.py) | `GET /api/hourly` — `{}` se `user.request_par_hour` è **falsy**; altrimenti conta le `Request` dell'utente con `last_hour < submission_date < now`. |
-| Check `if user.request_par_hour` | [endpoints/request_hourly_report.py](projects/mistral/backend/endpoints/request_hourly_report.py) | **Truthy check**: `None` e `0` producono entrambi `{}` (indistinguibili). |
-| Finestra temporale hourly | [endpoints/request_hourly_report.py](projects/mistral/backend/endpoints/request_hourly_report.py) | `now = datetime.datetime.utcnow()`, `last_hour = now.replace(minute=0, second=0, microsecond=0)`; filtri **stretti** `>` e `<`. |
-| `User.disk_quota` | [models/sqlalchemy.py#L11](projects/mistral/backend/models/sqlalchemy.py#L11) | BigInteger, default 1 GB. |
-| `User.request_par_hour` | [models/sqlalchemy.py#L32](projects/mistral/backend/models/sqlalchemy.py#L32) | Integer **nullable senza default**. |
-| Modello `Request` | [models/sqlalchemy.py#L36](projects/mistral/backend/models/sqlalchemy.py#L36) | `user_id`, `name` (NOT NULL), `args` (JSONB NOT NULL), `submission_date`, `status` — campi seedati direttamente. |
+| `Usage.get` | `projects/mistral/backend/endpoints/usage.py` | `GET /api/usage` — `used=0` se `/data/<uuid>` non è dir; altrimenti `du -sb`; ritorna `{"quota": user.disk_quota, "used": used}`. |
+| `HourlyReport.get` | `projects/mistral/backend/endpoints/request_hourly_report.py` | `GET /api/hourly` — `{}` se `user.request_par_hour` è **falsy**; altrimenti conta le `Request` dell'utente con `last_hour < submission_date < now`. |
+| Check `if user.request_par_hour` | `projects/mistral/backend/endpoints/request_hourly_report.py` | **Truthy check**: `None` e `0` producono entrambi `{}` (indistinguibili). |
+| Finestra temporale hourly | `projects/mistral/backend/endpoints/request_hourly_report.py` | `now = datetime.datetime.utcnow()`, `last_hour = now.replace(minute=0, second=0, microsecond=0)`; filtri **stretti** `>` e `<`. |
+| `User.disk_quota` | `projects/mistral/backend/models/sqlalchemy.py` | BigInteger, default 1 GB. |
+| `User.request_par_hour` | `projects/mistral/backend/models/sqlalchemy.py` | Integer **nullable senza default**. |
+| Modello `Request` | `projects/mistral/backend/models/sqlalchemy.py` | `user_id`, `name` (NOT NULL), `args` (JSONB NOT NULL), `submission_date`, `status` — campi seedati direttamente. |
 
 ## 3. Builder locali e fixture
 
@@ -34,10 +34,10 @@
 | `delete_hourly_request` | cleanup DB | Rimozione **idempotente** della `Request` (no-op se già assente). |
 | `FixedHourlyDateTime` | fake | Sottoclasse di `datetime` con `utcnow()` fisso a **2026-05-29 10:30:00** (lontano dai bordi dell'ora). |
 | `client` | fixture | `FlaskClient` (`restapi.tests`). |
-| `cleanup_registry` | fixture | Teardown **LIFO** ([tests/conftest.py#L59](projects/mistral/backend/tests/conftest.py#L59)). |
+| `cleanup_registry` | fixture | Teardown **LIFO** (`projects/mistral/backend/tests/conftest.py`). |
 | `monkeypatch` | fixture | Sostituisce il solo nome `datetime` del modulo endpoint hourly (vedi §6). |
 
-> Helper di auth riusati: `create_authenticated_test_user`, `register_test_user_cleanup`, `AuthenticatedTestUser` da [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py).
+> Helper di auth riusati: `create_authenticated_test_user`, `register_test_user_cleanup`, `AuthenticatedTestUser` da `projects/mistral/backend/tests/helpers/auth.py`.
 
 ## 4. Analisi dettagliata di ogni test
 

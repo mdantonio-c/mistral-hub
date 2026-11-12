@@ -1,10 +1,10 @@
 # Review — `test_access_key_service.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/services/test_access_key_service.py](projects/mistral/backend/tests/integration/services/test_access_key_service.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/services/test_access_key_service.py`
 - **Scopo**: verificare in modo deterministico la logica di `AccessKey.generate` (token + scadenza default vs `lifetime_seconds=None`), `AccessKey.is_valid` (stati di scadenza assente/futura/passata) e l'helper di service `is_access_key_valid` (record assente, scaduto, chiave errata).
 - **Tipologia**: **unit / pure-function**, nonostante il marker. I test costruiscono istanze `AccessKey` **in memoria, non persistite** e invocano direttamente metodi del modello e una funzione di service; **nessun** `client` HTTP, **nessuna** sessione DB, **nessuna** `request` Flask. Marker dichiarati: `integration`, `deterministic` (vedi §6 per la discrepanza marker↔natura reale).
 
@@ -12,21 +12,21 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `AccessKey.generate` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L192) | `@staticmethod` che crea (senza salvare) un'istanza `AccessKey` con `key=secrets.token_urlsafe(32)`, `creation=datetime.utcnow()` (**naive**), `expiration=now+lifetime` oppure `None`, `scope="read:arco"`. |
-| `AccessKey.is_valid` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L186) | Metodo del modello: `expiration is None` → `True`; altrimenti `return self.expiration > now` con `now = datetime.utcnow()` (**naive**, confronto stretto `>`). |
-| `is_access_key_valid` | [services/access_key_service.py](projects/mistral/backend/services/access_key_service.py#L10) | Helper di service: `if not key_record: return False`; se `expiration` non `None` confronta con `datetime.now(timezone.utc)` (**aware**, `expiration < now` → scaduta); poi `return key_record.key == provided_key`. |
-| Modello `AccessKey` (colonne) | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L167) | `key` unique/index, `creation` non null, `expiration` nullable tz-aware, `scope` default `read:arco`, `user_id` FK unique. Le istanze del test **non** vengono aggiunte alla sessione. |
+| `AccessKey.generate` | `projects/mistral/backend/models/sqlalchemy.py` | `@staticmethod` che crea (senza salvare) un'istanza `AccessKey` con `key=secrets.token_urlsafe(32)`, `creation=datetime.utcnow()` (**naive**), `expiration=now+lifetime` oppure `None`, `scope="read:arco"`. |
+| `AccessKey.is_valid` | `projects/mistral/backend/models/sqlalchemy.py` | Metodo del modello: `expiration is None` → `True`; altrimenti `return self.expiration > now` con `now = datetime.utcnow()` (**naive**, confronto stretto `>`). |
+| `is_access_key_valid` | `projects/mistral/backend/services/access_key_service.py` | Helper di service: `if not key_record: return False`; se `expiration` non `None` confronta con `datetime.now(timezone.utc)` (**aware**, `expiration < now` → scaduta); poi `return key_record.key == provided_key`. |
+| Modello `AccessKey` (colonne) | `projects/mistral/backend/models/sqlalchemy.py` | `key` unique/index, `creation` non null, `expiration` nullable tz-aware, `scope` default `read:arco`, `user_id` FK unique. Le istanze del test **non** vengono aggiunte alla sessione. |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
-| `AccessKey` | modello | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L167) | Istanziato in memoria; nessun INSERT, nessun commit. |
-| `is_access_key_valid` | funzione | [services/access_key_service.py](projects/mistral/backend/services/access_key_service.py#L10) | Funzione pura sul record passato: non interroga il DB, non legge la `request`. |
+| `AccessKey` | modello | `projects/mistral/backend/models/sqlalchemy.py` | Istanziato in memoria; nessun INSERT, nessun commit. |
+| `is_access_key_valid` | funzione | `projects/mistral/backend/services/access_key_service.py` | Funzione pura sul record passato: non interroga il DB, non legge la `request`. |
 | `datetime` / `timedelta` / `timezone` | stdlib | `datetime` | Costruzione degli stati di scadenza; il test sceglie **naive** per il modello e **aware** per il service (vedi §6). |
-| `pytest.mark.integration` / `deterministic` | marker | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L13) | Solo classificazione; nessun effetto runtime qui. |
+| `pytest.mark.integration` / `deterministic` | marker | `projects/mistral/backend/tests/conftest.py` | Solo classificazione; nessun effetto runtime qui. |
 
-> **Nota infra**: in `tests/integration/services/` **non** esiste `conftest.py`/`support` locale. Le fixture condivise ([`test_runtime`/`cleanup_registry`](projects/mistral/backend/tests/conftest.py#L49), [`auth_headers`/`fresh_access_key`](projects/mistral/backend/tests/integration/conftest.py)) **non sono autouse e non vengono richieste**: questo file non dipende da alcuna fixture.
+> **Nota infra**: in `tests/integration/services/` **non** esiste `conftest.py`/`support` locale. Le fixture condivise (`test_runtime`/`cleanup_registry` (`projects/mistral/backend/tests/conftest.py`), `auth_headers`/`fresh_access_key` (`projects/mistral/backend/tests/integration/conftest.py`)) **non sono autouse e non vengono richieste**: questo file non dipende da alcuna fixture.
 
 ## 4. Analisi dettagliata di ogni test
 
@@ -39,6 +39,8 @@
   - default: `user_id == 42`, `key` truthy, `creation is not None`, `expiration is not None`, `expiration > creation`, `scope == "read:arco"`.
   - null: `user_id == 42`, `key` truthy, `expiration is None`, `scope == "read:arco"`.
 - **Casi coperti**: happy path + edge (scadenza disattivata). Non verifica `ip`/`location` (parametri accettati ma **mai usati** dal metodo — vedi §6).
+- **Cosa non dimostra**: la durata esatta di 3600 s (l'assert è solo `expiration > creation`), l'unicità del token e la persistenza della chiave.
+- **Se fallisce, guarda**: `AccessKey.generate` in `projects/mistral/backend/models/sqlalchemy.py`. Il POST di `projects/mistral/backend/endpoints/access_key.py` passa di default `lifetime_seconds=None`, cioè chiave **senza scadenza**: il default 3600 di `generate` non vale per le chiavi emesse via HTTP.
 
 ### `test_access_key_model_is_valid_handles_expiration_states`
 - **Obiettivo**: `AccessKey.is_valid()` deve distinguere scadenza assente / futura / passata.
@@ -47,6 +49,8 @@
 - **Setup**: nessuna fixture; `now = datetime.utcnow()`.
 - **Assert**: `without_expiration.is_valid() is True`, `future_expiration.is_valid() is True`, `past_expiration.is_valid() is False`.
 - **Casi coperti**: i tre rami di `is_valid`. Non copre il bordo esatto `expiration == now` (con `>` stretto risulterebbe non valida — non testato).
+- **Cosa non dimostra**: il comportamento con datetime timezone-aware (il modello confronta con `utcnow()` naive).
+- **Se fallisce, guarda**: il confronto `>` naive di `AccessKey.is_valid` e la sua differenza dal controllo aware del service; non uniformare i dati del test senza decidere quale dei due contratti cambia.
 
 ### `test_access_key_service_rejects_wrong_key`
 - **Obiettivo**: `is_access_key_valid` deve rifiutare una chiave che non combacia.
@@ -55,6 +59,8 @@
 - **Setup**: nessuna fixture; `creation=datetime.utcnow()`.
 - **Assert**: `is_access_key_valid(key_record, "wrong-service-key-ext") is False`.
 - **Casi coperti**: error path (mismatch token). Con `expiration=None` il controllo di scadenza è saltato.
+- **Cosa non dimostra**: il lookup del record per utente (`access_key_get_by_user`) e il parsing BasicAuth della richiesta (`validate_access_key_from_request`).
+- **Se fallisce, guarda**: il confronto finale in `is_access_key_valid`; per il wiring con la richiesta HTTP usa i test degli endpoint access key.
 
 ### `test_access_key_service_handles_missing_and_expired_records`
 - **Obiettivo**: `is_access_key_valid` deve rifiutare sia il record assente sia quello scaduto.
@@ -63,6 +69,8 @@
 - **Setup**: nessuna fixture.
 - **Assert**: `is_access_key_valid(None, "whatever") is False` **e** `is_access_key_valid(expired_key, "expired-service-key-ext") is False`.
 - **Casi coperti**: due error path nello stesso test (assenza record + scadenza passata). La chiave fornita combacia col token, quindi il `False` deriva **solo** dalla scadenza.
+- **Cosa non dimostra**: il caso di successo con scadenza futura aware e il limite esatto `expiration == now`.
+- **Se fallisce, guarda**: l'ordine dei controlli in `is_access_key_valid` (record, scadenza, token) e la timezone del `now` aware; non mescolarli con le aspettative naive del modello.
 
 ## 5. Call chain
 

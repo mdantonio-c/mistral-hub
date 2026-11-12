@@ -4,9 +4,9 @@
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/helpers/real_workers.py](projects/mistral/backend/tests/helpers/real_workers.py)
+- **Percorso**: `projects/mistral/backend/tests/helpers/real_workers.py`
 - **Scopo**: tenere nel proprio perimetro i test i cui task girano sui worker Celery reali. Nei worker `monkeypatch` non ha effetto: tutto ciò che il task fa avviene davvero.
-- **Tipologia**: infrastruttura di suite, usata dai cinque test `async_real`, dall'hook di [tests/conftest.py](projects/mistral/backend/tests/conftest.py) e da `integration/data/test_real_worker_cleanup.py`.
+- **Tipologia**: infrastruttura di suite, usata dai cinque test `async_real`, dall'hook di `projects/mistral/backend/tests/conftest.py` e da `integration/data/test_real_worker_cleanup.py`.
 
 ## 2. Elementi definiti
 

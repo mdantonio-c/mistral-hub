@@ -1,42 +1,43 @@
 # Review — `test_dballe_query_parsing.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/services/test_dballe_query_parsing.py](projects/mistral/backend/tests/integration/services/test_dballe_query_parsing.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/services/test_dballe_query_parsing.py`
 - **Scopo**: verificare i parser di query/filtri del service DB-All.e — da stringa a dict (`from_query_to_dic`), da filtri/query a liste ordinate di campi DB-All.e (`from_filters_to_lists`, `from_query_to_lists`), traduzione per le mappe (`parse_query_for_maps`), parsing per l'estrazione observed con validazione delle reti (`parse_query_for_data_extraction`), routing del DSN aggregazioni pluvio (`is_query_for_pluvio_aggregations`) ed espansione itertools delle combinazioni multi-valore (`get_queries_and_dsn_list_with_itertools`).
 - **Tipologia**: **unit / service-level**, nonostante il marker. I metodi sono trasformazioni Python deterministiche: **non** aprono DB-All.e, **non** leggono summary JSON, **non** interrogano dataset reali. Quattro test usano `monkeypatch` per sostituire **solo** la mappa dataset→reti e il DSN aggregazioni (contratti dipendenti dalla config runtime), restando comunque locali. Marker dichiarati: `integration`, `deterministic` (vedi §6 per la discrepanza marker↔natura reale).
+- **Ambiente**: `projects/mistral/backend/services/dballe.py` importa a livello di modulo i binding nativi `arkimet`, `dballe` e `wreport`, quindi il file gira solo nell'ambiente backend.
 
 ## 2. Backend realmente testato
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `BeDballe.from_query_to_dic` | [services/dballe.py](projects/mistral/backend/services/dballe.py#L2283) | Stringa query → dict; `reftime` parsato in `datetimemin`/`datetimemax`, `license` scalare, gli altri param → liste via split `" or "`. |
-| `BeDballe.from_filters_to_lists` | [services/dballe.py](projects/mistral/backend/services/dballe.py#L2476) | Dict di filtri `{code}` → `(fields, queries)`; rinomina `network→rep_memo`, `product→var`, `timerange→trange`; `level`/`timerange` → tuple; chiavi non ammesse **saltate**. |
-| `BeDballe.from_query_to_lists` | [services/dballe.py](projects/mistral/backend/services/dballe.py#L2510) | Dict query già parsato → `(fields, queries)` mantenendo ordine; `level`/`timerange` → tuple, `datetimemin`/`max` → `[value]`. |
-| `BeDballe.parse_query_for_maps` | [services/dballe.py](projects/mistral/backend/services/dballe.py#L2419) | Query API → dict con nomi cursore DB-All.e; `timerange`/`level` → tuple, `latmin`/… passthrough. |
-| `BeDballe.parse_query_for_data_extraction` | [services/dballe.py](projects/mistral/backend/services/dballe.py#L2615) | Costruisce `(fields, queries)` per l'estrazione observed; valida che le reti richieste siano nel dataset, altrimenti `InvalidFiltersException`; aggiunge reftime. |
-| `BeDballe.parse_data_extraction_reftime` | [services/dballe.py](projects/mistral/backend/services/dballe.py#L2575) | `from`/`to` → datetime **naive** (`replace(tzinfo=None)`). |
-| `BeDballe.is_query_for_pluvio_aggregations` | [services/dballe.py](projects/mistral/backend/services/dballe.py#L2985) | `product[0]=="B13011"` + `timerange` con `p2` multiplo orario di 3600 (1..24) → `AGGREGATIONS_DSN`, altrimenti `None`. |
-| `BeDballe.get_queries_and_dsn_list_with_itertools` | [services/dballe.py](projects/mistral/backend/services/dballe.py#L3005) | Separa param singoli/multipli; `itertools.product` sui multipli → lista di `{query, aggregations_dsn}`. |
-| `arki_service.get_observed_dataset_params` | [services/dballe.py](projects/mistral/backend/services/dballe.py#L22) (alias di `BeArkimet`) | Mappa dataset→reti; **monkeypatchata** nei test di estrazione. |
-| `BeDballe.AGGREGATIONS_DSN` | [services/dballe.py](projects/mistral/backend/services/dballe.py#L35) | `Env.get("AGGREGATIONS_DSN", "")`; **monkeypatchato** nei test di aggregazione. |
-| `InvalidFiltersException` | [exceptions.py](projects/mistral/backend/exceptions.py) | Sollevata quando una rete richiesta non è nel dataset. |
+| `BeDballe.from_query_to_dic` | `projects/mistral/backend/services/dballe.py` | Stringa query → dict; `reftime` parsato in `datetimemin`/`datetimemax`, `license` scalare, gli altri param → liste via split `" or "`. |
+| `BeDballe.from_filters_to_lists` | `projects/mistral/backend/services/dballe.py` | Dict di filtri `{code}` → `(fields, queries)`; rinomina `network→rep_memo`, `product→var`, `timerange→trange`; `level`/`timerange` → tuple; chiavi non ammesse **saltate**. |
+| `BeDballe.from_query_to_lists` | `projects/mistral/backend/services/dballe.py` | Dict query già parsato → `(fields, queries)` mantenendo ordine; `level`/`timerange` → tuple, `datetimemin`/`max` → `[value]`. |
+| `BeDballe.parse_query_for_maps` | `projects/mistral/backend/services/dballe.py` | Query API → dict con nomi cursore DB-All.e; `timerange`/`level` → tuple, `latmin`/… passthrough. |
+| `BeDballe.parse_query_for_data_extraction` | `projects/mistral/backend/services/dballe.py` | Costruisce `(fields, queries)` per l'estrazione observed; valida che le reti richieste siano nel dataset, altrimenti `InvalidFiltersException`; aggiunge reftime. |
+| `BeDballe.parse_data_extraction_reftime` | `projects/mistral/backend/services/dballe.py` | `from`/`to` → datetime **naive** (`replace(tzinfo=None)`). |
+| `BeDballe.is_query_for_pluvio_aggregations` | `projects/mistral/backend/services/dballe.py` | `product[0]=="B13011"` + `timerange` con `p2` multiplo orario di 3600 (1..24) → `AGGREGATIONS_DSN`, altrimenti `None`. |
+| `BeDballe.get_queries_and_dsn_list_with_itertools` | `projects/mistral/backend/services/dballe.py` | Separa param singoli/multipli; `itertools.product` sui multipli → lista di `{query, aggregations_dsn}`. |
+| `arki_service.get_observed_dataset_params` | `projects/mistral/backend/services/dballe.py` (alias di `BeArkimet`) | Mappa dataset→reti; **monkeypatchata** nei test di estrazione. |
+| `BeDballe.AGGREGATIONS_DSN` | `projects/mistral/backend/services/dballe.py` | `Env.get("AGGREGATIONS_DSN", "")`; **monkeypatchato** nei test di aggregazione. |
+| `InvalidFiltersException` | `projects/mistral/backend/exceptions.py` | Sollevata quando una rete richiesta non è nel dataset. |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
-| `BeDballe` | classe service | [services/dballe.py](projects/mistral/backend/services/dballe.py) | Solo metodi statici di parsing esercitati; nessuna connessione DB-All.e. |
-| `dballe_service.arki_service` | alias | [services/dballe.py](projects/mistral/backend/services/dballe.py#L22) | `BeArkimet as arki_service`; `get_observed_dataset_params` sostituito via `monkeypatch.setattr`. |
+| `BeDballe` | classe service | `projects/mistral/backend/services/dballe.py` | Solo metodi statici di parsing esercitati; nessuna connessione DB-All.e. |
+| `dballe_service.arki_service` | alias | `projects/mistral/backend/services/dballe.py` | `BeArkimet as arki_service`; `get_observed_dataset_params` sostituito via `monkeypatch.setattr`. |
 | `monkeypatch` | fixture | `pytest` (built-in) | Usata in 4/8 test; ripristino automatico a fine test (nessun cleanup manuale). |
-| `InvalidFiltersException` | eccezione | [exceptions.py](projects/mistral/backend/exceptions.py) | Atteso in `pytest.raises` nel test di rete fuori dataset. |
+| `InvalidFiltersException` | eccezione | `projects/mistral/backend/exceptions.py` | Atteso in `pytest.raises` nel test di rete fuori dataset. |
 | `itertools.product` | stdlib | `itertools` (in `dballe.py`) | Espansione combinazioni multi-valore. |
 | `datetime` (`dt`) | stdlib | `datetime` | Confronto esatto dei `datetime` parsati (naive). |
-| `pytest.mark.integration` / `deterministic` | marker | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L13) | Solo classificazione. |
+| `pytest.mark.integration` / `deterministic` | marker | `projects/mistral/backend/tests/conftest.py` | Solo classificazione. |
 
-> **Nota infra**: nessun `conftest.py`/`support` locale in `integration/services/`. L'unica fixture usata è la built-in `monkeypatch`; le fixture condivise ([`test_runtime`/`cleanup_registry`](projects/mistral/backend/tests/conftest.py#L49)) non sono autouse e non vengono richieste.
+> **Nota infra**: nessun `conftest.py`/`support` locale in `integration/services/`. L'unica fixture usata è la built-in `monkeypatch`; le fixture condivise (`test_runtime`/`cleanup_registry` (`projects/mistral/backend/tests/conftest.py`)) non sono autouse e non vengono richieste.
 
 ## 4. Analisi dettagliata di ogni test
 
@@ -49,6 +50,8 @@
 - **Setup**: nessun monkeypatch; stringa sintetica.
 - **Assert**: `datetimemin`/`datetimemax` = `dt.datetime` esatti; `level`/`product`/`timerange`/`network` = liste (split `" or "`); `license == "public"` (scalare, **non** lista).
 - **Casi coperti**: happy path parsing. `reftime` → `datetimemin`/`max`; gli altri param via `params_list`.
+- **Cosa non dimostra**: una grammatica arbitraria della stringa `q` né l'esecuzione della query.
+- **Se fallisce, guarda**: split e operatori di `from_query_to_dic`, poi i chiamanti `projects/mistral/backend/endpoints/maps_observed.py` e `projects/mistral/backend/endpoints/fields.py`.
 
 ### `test_from_filters_to_lists_maps_frontend_codes_to_dballe_fields`
 - **Obiettivo**: dict di filtri `{code}` → fields ordinati + liste valori; conferma che i filtri non ammessi vengono saltati.
@@ -57,6 +60,8 @@
 - **Setup**: dict letterale (l'ordine determina l'ordine dei `fields`).
 - **Assert**: `fields == ["level", "rep_memo", "var", "trange"]` (chiave `ignored` **assente**); `queries == [[(1,None,None,None)], ["agrmet"], ["B13011"], [(1,0,3600)]]`.
 - **Casi coperti**: rinomina campi, conversione tuple, skip filtri ignoti. Nota: in `level` lo `"0"` → `None`; in `timerange` lo `0` resta `0` (asimmetria, §6).
+- **Cosa non dimostra**: dati DB-All.e nativi o filtri malformati.
+- **Se fallisce, guarda**: il mapping dei nomi e la conversione in tuple di `from_filters_to_lists`, incluso l'ordine dei campi.
 
 ### `test_from_query_to_lists_maps_query_dictionary_to_dballe_lists`
 - **Obiettivo**: dict query già parsato → liste mantenendo ordine e conversioni tuple.
@@ -65,6 +70,8 @@
 - **Setup**: nessun monkeypatch.
 - **Assert**: `fields == ["rep_memo", "trange", "level", "datetimemin"]`; `queries == [["agrmet","fidupo"], [(1,0,3600)], [(1,None,None,None)], [datetimemin]]` (il `datetime` incapsulato in lista).
 - **Casi coperti**: happy path; `datetimemin` → `[value]`, niente accesso a summary DB-All.e.
+- **Cosa non dimostra**: combinazioni cartesiane o lookup delle reti del dataset.
+- **Se fallisce, guarda**: `allowed_keys`/`dballe_keys` di `from_query_to_lists` e la normalizzazione dei valori.
 
 ### `test_parse_query_for_maps_translates_api_names_to_dballe_names`
 - **Obiettivo**: parametri query mappe → nomi campo cursore DB-All.e.
@@ -73,6 +80,8 @@
 - **Setup**: nessun monkeypatch.
 - **Assert**: dict esatto `{rep_memo:"agrmet", var:"B13011", trange:(1,0,3600), level:(1,None,None,None), datetimemin:dt, latmin:44.0}` (`latmin` passa come `allowed_key`).
 - **Casi coperti**: traduzione nomi + tuple per `timerange`/`level` + passthrough chiavi ammesse. (Vedi §6 per la precedenza `or`/`and` su `level`.)
+- **Cosa non dimostra**: le query multi-valore: per le liste il parser prende solo `value[0]`, quindi un secondo valore viene scartato in silenzio. Non copre nemmeno tutte le precedenze delle condizioni.
+- **Se fallisce, guarda**: il mapping dei nomi e la selezione del primo elemento in `parse_query_for_maps`; è usato anche internamente da `projects/mistral/backend/services/dballe.py` e da `projects/mistral/backend/endpoints/maps_observed.py`.
 
 ### `test_parse_query_for_data_extraction_uses_dataset_networks_and_reftime` — **monkeypatch**
 - **Obiettivo**: parsing estrazione observed con mappa dataset→reti fittizia (ramo positivo).
@@ -81,6 +90,8 @@
 - **Setup**: `monkeypatch.setattr(dballe_service.arki_service, "get_observed_dataset_params", fake)`.
 - **Assert**: `fields == ["rep_memo","var","datetimemin","datetimemax"]`; `queries == [["agrmet"],["B13011"],[2020-04-06 00:00],[2020-04-06 02:00]]` (reftime **naive**). `agrmet ⊆ {agrmet,urbane}` → nessuna eccezione; poiché `rep_memo` è già nei fields, le reti del dataset **non** vengono aggiunte.
 - **Casi coperti**: happy path estrazione + validazione reti superata + reftime appeso.
+- **Cosa non dimostra**: la configurazione reale delle reti (è simulata) né l'accesso all'archivio.
+- **Se fallisce, guarda**: la validazione del sottoinsieme di reti e `parse_data_extraction_reftime`; i chiamanti sono `projects/mistral/backend/endpoints/data.py` e `projects/mistral/backend/tasks/data_extraction.py`.
 
 ### `test_parse_query_for_data_extraction_rejects_network_outside_dataset` — **monkeypatch**
 - **Obiettivo**: rifiutare una rete non dichiarata dal dataset.
@@ -89,6 +100,8 @@
 - **Setup**: `monkeypatch.setattr(... get_observed_dataset_params ...)`.
 - **Assert**: `pytest.raises(InvalidFiltersException)`.
 - **Casi coperti**: error path validazione reti. Nessun reftime (ramo `reftime` saltato).
+- **Cosa non dimostra**: permessi utente o risposta HTTP.
+- **Se fallisce, guarda**: le reti lette dalla configurazione del dataset e il mapping `network` → `rep_memo`.
 
 ### `test_is_query_for_pluvio_aggregations_selects_configured_dsn` — **monkeypatch**
 - **Obiettivo**: instradare i timerange orari di `B13011` verso il DSN aggregazioni.
@@ -97,6 +110,8 @@
 - **Setup**: `monkeypatch.setattr(BeDballe, "AGGREGATIONS_DSN", "dballe-aggregations")`.
 - **Assert**: `aggregation_dsn == "dballe-aggregations"` (p2=3600 ∈ multipli orari) e `normal_dsn is None` (product ≠ B13011).
 - **Casi coperti**: selezione su product + `p2` orario. Non testa B13011 con `p2` non-orario (es. 1800).
+- **Cosa non dimostra**: la connessione al DSN né tutte le 24 durate orarie supportate.
+- **Se fallisce, guarda**: il confronto su prodotto e `p2`, non lo stato di PostgreSQL.
 
 ### `test_get_queries_and_dsn_list_with_itertools_expands_filter_combinations` — **monkeypatch**
 - **Obiettivo**: espandere i filtri multi-valore in query indipendenti, marcando solo la combinazione pluvio oraria.
@@ -105,6 +120,8 @@
 - **Setup**: `monkeypatch.setattr(BeDballe, "AGGREGATIONS_DSN", "dballe-aggregations")`.
 - **Assert**: lista di **4** dict `{query, aggregations_dsn}` nell'ordine `itertools.product(product, timerange)`; solo `B13011 + 1,0,3600` ha `aggregations_dsn == "dballe-aggregations"`, gli altri `None`; `network` resta `["agrmet"]` in ogni combinazione.
 - **Casi coperti**: prodotto cartesiano + routing DSN per combinazione. `network` (len 1) trattato come param singolo.
+- **Cosa non dimostra**: l'esecuzione delle query, risultati numerici o combinazioni con liste vuote.
+- **Se fallisce, guarda**: espansione e ordine delle combinazioni e il selettore del DSN; un cambio impatta anche le mappe observed di `projects/mistral/backend/endpoints/maps_observed.py`.
 
 ## 5. Call chain
 

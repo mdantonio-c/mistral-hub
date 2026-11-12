@@ -4,13 +4,13 @@
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/observed/conftest.py](projects/mistral/backend/tests/integration/observed/conftest.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/observed/conftest.py`
 - **Scopo**: esporre **una** scenario valido di dati osservati per ciascuna modalità backend supportata (`dballe`, `arkimet`, `mixed`), così che i test parametrizzati possano concentrarsi sulle asserzioni e non sulla scoperta dei dati.
-- **Tipologia**: `conftest.py` di dominio (solo fixture locali, visibili a `integration/observed/**`). Tutta la logica pesante è delegata a [observed/support.py](projects/mistral/backend/tests/integration/observed/support.py).
+- **Tipologia**: `conftest.py` di dominio (solo fixture locali, visibili a `integration/observed/**`). Tutta la logica pesante è delegata a `projects/mistral/backend/tests/integration/observed/support.py`.
 
 ## 2. Backend realmente esercitato
 
-Le fixture non testano direttamente: **scoprono** uno scenario interrogando il runtime reale (DBALLE live, Arkimet archive, DB SQLAlchemy) tramite `yield_observed_case` → `discover_observed_params` (vedi review di `support.py`). L'unico endpoint toccato in fase di scoperta è `GET /api/fields` ([endpoints/maps_observed.py](projects/mistral/backend/endpoints/maps_observed.py)); il `db_type` è classificato da `BeDballe.get_db_type` ([services/dballe.py](projects/mistral/backend/services/dballe.py#L117)).
+Le fixture non testano direttamente: **scoprono** uno scenario interrogando il runtime reale (DBALLE live, Arkimet archive, DB SQLAlchemy) tramite `yield_observed_case` → `discover_observed_params` (vedi review di `support.py`). L'unico endpoint toccato in fase di scoperta è `GET /api/fields` (`projects/mistral/backend/endpoints/maps_observed.py`); il `db_type` è classificato da `BeDballe.get_db_type` (`projects/mistral/backend/services/dballe.py`).
 
 ## 3. Elementi definiti
 
@@ -20,15 +20,20 @@ Le fixture non testano direttamente: **scoprono** uno scenario interrogando il r
 | `arkimet_observed_case` | function | `client`, `auth_headers`, `test_runtime` | `yield from yield_observed_case(..., "arkimet")` → `ObservedCase` su dati **archiviati** Arkimet. |
 | `mixed_observed_case` | function | `client`, `auth_headers`, `test_runtime` | `yield from yield_observed_case(..., "mixed")` → `ObservedCase` che **attraversa** entrambi i mondi. |
 
-- Tutte e tre usano `auth_headers` (utente **DEFAULT** condiviso, [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py)) e `test_runtime` (singleton di sessione, [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L49)).
+- Tutte e tre usano `auth_headers` (utente **DEFAULT** condiviso, `projects/mistral/backend/tests/integration/conftest.py`) e `test_runtime` (singleton di sessione, `projects/mistral/backend/tests/conftest.py`).
 - Le fixture **non** sono `autouse`: vengono attivate dai test tramite l'indirezione `pytest.mark.parametrize("case_fixture", ...)` + `request.getfixturevalue(case_fixture)` (vedi §4).
 
 ## 4. Comportamenti nascosti
 
 - **Indirezione `parametrize` + `getfixturevalue`**: i test parametrizzano sul **nome** della fixture (stringhe in `ALL_CASES`/`ARCHIVE_CASES`/`RECENT_CASES`) e la risolvono a runtime. Questo `conftest.py` definisce proprio le tre fixture richiamate per nome. La conseguenza pratica è che **lo `skip` o l'errore della fixture diventa lo `skip`/errore dell'istanza del test**.
-- **`yield from` + teardown via `override_attr`**: ogni fixture cede il `yield` di `yield_observed_case`, che può **patchare temporaneamente `BeDballe.LASTDAYS`** (per `dballe`/`mixed`) tramite `test_runtime.override_attr`. L'override è attivo **solo durante la vita della fixture** e ripristinato nel teardown; **non** avvolge l'esecuzione del corpo del test (importante: nei test, le richieste HTTP che richiedono quella finestra usano i propri override locali quando serve).
+- **`yield from` + teardown via `override_attr`**: ogni fixture cede il `yield` di `yield_observed_case`, che può **patchare temporaneamente `BeDballe.LASTDAYS`** (per `dballe`/`mixed`) tramite `test_runtime.override_attr`. Il `yield` avviene dentro il `with`, quindi l'override resta attivo **anche durante il corpo del test** e viene ripristinato al teardown della fixture; il teardown ripristina solo `LASTDAYS`, non tocca dati meteorologici.
 - **Skip silenzioso ereditato**: `discover_observed_params` fa `pytest.skip` se non trova un dataset osservato utilizzabile per quel `db_type`. Quindi **ogni** istanza parametrizzata che dipende da una di queste fixture è **silenziosamente saltabile** quando il runtime non ha dati osservati adeguati. È il principale rischio "verde per skip" del dominio.
-- **Dipendenza dall'utente DEFAULT**: gli scenari `arkimet`/`mixed` producono richieste su `db_type` archiviato; il fatto che non vengano respinte con 401 dipende dal permesso `allowed_obs_archive=True` impostato di default dal customizer ([customization.py](projects/mistral/backend/customization.py#L33)).
+- **Dipendenza dall'utente DEFAULT**: gli scenari `arkimet`/`mixed` producono richieste su `db_type` archiviato; il fatto che non vengano respinte con 401 dipende dal permesso `allowed_obs_archive=True` impostato di default dal customizer (`projects/mistral/backend/customization.py`).
+- **Percorso comune ai moduli del dominio**: `test_observations_auth.py`, `test_observations_filters.py` e `test_observations_station_details.py` (come gli altri moduli observed) hanno i marker `integration`/`deterministic`/`runtime_sensitive`; i test parametrizzati usano autenticazione reale (`auth_headers`) e discovery, con `ALL_CASES` = dballe/arkimet/mixed, `RECENT_CASES` = dballe/mixed, `ARCHIVE_CASES` = arkimet/mixed.
+  - Catena: `MapsObservations.get`/`ObservationsQuery` (`projects/mistral/backend/endpoints/maps_observed.py`) → mapping rete e autorizzazione (`BeArkimet.from_network_to_dataset`, `SqlApiDbManager.check_dataset_authorization`) → licenza (`BeDballe.check_access_authorization`) → `BeDballe` (`projects/mistral/backend/services/dballe.py`) con query mappe e serializer `parse_obs_maps_response`; la risposta è in cache (`@decorators.cache(timeout=600)`).
+  - L'endpoint richiede la licenza ed **entrambi** gli estremi di reftime; limita la durata con `(datetime_max - datetime_min).days`: oltre `MAX_REQ_DAYS = 3` un anonimo riceve 401, oltre `MAX_REQ_DAYS_AUTHENTICATED = 10` anche un autenticato. Le finestre scoperte non sono troncate a questi limiti (arkimet usa l'intero summary, dballe l'intero intervallo della rete): una finestra troppo lunga produce un 401 nel test, non uno skip.
+  - Per `db_type` diverso da `dballe` servono login e `allowed_obs_archive`. `get_maps_response_for_mixed` combina la query recente e quella d'archivio; per l'archivio `BeDballe.fill_db_from_arkimet` importa i BUFR in un DB-All.e **nativo in memoria** (`dballe.DB.connect("mem:")`), non in un fake Python.
+  - Il nome del caso (`dballe`/`arkimet`/`mixed`) indica come è stata scoperta la finestra, ma i test non attestano quale ramo l'endpoint abbia effettivamente percorso: il `db_type` è ricalcolato da `get_db_type` a ogni richiesta.
 
 ## 5. Checklist di revisione
 

@@ -1,12 +1,12 @@
 # Review — `test_file_download.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 > Modulo: copertura del contratto `GET /data/<filename>` (download output).
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/data/test_file_download.py](projects/mistral/backend/tests/integration/data/test_file_download.py)
-- **Scopo**: verificare i tre livelli di controllo di `GET /data/<filename>` in [endpoints/file.py](projects/mistral/backend/endpoints/file.py): download del file **posseduto** (`200` + contenuto), negazione **non-disclosure** del file non posseduto (`404`), e `404` quando il record `FileOutput` esiste ma il file fisico manca dal filesystem utente.
+- **Percorso**: `projects/mistral/backend/tests/integration/data/test_file_download.py`
+- **Scopo**: verificare i tre livelli di controllo di `GET /data/<filename>` in `projects/mistral/backend/endpoints/file.py`: download del file **posseduto** (`200` + contenuto), negazione **non-disclosure** del file non posseduto (`404`), e `404` quando il record `FileOutput` esiste ma il file fisico manca dal filesystem utente.
 - **Tipologia**: test di **integrazione HTTP** (controller + `SqlApiDbManager.check_fileoutput` + DB + filesystem reali). **Nessun** fake Celery/Arkimet/Rabbit, **nessun** `monkeypatch`. Marker: `integration`, `deterministic`. 3 test.
 - **Isolamento**: stato interamente sintetico (request/FileOutput/file scritti nell'area del solo utente temporaneo); nessun `pytest.skip`.
 
@@ -14,20 +14,20 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `FileDownload.get` | [endpoints/file.py](projects/mistral/backend/endpoints/file.py) | `GET /data/<filename>`: delega a `check_fileoutput`, poi `send_from_directory(..., as_attachment=True)`. |
-| `SqlApiDbManager.check_fileoutput` | [services/sqlapi_db_manager.py#L21](projects/mistral/backend/services/sqlapi_db_manager.py#L21) | (1) lookup `FileOutput` per `filename` → `NotFound` se assente; (2) `check_owner` → `NotFound` se non proprietario; (3) ramo `opendata`; (4) `path.exists()` → `NotFound` se file mancante; ritorna `file_dir`. |
-| `SqlApiDbManager.check_owner` | [services/sqlapi_db_manager.py#L50](projects/mistral/backend/services/sqlapi_db_manager.py#L50) | `True` se `FileOutput.user_id == user.id`, altrimenti `None` (falsy) → `NotFound`. |
-| Modelli `FileOutput` / `Request` | [models/sqlalchemy.py#L59](projects/mistral/backend/models/sqlalchemy.py#L59) | `FileOutput.filename` (unique), `request_id`; `Request.opendata=False` → `file_dir = DOWNLOAD_DIR/<uuid>/outputs`. |
-| `DOWNLOAD_DIR` | [endpoints/\_\_init\_\_.py](projects/mistral/backend/endpoints/__init__.py) | Radice del path di output utente usata sia dal backend sia dall'helper di setup. |
+| `FileDownload.get` | `projects/mistral/backend/endpoints/file.py` | `GET /data/<filename>`: delega a `check_fileoutput`, poi `send_from_directory(..., as_attachment=True)`. |
+| `SqlApiDbManager.check_fileoutput` | `projects/mistral/backend/services/sqlapi_db_manager.py` | (1) lookup `FileOutput` per `filename` → `NotFound` se assente; (2) `check_owner` → `NotFound` se non proprietario; (3) ramo `opendata`; (4) `path.exists()` → `NotFound` se file mancante; ritorna `file_dir`. |
+| `SqlApiDbManager.check_owner` | `projects/mistral/backend/services/sqlapi_db_manager.py` | `True` se `FileOutput.user_id == user.id`, altrimenti `None` (falsy) → `NotFound`. |
+| Modelli `FileOutput` / `Request` | `projects/mistral/backend/models/sqlalchemy.py` | `FileOutput.filename` (unique), `request_id`; `Request.opendata=False` → `file_dir = DOWNLOAD_DIR/<uuid>/outputs`. |
+| `DOWNLOAD_DIR` | `projects/mistral/backend/endpoints/__init__.py` | Radice del path di output utente usata sia dal backend sia dall'helper di setup. |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `cleanup_registry` | fixture | [tests/conftest.py#L59](projects/mistral/backend/tests/conftest.py#L59) | Teardown LIFO: utenti, directory output, request sintetiche. |
-| `create_data_endpoint_user` | helper | [data/support.py](projects/mistral/backend/tests/integration/data/support.py) | Utente temporaneo autenticato (qui senza dataset). |
-| `create_file_download_record` | helper | [data/support.py](projects/mistral/backend/tests/integration/data/support.py) | Crea `Request(SUCCESS, opendata=False)` + `FileOutput` e — se `content` non è `None` — scrive il file fisico in `DOWNLOAD_DIR/<uuid>/outputs/<filename>`. |
+| `cleanup_registry` | fixture | `projects/mistral/backend/tests/conftest.py` | Teardown LIFO: utenti, directory output, request sintetiche. |
+| `create_data_endpoint_user` | helper | `projects/mistral/backend/tests/integration/data/support.py` | Utente temporaneo autenticato (qui senza dataset). |
+| `create_file_download_record` | helper | `projects/mistral/backend/tests/integration/data/support.py` | Crea `Request(SUCCESS, opendata=False)` + `FileOutput` e — se `content` non è `None` — scrive il file fisico in `DOWNLOAD_DIR/<uuid>/outputs/<filename>`. |
 | `API_URI` | costante | `restapi.tests` | Prefisso `/api`. |
 | `sqlalchemy.get_instance()` | connettore | `restapi.connectors` | Istanza DB per il setup del record. |
 

@@ -1,10 +1,10 @@
 # Review — `test_templates_upload_delete.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/templates/test_templates_upload_delete.py](projects/mistral/backend/tests/integration/templates/test_templates_upload_delete.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/templates/test_templates_upload_delete.py`
 - **Scopo**: verificare `POST /api/templates` (upload grib, zip shapefile completo/incompleto, estensione non ammessa, quota disco superata, limite `max_templates`), `GET /api/templates/<name>` (file esistente/mancante) e `DELETE /api/templates/<name>` (file assente, rimozione sidecar con stesso stem).
 - **Tipologia**: test di **integrazione HTTP** con **scrittura/cancellazione reale su disco** sotto `/data/<uuid>/uploads`. Marker: `integration`, `deterministic`.
 - **Dati reali**: nessuno. Grib e shapefile sono **byte sintetici**; gli zip sono costruiti in memoria. Nessun GDAL/worker/broker viene esercitato (il ramo `geojson`→`convert_to_shapefile` non viene toccato).
@@ -14,32 +14,32 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `Template.post` | [endpoints/templates.py#L116](projects/mistral/backend/endpoints/templates.py#L116) | Upload multipart; whitelist estensioni; validazione zip; limite `max_templates`; `Uploader.upload`; estrazione zip; **controllo quota** finale. |
-| `Template.check_files_to_upload` | [endpoints/templates.py#L291](projects/mistral/backend/endpoints/templates.py#L291) | Per gli zip shapefile pretende `.shx` e `.dbf` con stesso stem; altrimenti `BadRequest`. |
-| Limite `max_templates` (POST) | [endpoints/templates.py#L161](projects/mistral/backend/endpoints/templates.py#L161) | `Unauthorized` (401) quando `len(template_list) == int(max_templates)` (**uguaglianza esatta**). |
-| Controllo quota (POST) | [endpoints/templates.py#L219](projects/mistral/backend/endpoints/templates.py#L219) | `du -sb /data/<uuid>` vs `User.disk_quota`; se eccede → cancella i file dello stem → `Forbidden` (403). |
-| `Template.get` (singolo) | [endpoints/templates.py#L249](projects/mistral/backend/endpoints/templates.py#L249) | **Controllo di esistenza INVERTITO**: `if filepath.exists(): raise NotFound` ([#L256](projects/mistral/backend/endpoints/templates.py#L256)) → 404 sul file presente, 200 sul file assente (TEMPLATES-001). |
-| `Template.delete` | [endpoints/templates.py#L272](projects/mistral/backend/endpoints/templates.py#L272) | Controllo **corretto** `if not filepath.exists(): raise NotFound` ([#L279](projects/mistral/backend/endpoints/templates.py#L279)); poi `glob(f"{stem}*")` + `unlink`. |
+| `Template.post` | `projects/mistral/backend/endpoints/templates.py` | Upload multipart; whitelist estensioni; validazione zip; limite `max_templates`; `Uploader.upload`; estrazione zip; **controllo quota** finale. |
+| `Template.check_files_to_upload` | `projects/mistral/backend/endpoints/templates.py` | Per gli zip shapefile pretende `.shx` e `.dbf` con stesso stem; altrimenti `BadRequest`. |
+| Limite `max_templates` (POST) | `projects/mistral/backend/endpoints/templates.py` | `Unauthorized` (401) quando `len(template_list) == int(max_templates)` (**uguaglianza esatta**). |
+| Controllo quota (POST) | `projects/mistral/backend/endpoints/templates.py` | `du -sb /data/<uuid>` vs `User.disk_quota`; se eccede → cancella i file dello stem → `Forbidden` (403). |
+| `Template.get` (singolo) | `projects/mistral/backend/endpoints/templates.py` | **Controllo di esistenza INVERTITO**: `if filepath.exists(): raise NotFound` → 404 sul file presente, 200 sul file assente (TEMPLATES-001). |
+| `Template.delete` | `projects/mistral/backend/endpoints/templates.py` | Controllo **corretto** `if not filepath.exists(): raise NotFound`; poi `glob(f"{stem}*")` + `unlink`. |
 | `Uploader.upload` / `set_allowed_exts` | `restapi.services.uploader` | Whitelist `shp,shx,geojson,dbf,zip,grib`; rifiuta estensioni fuori lista (**sorgente non presente nel workspace**). |
-| `SqlApiDbManager.get_user_permissions` | [services/sqlapi_db_manager.py#L665](projects/mistral/backend/services/sqlapi_db_manager.py#L665) | `param="templates"` → `user.max_templates`. |
-| `User.disk_quota` / `User.max_templates` | [models/sqlalchemy.py#L11](projects/mistral/backend/models/sqlalchemy.py#L11) | Quota disco (BigInteger, default 1 GB) e numero massimo template ([#L27](projects/mistral/backend/models/sqlalchemy.py#L27)). |
+| `SqlApiDbManager.get_user_permissions` | `projects/mistral/backend/services/sqlapi_db_manager.py` | `param="templates"` → `user.max_templates`. |
+| `User.disk_quota` / `User.max_templates` | `projects/mistral/backend/models/sqlalchemy.py` | Quota disco (BigInteger, default 1 GB) e numero massimo template. |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `cleanup_registry` | fixture | [tests/conftest.py#L59](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO**; non ingoia eccezioni. |
-| `TEMPLATES_ENDPOINT` | costante | [templates/support.py](projects/mistral/backend/tests/integration/templates/support.py) | URL `{API_URI}/templates`. |
-| `create_templates_user` | helper | [templates/support.py](projects/mistral/backend/tests/integration/templates/support.py) | Crea utente con `max_templates`/`disk_quota`; cleanup utente + `/data/<uuid>`. |
-| `upload_payload` | helper | [templates/support.py](projects/mistral/backend/tests/integration/templates/support.py) | Payload multipart `{"file": (stream, filename)}` (dimostra che si passa dall'HTTP reale). |
-| `build_shapefile_zip` | helper | [templates/support.py](projects/mistral/backend/tests/integration/templates/support.py) | Zip **in memoria** con `.shp` + opzionali `.shx`/`.dbf` (byte sintetici). |
-| `seed_template_file` | helper | [templates/support.py](projects/mistral/backend/tests/integration/templates/support.py) | Scrive un file sintetico nella cartella del tipo; registra `uploads` nel cleanup. |
-| `seed_shapefile_sidecars` | helper | [templates/support.py](projects/mistral/backend/tests/integration/templates/support.py) | Crea `.shp/.shx/.dbf/.prj` con stesso stem in `uploads/shp`. |
-| `template_folder` | helper | [templates/support.py](projects/mistral/backend/tests/integration/templates/support.py) | Restituisce `/data/<uuid>/uploads/<grib|shp>` (verifica fisica dei file). |
+| `cleanup_registry` | fixture | `projects/mistral/backend/tests/conftest.py` | Teardown **LIFO**; non ingoia eccezioni. |
+| `TEMPLATES_ENDPOINT` | costante | `projects/mistral/backend/tests/integration/templates/support.py` | URL `{API_URI}/templates`. |
+| `create_templates_user` | helper | `projects/mistral/backend/tests/integration/templates/support.py` | Crea utente con `max_templates`/`disk_quota`; cleanup utente + `/data/<uuid>`. |
+| `upload_payload` | helper | `projects/mistral/backend/tests/integration/templates/support.py` | Payload multipart `{"file": (stream, filename)}` (dimostra che si passa dall'HTTP reale). |
+| `build_shapefile_zip` | helper | `projects/mistral/backend/tests/integration/templates/support.py` | Zip **in memoria** con `.shp` + opzionali `.shx`/`.dbf` (byte sintetici). |
+| `seed_template_file` | helper | `projects/mistral/backend/tests/integration/templates/support.py` | Scrive un file sintetico nella cartella del tipo; registra `uploads` nel cleanup. |
+| `seed_shapefile_sidecars` | helper | `projects/mistral/backend/tests/integration/templates/support.py` | Crea `.shp/.shx/.dbf/.prj` con stesso stem in `uploads/shp`. |
+| `template_folder` | helper | `projects/mistral/backend/tests/integration/templates/support.py` | Restituisce `/data/<uuid>/uploads/<grib|shp>` (verifica fisica dei file). |
 | `pytest.skip` | meccanismo | `pytest` | **Skip espliciti** TEMPLATES-001 (×2) e TEMPLATES-002 (×1). |
 
-> Il dettaglio dei builder è in [support.py.review.md](projects/mistral/backend/tests/integration/templates/support.py.review.md).
+> Il dettaglio dei builder è in [support.py.review.md](support.py.review.md).
 
 ## 4. Analisi dettagliata di ogni test
 
@@ -90,7 +90,7 @@
 
 ### `test_template_upload_returns_401_when_max_templates_is_reached`
 - **Obiettivo**: il secondo template dello stesso tipo è rifiutato con `401`.
-- **Backend coinvolto**: blocco `max_templates` ([#L161](projects/mistral/backend/endpoints/templates.py#L161)) con **uguaglianza esatta** (`==`).
+- **Backend coinvolto**: blocco `max_templates` (`projects/mistral/backend/endpoints/templates.py`) con **uguaglianza esatta** (`==`).
 - **Flusso**: utente `max_templates=1`, seed di `already_present_ext.grib` → POST `second_ext.grib`.
 - **Setup**: `seed_template_file` per portare il conteggio grib a 1.
 - **Assert**: `401`; `get_content == "user has reached the max number of templates of this kind"`.
@@ -99,7 +99,7 @@
 
 ### `test_template_get_existing_file_returns_filepath_and_format` — **TEMPLATES-001 (skippabile)**
 - **Obiettivo**: documentare il contratto atteso di `GET <name>` su file **esistente** (atteso 200).
-- **Backend coinvolto**: `Template.get` con controllo invertito ([#L256](projects/mistral/backend/endpoints/templates.py#L256)).
+- **Backend coinvolto**: `Template.get` con controllo invertito (`projects/mistral/backend/endpoints/templates.py`).
 - **Flusso**: seed di `get_existing_ext.grib` → GET `/<name>`.
 - **Setup**: `seed_template_file`.
 - **Assert / Skip**: se `404` → `pytest.skip("TEMPLATES-001: ...")`; altrimenti `200` + `filepath.name`/`format`.
@@ -153,7 +153,7 @@ DELETE /api/templates/<name>      → auth.require()
 
 ## 6. Comportamenti nascosti
 
-- **`Template.get` invertito (TEMPLATES-001)**: `if filepath.exists(): raise NotFound` ([#L256](projects/mistral/backend/endpoints/templates.py#L256)) restituisce `404` per file presenti e `200` (con `filepath` inesistente) per file assenti. **Entrambi** i test su `GET <name>` fanno quindi `skip` nel backend attuale.
+- **`Template.get` invertito (TEMPLATES-001)**: `if filepath.exists(): raise NotFound` (`projects/mistral/backend/endpoints/templates.py`) restituisce `404` per file presenti e `200` (con `filepath` inesistente) per file assenti. **Entrambi** i test su `GET <name>` fanno quindi `skip` nel backend attuale.
 - **TEMPLATES-002 (body mascherato)**: sul rifiuto di estensione, il ramo `except Exception` di `post` esegue `subfolder.iterdir()` su una cartella che può non esistere; ciò può sollevare `FileNotFoundError` e mascherare il messaggio `"File extension not allowed"`. Il test mantiene l'assert sullo status `400` e fa `skip` solo sul body.
 - **Limite `max_templates` con `==`**: il POST blocca solo quando `len(template_list) == max` (uguaglianza esatta), mentre il listing usa `>=`. Con `len > max` (es. file pre-esistenti oltre il limite) il POST **non** bloccherebbe. Il test usa `len==1, max==1`.
 - **Doc/impl divergenti sullo status di upload**: `@decorators.endpoint(responses={202: "File uploaded", ...})` ma `post` ritorna `self.response(r)` → **200**. I test asseriscono correttamente `200`.

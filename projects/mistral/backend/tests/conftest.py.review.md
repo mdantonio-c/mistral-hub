@@ -4,7 +4,7 @@
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/conftest.py](projects/mistral/backend/tests/conftest.py)
+- **Percorso**: `projects/mistral/backend/tests/conftest.py`
 - **Scopo**: configurazione pytest valida per **tutta** la suite custom: registrazione marker, fixture davvero trasversali e skip dei test `async_real` fuori dagli stack `rapydo --testing`.
 - **Tipologia**: `conftest.py` globale (visibile a tutti i test sotto `tests/`).
 
@@ -18,21 +18,23 @@ Registra 4 marker custom usati per categorizzare i test:
 - `runtime_sensitive` — l'esito dipende da dati/infrastruttura runtime.
 
 ### `test_runtime` — fixture (scope **session**)
-- Ritorna l'istanza singleton `TestRuntime` ([helpers/runtime.py](projects/mistral/backend/tests/helpers/runtime.py)).
+- Ritorna l'istanza singleton `TestRuntime` (`projects/mistral/backend/tests/helpers/runtime.py`).
 - **Usata da**: domini `data_ready`, `schedules`, `observed`, ecc. per cache `dataset_id` e override temporanei di attributi.
 
 ### `cleanup_registry` — fixture (scope funzione)
-- Crea un `CleanupRegistry` ([helpers/cleanup.py](projects/mistral/backend/tests/helpers/cleanup.py)), lo `yield`a e a teardown chiama `registry.run()`.
+- Crea un `CleanupRegistry` (`projects/mistral/backend/tests/helpers/cleanup.py`), lo `yield`a e a teardown chiama `registry.run()`.
 - **Usata da**: praticamente ogni dominio che crea utenti/schedule/file temporanei.
 
 ### `pytest_collection_modifyitems(config, items)` — hook
-- Se `workers_use_smtp_mock()` ([helpers/real_workers.py](projects/mistral/backend/tests/helpers/real_workers.py)) è falso, aggiunge `skip` a ogni test con marker `async_real`, con il motivo `NO_SMTP_MOCK_REASON`.
+- Se `workers_use_smtp_mock()` (`projects/mistral/backend/tests/helpers/real_workers.py`) è falso, aggiunge `skip` a ogni test con marker `async_real`, con il motivo `NO_SMTP_MOCK_REASON`.
 - Motivo: i task di quei test girano sui worker reali, dove `monkeypatch` non arriva. Solo negli stack `rapydo --testing` i worker usano il mock SMTP; altrove un'estrazione fallita invierebbe email vere all'utente e all'amministratore.
 
 ## 3. Comportamenti nascosti
 
 - **Teardown centralizzato**: il `yield` + `registry.run()` garantisce cleanup LIFO **anche se il test fallisce a metà**. Tutti i test che chiamano `cleanup_registry.add(...)` dipendono da questo punto.
-- **`test_runtime` è un singleton di sessione**: lo stato (cache dataset) **persiste tra i test**. Un dataset risolto in un test resta in cache per tutti i successivi (vedi rischi sotto).
+- **`test_runtime` è un singleton di sessione**: lo stato (cache dataset) **persiste tra i test**. Un dataset risolto in un test resta in cache per tutti i successivi (vedi rischi sotto). La fixture non ha teardown: la cache non viene svuotata neppure a fine sessione.
+- **Marker solo dichiarati**: `pytest_configure` registra i quattro marker ma non seleziona né esclude test; l'unica esclusione automatica è lo skip `async_real` di `pytest_collection_modifyitems`.
+- **Raggio d'azione globale**: hook e fixture valgono per tutto `tests/` senza import espliciti nei moduli; una modifica qui può cambiare il comportamento di qualunque dominio.
 - **`CleanupRegistry.run()` non ingoia eccezioni**: un teardown rotto fa fallire il test in modo visibile (scelta deliberata).
 - **Skip dei test `async_real` già in collection**: fuori dagli stack `rapydo --testing` le loro fixture non partono, quindi non vengono creati utenti né inviati task ai worker. Con `-rs` il motivo compare nel riepilogo.
 

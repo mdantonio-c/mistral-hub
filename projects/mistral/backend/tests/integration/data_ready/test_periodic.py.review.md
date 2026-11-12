@@ -1,26 +1,27 @@
 # Review — `test_periodic.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 > **File chiave**: usa il helper condiviso del sottoalbero per eseguire *inline* la logica reale di scheduling, sostituendo solo il trasporto Celery con dei fake.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/data_ready/test_periodic.py](projects/mistral/backend/tests/integration/data_ready/test_periodic.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/data_ready/test_periodic.py`
 - **Scopo**: verificare la regola periodica "ogni N giorni" del data-ready: una nuova richiesta viene generata **solo** quando l'intervallo è effettivamente trascorso rispetto all'ultima richiesta `SUCCESS`.
 - **Tipologia**: test di **integrazione "ibrida"** — endpoint reale + decisione di scheduling reale + **fake Celery** per trasporto ed estrazione. Marker: `integration`, `deterministic`, `runtime_sensitive`.
+- **Percorso comune del dominio** (guardie del launcher, confine dei fake): vedi [conftest.py.review.md](conftest.py.review.md).
 
 ## 2. Backend realmente testato
 
 | Elemento | Path | Ruolo | Reale / Fake |
 |---|---|---|---|
-| `DataReady.post` | [endpoints/data_ready.py](projects/mistral/backend/endpoints/data_ready.py) | `POST /api/data/ready`; la sua `send_task` è assorbita dal fake. | **Reale** (submission assorbita) |
-| `launch_all_on_data_ready_extractions.run(...)` | [tasks/on_data_ready_extractions.py](projects/mistral/backend/tasks/on_data_ready_extractions.py) | Decisione di scheduling eseguita **inline nel processo di test**. | **Reale** ✅ |
-| `SqlApiDbManager.get_last_scheduled_request` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L208) | Recupera l'ultima `Request` `SUCCESS` della schedule (base del calcolo periodo). | **Reale** ✅ |
-| ramo periodico `if r["period"] == "days"` | [tasks/on_data_ready_extractions.py](projects/mistral/backend/tasks/on_data_ready_extractions.py) | `next_submission = submission_date + every*giorni`; `if req_date.date() != next_submission: continue`. | **Reale** ✅ |
-| `InlineDataReadyExtractionCelery.send_task("data_extract")` | [tests/helpers/celery_fakes.py](projects/mistral/backend/tests/helpers/celery_fakes.py) | **Crea** la riga `Request` `SUCCESS` (o salta per dedup-by-reftime). | **Fake** ⚠️ |
-| `AcceptTasksWithoutRunningCelery` | [tests/helpers/celery_fakes.py](projects/mistral/backend/tests/helpers/celery_fakes.py) | Assorbe la submission del launcher fatta dall'endpoint (verifica il nome). | **Fake** |
-| `create_request_record`, `get_schedule_name` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L111) | Usate **dal fake** per materializzare la riga. | Reale ma invocata dal fake |
-| Modelli `Schedule`, `Request` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L36) | Storia richieste ispezionata via API e seminata via DB. | **Reale** |
+| `DataReady.post` | `projects/mistral/backend/endpoints/data_ready.py` | `POST /api/data/ready`; la sua `send_task` è assorbita dal fake. | **Reale** (submission assorbita) |
+| `launch_all_on_data_ready_extractions.run(...)` | `projects/mistral/backend/tasks/on_data_ready_extractions.py` | Decisione di scheduling eseguita **inline nel processo di test**. | **Reale** ✅ |
+| `SqlApiDbManager.get_last_scheduled_request` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Recupera l'ultima `Request` `SUCCESS` della schedule (base del calcolo periodo). | **Reale** ✅ |
+| ramo periodico `if r["period"] == "days"` | `projects/mistral/backend/tasks/on_data_ready_extractions.py` | `next_submission = submission_date + every*giorni`; `if req_date.date() != next_submission: continue`. | **Reale** ✅ |
+| `InlineDataReadyExtractionCelery.send_task("data_extract")` | `projects/mistral/backend/tests/helpers/celery_fakes.py` | **Crea** la riga `Request` `SUCCESS` (o salta per dedup-by-reftime). | **Fake** ⚠️ |
+| `AcceptTasksWithoutRunningCelery` | `projects/mistral/backend/tests/helpers/celery_fakes.py` | Assorbe la submission del launcher fatta dall'endpoint (verifica il nome). | **Fake** |
+| `create_request_record`, `get_schedule_name` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Usate **dal fake** per materializzare la riga. | Reale ma invocata dal fake |
+| Modelli `Schedule`, `Request` | `projects/mistral/backend/models/sqlalchemy.py` | Storia richieste ispezionata via API e seminata via DB. | **Reale** |
 
 ## 3. Mappa delle dipendenze
 
@@ -28,16 +29,16 @@
 |---|---|---|---|
 | `monkeypatch` | fixture | `pytest` | Sostituisce `celery.get_instance` su endpoint e task (vedi §6). |
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `data_ready_base` | fixture | [data_ready/conftest.py](projects/mistral/backend/tests/integration/data_ready/conftest.py) | `BaseTests` + override `ON_DATA_READY_DATASETS`. |
-| `data_ready_admin_headers` | fixture | [data_ready/conftest.py](projects/mistral/backend/tests/integration/data_ready/conftest.py) | Header admin per il trigger. |
-| `data_ready_db` | fixture | [data_ready/conftest.py](projects/mistral/backend/tests/integration/data_ready/conftest.py) | `sqlalchemy.get_instance()` (seeding + fake). |
-| `data_ready_user` | fixture | [data_ready/conftest.py](projects/mistral/backend/tests/integration/data_ready/conftest.py) | Utente `admin_root` su `lm5`; **skip** se assente. |
-| `build_periodic_schedule` | helper | [tests/helpers/schedules.py](projects/mistral/backend/tests/helpers/schedules.py) | Body schedule periodica (`every`/`period`). |
-| `create_schedule`, `list_schedule_requests`, `delete_request` | helper | [tests/helpers/data_ready.py](projects/mistral/backend/tests/helpers/data_ready.py) | CRUD schedule/request via API. |
-| `create_schedule_request_record` | helper | [tests/helpers/data_ready.py](projects/mistral/backend/tests/helpers/data_ready.py) | **Semina diretta nel DB** di una `Request` storica (reftime stringa, `submission_date`/`status` forzati). |
-| `trigger_data_ready_inline` | helper | [tests/helpers/data_ready.py](projects/mistral/backend/tests/helpers/data_ready.py) | Verifica una submit del launcher, esegue il task reale inline e intercetta l'eventuale `data_extract`. |
-| `wait_for_schedule_requests` | helper | [tests/helpers/data_ready.py](projects/mistral/backend/tests/helpers/data_ready.py) | Poll fino a `expected_count` richieste. |
-| `fetch_dataset_window` | helper | [tests/helpers/dataset_window.py](projects/mistral/backend/tests/helpers/dataset_window.py) | Finestra dataset via `/api/fields`; **skip** se 404. |
+| `data_ready_base` | fixture | `projects/mistral/backend/tests/integration/data_ready/conftest.py` | `BaseTests` + override `ON_DATA_READY_DATASETS`. |
+| `data_ready_admin_headers` | fixture | `projects/mistral/backend/tests/integration/data_ready/conftest.py` | Header admin per il trigger. |
+| `data_ready_db` | fixture | `projects/mistral/backend/tests/integration/data_ready/conftest.py` | `sqlalchemy.get_instance()` (seeding + fake). |
+| `data_ready_user` | fixture | `projects/mistral/backend/tests/integration/data_ready/conftest.py` | Utente `admin_root` su `lm5`; **skip** se assente. |
+| `build_periodic_schedule` | helper | `projects/mistral/backend/tests/helpers/schedules.py` | Body schedule periodica (`every`/`period`). |
+| `create_schedule`, `list_schedule_requests`, `delete_request` | helper | `projects/mistral/backend/tests/helpers/data_ready.py` | CRUD schedule/request via API. |
+| `create_schedule_request_record` | helper | `projects/mistral/backend/tests/helpers/data_ready.py` | **Semina diretta nel DB** di una `Request` storica (reftime stringa, `submission_date`/`status` forzati). |
+| `trigger_data_ready_inline` | helper | `projects/mistral/backend/tests/helpers/data_ready.py` | Verifica una submit del launcher, esegue il task reale inline e intercetta l'eventuale `data_extract`. |
+| `wait_for_schedule_requests` | helper | `projects/mistral/backend/tests/helpers/data_ready.py` | Poll fino a `expected_count` richieste. |
+| `fetch_dataset_window` | helper | `projects/mistral/backend/tests/helpers/dataset_window.py` | Finestra dataset via `/api/fields`; **skip** se 404. |
 | `_create_two_day_periodic_schedule` | helper locale | (questo file) | Prepara la schedule a 2 giorni e rimuove le richieste iniziali. |
 
 ## 4. Analisi dettagliata di ogni test
@@ -52,7 +53,7 @@
 - **Nota**: la submission del launcher dall'endpoint viene assorbita; il task viene poi eseguito **manualmente** con `.run(...)`. È questo passaggio che rende osservabile la logica reale in tutti i test data-ready che usano il helper.
 
 ### Helper locale `_create_two_day_periodic_schedule`
-- Crea una schedule periodica `every=2, period="days"` su `lm5`, poi **cancella le richieste auto-generate** alla creazione (`delete_request`) per controllare la storia. Ritorna `(schedule_id, ref_from, date_from)`. `ref_from`/`ref_to` sono normalizzati con `second=0, microsecond=1` (vedi §6 sul `microsecond=1`).
+- Crea una schedule periodica `every=2, period="days"` su `lm5`, poi cancella via API (`delete_request`) le request già visibili, per controllare la storia. Con la fixture autouse del conftest la prima submission della creazione resta in memoria e non genera request: il ciclo di cancellazione è difensivo. L'helper non attende alcun worker. Ritorna `(schedule_id, ref_from, date_from)`, con `date_from` come stringa. `ref_from`/`ref_to` sono normalizzati con `second=0, microsecond=1` (vedi §6 sul `microsecond=1`).
 
 ### `test_data_ready_creates_request_when_daily_period_has_elapsed`
 - **Obiettivo**: una schedule `every=1 day` crea una seconda richiesta dopo **un** giorno trascorso.
@@ -61,6 +62,8 @@
 - **Setup**: `data_ready_user`, `data_ready_db`, `monkeypatch`.
 - **Assert**: `response.status_code == 202`; `wait_for_schedule_requests(expected_count=2, timeout=5, interval=1)`; `len(requests) == 2`.
 - **Casi coperti**: "periodo trascorso → genera". **Decisione di submit = REALE**; **creazione della seconda riga = FAKE**. Il conteggio `2` = 1 seminata + 1 creata dal fake (vedi §6 sul perché il dedup del fake **non** scatta).
+- **Cosa non dimostra**: file prodotti, l'estrazione reale, eventi successivi alla data esatta (il confronto è per uguaglianza) o la deduplicazione del vero worker.
+- **Se fallisce, guarda**: `get_last_scheduled_request`, il confronto di date nel launcher e il fake di estrazione; distinguere la storia seminata dal test da request create dalla schedule.
 
 ### `test_data_ready_creates_request_when_two_day_period_has_elapsed`
 - **Obiettivo**: una schedule `every=2 days` rigenera solo quando sono passati **due** giorni interi.
@@ -69,6 +72,8 @@
 - **Setup**: `data_ready_user`, `data_ready_db`, `monkeypatch`.
 - **Assert**: `status_code == 202`; `wait_for_schedule_requests(expected_count=2)`; `len == 2`.
 - **Casi coperti**: confine "esattamente 2 giorni → genera". **Decisione = REALE**, **riga = FAKE**.
+- **Cosa non dimostra**: il recupero di periodi saltati: con il confronto per uguaglianza, un evento a 3 giorni non genererebbe.
+- **Se fallisce, guarda**: il calcolo dell'intervallo (`every`), la serializzazione dei microsecondi di `submission_date` e la storia preparata dall'helper locale.
 
 ### `test_data_ready_skips_request_before_two_day_period_elapses`
 - **Obiettivo**: una schedule `every=2 days` **non** deve rigenerare dopo un solo giorno.
@@ -77,6 +82,8 @@
 - **Setup**: `data_ready_user`, `data_ready_db`, `monkeypatch`.
 - **Assert**: `status_code == 202`; `wait_for_schedule_requests(expected_count=1)`; `len == 1`.
 - **Casi coperti**: "periodo non trascorso → salta". **È il test più solido del sottoalbero**: la decisione di **skip** è reale e, se fosse rotta, il fake creerebbe una riga e il conteggio diventerebbe 2 → il test fallirebbe. Qui il fake **non** viene mai invocato.
+- **Cosa non dimostra**: la stabilità del conteggio nel tempo. Il polling ritorna subito sulla riga seminata; la garanzia viene dall'esecuzione inline del launcher prima del poll, non dai 5 secondi di attesa.
+- **Se fallisce, guarda**: il confronto del periodo nel launcher. Con conteggio 2, verificare se la riga in più è stata creata dal fake (decisione di submit) prima di cercare altre sorgenti.
 
 ## 5. Call chain
 
@@ -108,17 +115,17 @@ wait_for_schedule_requests(expected_count) → GET /api/schedules/<id>/requests?
 
 - **Doppio cablaggio Celery via helper condiviso**: `trigger_data_ready_inline` usa `AcceptTasksWithoutRunningCelery` sull'endpoint e `InlineDataReadyExtractionCelery` sul launcher. Il pattern è condiviso con i test di gating di base, mismatch e crontab.
 - **Submit endpoint verificata**: il helper conserva il fake di ingresso e asserisce che sia stata registrata esattamente una submit del launcher prima di chiamare `.run(...)`.
-- **Decisione REALE, materializzazione FAKE**: la regola "periodo trascorso?" è eseguita dal backend reale; ma la **creazione** della `Request` e l'eventuale **dedup-by-reftime** sono implementate nel fake [celery_fakes.py](projects/mistral/backend/tests/helpers/celery_fakes.py). Per i due test "creates", il conteggio `2` dipende dal fake che crea la riga.
+- **Decisione REALE, materializzazione FAKE**: la regola "periodo trascorso?" è eseguita dal backend reale; ma la **creazione** della `Request` e l'eventuale **dedup-by-reftime** sono implementate nel fake `projects/mistral/backend/tests/helpers/celery_fakes.py`. Per i due test "creates", il conteggio `2` dipende dal fake che crea la riga.
 - **Il dedup del fake non scatta (per mismatch di formato)**: il fake confronta `last_request.args.get("reftime") == reftime`. La riga **seminata** ha `reftime` **stringa** (da `create_schedule_request_record`), mentre il task reale passa `reftime` come **dict** `{"from":..,"to":..}`. I due valori non sono mai uguali → il fake **non** deduplica e crea sempre la nuova riga. Il conteggio `2` poggia quindi su questa differenza di formato, non su una vera assenza di duplicato.
 - **`microsecond=1` deliberato**: i seed forzano `microsecond=1` perché il task reale parsa `last_req["submission_date"]` con `"%Y-%m-%dT%H:%M:%S.%f"`; con microsecondi a zero `isoformat()` ometterebbe la parte frazionaria e lo `strptime` fallirebbe. Accoppiamento fragile al formato datetime.
-- **Il launcher itera TUTTE le schedule** (`db.Schedule.query.all()`): `trigger_data_ready_inline(..., schedule_ids=[schedule_id])` lo confina alla schedule del test tramite [helpers/task_perimeter.py](projects/mistral/backend/tests/helpers/task_perimeter.py), quindi schedule residue o di altri utenti non generano request.
+- **Il launcher itera TUTTE le schedule** (`db.Schedule.query.all()`): `trigger_data_ready_inline(..., schedule_ids=[schedule_id])` lo confina alla schedule del test tramite `projects/mistral/backend/tests/helpers/task_perimeter.py`, quindi schedule residue o di altri utenti non generano request.
 - **`wait_for_schedule_requests` è quasi sincrono**: dato che `.run()` è eseguito inline prima del poll, il conteggio è già definitivo e il poll ritorna subito (timeout 5s è solo margine).
 - **Skip silenziosi**: `data_ready_user`/`fetch_dataset_window` possono saltare tutti e tre i test se `lm5` manca.
 
 ## 7. Checklist di revisione
 
 - [ ] **(Crux)** Per i test "creates" distinguere chiaramente ciò che è **reale** (decisione di submit) da ciò che è **fake** (creazione riga + dedup): la `Request` finale non è prodotta dal worker reale.
-- [ ] Verificare che la logica di dedup del fake resti allineata al comportamento reale del path data-ready (vedi [helpers/celery_fakes.py.review.md](projects/mistral/backend/tests/helpers/celery_fakes.py.review.md)); oggi il dedup non scatta per mismatch dict/stringa.
+- [ ] Verificare che la logica di dedup del fake resti allineata al comportamento reale del path data-ready (vedi [helpers/celery_fakes.py.review.md](../../helpers/celery_fakes.py.review.md)); oggi il dedup non scatta per mismatch dict/stringa.
 - [ ] Confermare che `create_schedule_request_record` rispecchi gli argomenti reali di una richiesta prodotta dal worker (reftime come stringa vs dict).
 - [ ] Verificare l'invariante `microsecond=1` e valutare se il backend dovrebbe gestire `submission_date` senza frazione di secondo.
 - [ ] Verificare che ogni chiamata a `trigger_data_ready_inline` passi le sole schedule create dal test.

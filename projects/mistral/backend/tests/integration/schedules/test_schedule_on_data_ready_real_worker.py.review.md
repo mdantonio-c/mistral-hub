@@ -1,11 +1,11 @@
 # Review — `test_schedule_on_data_ready_real_worker.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 > Modulo `async_real`: la prima estrazione della schedule gira su un worker Celery reale, senza fake.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/schedules/test_schedule_on_data_ready_real_worker.py](projects/mistral/backend/tests/integration/schedules/test_schedule_on_data_ready_real_worker.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/schedules/test_schedule_on_data_ready_real_worker.py`
 - **Scopo**: verificare che `POST /schedules` con `on-data-ready` invii il primo `data_extract` a un worker reale, che la request termini in `SUCCESS` e che la `DELETE` rimuova la schedule.
 - **Tipologia**: integrazione HTTP + broker + worker reali. Marker di modulo: `integration`, `async_real`, `runtime_sensitive`. 1 test.
 - **Dataset reale**: `lm5`, con finestra e prima run lette da `/api/fields`.
@@ -14,22 +14,22 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `SingleSchedule.post` | [endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py#L417) | Salva la schedule solo on-data-ready, senza voce RedBeat, e invia subito il primo `data_extract` (`countdown=1`). |
-| task `data_extract` | [tasks/data_extraction.py](projects/mistral/backend/tasks/data_extraction.py) | Eseguito dal worker reale con `schedule_id` e `data_ready=True`: crea la `Request`, estrae, scrive il file nella cartella dell'utente. |
-| `ScheduledRequests.get` | [endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py) | `GET /schedules/<id>/requests`, letto in polling. |
-| `SingleSchedule.delete` / `get` | [endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py#L969) | `DELETE` con Celery reale; `GET` successivo → 404. |
-| `FileDownload.get` | [endpoints/file.py](projects/mistral/backend/endpoints/file.py) | `GET /data/<filename>`. |
+| `SingleSchedule.post` | `projects/mistral/backend/endpoints/schedules.py` | Salva la schedule solo on-data-ready, senza voce RedBeat, e invia subito il primo `data_extract` (`countdown=1`). |
+| task `data_extract` | `projects/mistral/backend/tasks/data_extraction.py` | Eseguito dal worker reale con `schedule_id` e `data_ready=True`: crea la `Request`, estrae, scrive il file nella cartella dell'utente. |
+| `ScheduledRequests.get` | `projects/mistral/backend/endpoints/schedules.py` | `GET /schedules/<id>/requests`, letto in polling. |
+| `SingleSchedule.delete` / `get` | `projects/mistral/backend/endpoints/schedules.py` | `DELETE` con Celery reale; `GET` successivo → 404. |
+| `FileDownload.get` | `projects/mistral/backend/endpoints/file.py` | `GET /data/<filename>`. |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
-| `schedules_base` | fixture conftest | [schedules/conftest.py](projects/mistral/backend/tests/integration/schedules/conftest.py) | Override di `SingleSchedule.ON_DATA_READY_DATASETS` su `lm5`. |
-| `schedules_user` | fixture conftest | [schedules/conftest.py](projects/mistral/backend/tests/integration/schedules/conftest.py) | `create_data_ready_user` (nessuna email reale) + cleanup di request, schedule, utente e cartella. |
-| `register_wait_for_user_requests`, `wait_for_finished_request`, `read_periodic_task` | helper | [tests/helpers/real_workers.py](projects/mistral/backend/tests/helpers/real_workers.py) | Attesa dei worker nel test e nel cleanup, compreso il primo task della schedule ancora senza request; se scade, arresto dei soli task dell'utente prima di cancellare. Lettura RedBeat della sola schedule del test. |
-| `create_schedule`, `list_schedule_requests` | helper | [tests/helpers/data_ready.py](projects/mistral/backend/tests/helpers/data_ready.py) | Creazione e listing via API. |
-| `build_on_data_ready_schedule` | helper | [tests/helpers/schedules.py](projects/mistral/backend/tests/helpers/schedules.py) | Body con `opendata=False`. |
-| `fetch_dataset_window` | helper | [tests/helpers/dataset_window.py](projects/mistral/backend/tests/helpers/dataset_window.py) | Finestra reale di `lm5`; `pytest.skip` su 404. |
+| `schedules_base` | fixture conftest | `projects/mistral/backend/tests/integration/schedules/conftest.py` | Override di `SingleSchedule.ON_DATA_READY_DATASETS` su `lm5`. |
+| `schedules_user` | fixture conftest | `projects/mistral/backend/tests/integration/schedules/conftest.py` | `create_data_ready_user` (nessuna email reale) + cleanup di request, schedule, utente e cartella. |
+| `register_wait_for_user_requests`, `wait_for_finished_request`, `read_periodic_task` | helper | `projects/mistral/backend/tests/helpers/real_workers.py` | Attesa dei worker nel test e nel cleanup, compreso il primo task della schedule ancora senza request; se scade, arresto dei soli task dell'utente prima di cancellare. Lettura RedBeat della sola schedule del test. |
+| `create_schedule`, `list_schedule_requests` | helper | `projects/mistral/backend/tests/helpers/data_ready.py` | Creazione e listing via API. |
+| `build_on_data_ready_schedule` | helper | `projects/mistral/backend/tests/helpers/schedules.py` | Body con `opendata=False`. |
+| `fetch_dataset_window` | helper | `projects/mistral/backend/tests/helpers/dataset_window.py` | Finestra reale di `lm5`; `pytest.skip` su 404. |
 
 ## 4. Analisi dettagliata di ogni test
 

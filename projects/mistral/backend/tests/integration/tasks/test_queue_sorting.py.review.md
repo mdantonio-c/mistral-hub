@@ -1,10 +1,10 @@
 # Review — `test_queue_sorting.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/tasks/test_queue_sorting.py](projects/mistral/backend/tests/integration/tasks/test_queue_sorting.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/tasks/test_queue_sorting.py`
 - **Scopo**: verificare il contratto di routing di `queue_sorting`, cioè la scelta della coda Celery (`operational_*` / `archived_*`) in base alla **categoria dataset** e alla **freschezza** del `reftime` rispetto a una finestra operativa di 3 giorni.
 - **Tipologia**: test di **unità pura** su helper deterministico. Marker dichiarati: `integration`, `deterministic`; in pratica **non** tocca DB, broker, filesystem o Celery reale (vedi §8).
 - **Conteggio**: 3 metodi di test, **10 casi** parametrizzati complessivi. Nessun `pytest.skip`.
@@ -13,7 +13,7 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `queue_sorting(dataset_type, reftime=None)` | [tasks/data_extraction_utilities.py](projects/mistral/backend/tasks/data_extraction_utilities.py#L5) | Mappa `(dataset_type, is_operational)` → nome coda; normalizza il `date_from` naive a UTC; `is_operational = date_from is not None and (now - date_from) < 3 giorni`. |
+| `queue_sorting(dataset_type, reftime=None)` | `projects/mistral/backend/tasks/data_extraction_utilities.py` | Mappa `(dataset_type, is_operational)` → nome coda; normalizza il `date_from` naive a UTC; `is_operational = date_from is not None and (now - date_from) < 3 giorni`. |
 
 - Backend **realmente eseguito**: l'intera funzione (lookup `queue_map`, normalizzazione tz, confronto temporale).
 - Backend **non** coinvolto: dispatch Celery, connessione broker, lettura dataset reali.
@@ -25,7 +25,7 @@
 | `_FixedQueueSortingDateTime` | classe locale | nel file di test | Sottoclasse di `datetime` con `now()` congelato al `2026-05-28 12:00 UTC` (gestisce sia il ramo `tz=None` sia `tz` esplicito). |
 | `frozen_queue_sorting_now` | fixture locale | nel file di test | `monkeypatch.setattr(data_extraction_utilities, "datetime", _FixedQueueSortingDateTime)`; ritorna l'istante congelato. |
 | `monkeypatch` | fixture | `pytest` | Applica/ripristina il patch sul simbolo `datetime` del **modulo target**. |
-| `data_extraction_utilities` | modulo | [tasks/data_extraction_utilities.py](projects/mistral/backend/tasks/data_extraction_utilities.py) | Modulo sotto test; importa direttamente `datetime`, quindi il patch va applicato al suo simbolo. |
+| `data_extraction_utilities` | modulo | `projects/mistral/backend/tasks/data_extraction_utilities.py` | Modulo sotto test; importa direttamente `datetime`, quindi il patch va applicato al suo simbolo. |
 
 ## 4. Analisi dettagliata di ogni test
 
@@ -36,6 +36,8 @@
 - **Setup**: `frozen_queue_sorting_now` (orologio congelato); `date_from` già `datetime` aware/naive secondo il caso.
 - **Assert**: `recent_queue == expected_recent` e `old_queue == expected_old`.
 - **Casi coperti**: matrice categoria × (operativo/archiviato); confine dei 3 giorni superato in entrambe le direzioni.
+- **Cosa non dimostra**: il limite esatto dei 3 giorni né una categoria sconosciuta.
+- **Se fallisce, guarda**: `queue_map` e la soglia `days_for_operationals`; i chiamanti (`projects/mistral/backend/endpoints/data.py`, `projects/mistral/backend/endpoints/schedules.py`) devono continuare a passare `date_from` normalizzabili.
 
 ### `test_queue_sorting_naive_reftime_is_treated_as_utc` (param. ×2)
 - **Obiettivo**: un `datetime` **naive** (senza tzinfo) viene promosso a UTC prima del confronto.
@@ -44,6 +46,8 @@
 - **Setup**: usa la fixture **solo per il side effect** (`del frozen_queue_sorting_now`).
 - **Assert**: `queue == expected_queue` (`operational_forecast` / `operational_observed`).
 - **Casi coperti**: normalizzazione tz su input naive.
+- **Cosa non dimostra**: offset diversi da UTC né date future.
+- **Se fallisce, guarda**: la guardia su `tzinfo` e il confronto con il `now` aware.
 
 ### `test_queue_sorting_missing_reftime_routes_to_archived_queue` (param. ×4)
 - **Obiettivo**: `reftime=None` non può essere operativo → routing archiviato per ogni categoria.
@@ -52,6 +56,8 @@
 - **Setup**: fixture attiva per simmetria ma **non letta** (`del`); il ramo non legge alcuna data.
 - **Assert**: `queue == expected_queue` (`archived_*`).
 - **Casi coperti**: input mancante → fallback archiviato.
+- **Cosa non dimostra**: un `reftime` presente ma senza `date_from` (o con `date_from=None`) né un tipo di dataset sconosciuto.
+- **Se fallisce, guarda**: la gestione dell'assenza di `reftime` e `queue_map`; una stringa di coda corretta non prova che la coda esista o abbia worker attivi.
 
 ## 5. Call chain
 

@@ -1,35 +1,36 @@
 # Review — `test_arkimet_query_parsing.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/services/test_arkimet_query_parsing.py](projects/mistral/backend/tests/integration/services/test_arkimet_query_parsing.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/services/test_arkimet_query_parsing.py`
 - **Scopo**: verificare i parser **puri** del service Arkimet — `is_filter_allowed` (allow-list), `parse_reftime` (bounds ISO → matcher reftime inclusivo), `parse_matchers` (filtri strutturati → sintassi matcher) e `decode_run` (run `MINUTE` → `HH:MM`, con i rami d'errore `TypeError`/`ValueError`).
 - **Tipologia**: **unit / pure-function**, nonostante il marker. Le funzioni sotto test sono `@staticmethod` che trasformano dict/stringhe in stringhe: **non** chiamano `arki-query`, **non** aprono configurazioni dataset, **non** eseguono estrazioni e non usano `client`/DB. Marker dichiarati: `integration`, `deterministic` (vedi §6 per la discrepanza marker↔natura reale).
+- **Ambiente**: `projects/mistral/backend/services/arkimet.py` importa i binding nativi `arkimet` già a livello di modulo, quindi il file gira solo nell'ambiente backend anche se nessun test interroga un archivio.
 
 ## 2. Backend realmente testato
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `BeArkimet.is_filter_allowed` | [services/arkimet.py](projects/mistral/backend/services/arkimet.py#L135) | `True` se `filter_name in BeArkimet.allowed_filters`, altrimenti `False`. |
-| `BeArkimet.allowed_filters` | [services/arkimet.py](projects/mistral/backend/services/arkimet.py#L22) | Tupla di 10 nomi: `area, level, origin, proddef, product, quantity, run, task, timerange, network`. |
-| `BeArkimet.parse_reftime` | [services/arkimet.py](projects/mistral/backend/services/arkimet.py#L143) | `dateutil.parser.parse` su entrambi i bound, poi `strftime("%Y-%m-%d %H:%M")` → `"reftime: >={gt},<={lt}"`. |
-| `BeArkimet.parse_matchers` | [services/arkimet.py](projects/mistral/backend/services/arkimet.py#L160) | Per ogni chiave nota join dei valori con `" or "`; concatena i matcher con `"; "`; chiavi ignote → `log.warning` + `continue`. |
-| `BeArkimet.decode_run` | [services/arkimet.py](projects/mistral/backend/services/arkimet.py#L621) | Non-dict → `TypeError`; style `MINUTE` con `value` int → `MINUTE,HH:MM` (`floor(v/60)`, `v%60`); valore non-int → `TypeError`; style diverso → `ValueError`. |
-| `BeArkimet.__decode_quantity` | [services/arkimet.py](projects/mistral/backend/services/arkimet.py#L612) | Privato (name-mangled), invocato **indirettamente** da `parse_matchers`: join di `value` con `","`. |
+| `BeArkimet.is_filter_allowed` | `projects/mistral/backend/services/arkimet.py` | `True` se `filter_name in BeArkimet.allowed_filters`, altrimenti `False`. |
+| `BeArkimet.allowed_filters` | `projects/mistral/backend/services/arkimet.py` | Tupla di 10 nomi: `area, level, origin, proddef, product, quantity, run, task, timerange, network`. |
+| `BeArkimet.parse_reftime` | `projects/mistral/backend/services/arkimet.py` | `dateutil.parser.parse` su entrambi i bound, poi `strftime("%Y-%m-%d %H:%M")` → `"reftime: >={gt},<={lt}"`. |
+| `BeArkimet.parse_matchers` | `projects/mistral/backend/services/arkimet.py` | Per ogni chiave nota join dei valori con `" or "`; concatena i matcher con `"; "`; chiavi ignote → `log.warning` + `continue`. |
+| `BeArkimet.decode_run` | `projects/mistral/backend/services/arkimet.py` | Non-dict → `TypeError`; style `MINUTE` con `value` int → `MINUTE,HH:MM` (`floor(v/60)`, `v%60`); valore non-int → `TypeError`; style diverso → `ValueError`. |
+| `BeArkimet.__decode_quantity` | `projects/mistral/backend/services/arkimet.py` | Privato (name-mangled), invocato **indirettamente** da `parse_matchers`: join di `value` con `","`. |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
-| `BeArkimet` | classe service | [services/arkimet.py](projects/mistral/backend/services/arkimet.py) | Solo metodi statici esercitati; **nessuna** sessione `arki.dataset` aperta. |
+| `BeArkimet` | classe service | `projects/mistral/backend/services/arkimet.py` | Solo metodi statici esercitati; **nessuna** sessione `arki.dataset` aperta. |
 | `dateutil.parser.parse` | libreria | `python-dateutil` (in `arkimet.py`) | Parsing dei bound in `parse_reftime`; il suffisso `Z` produce un datetime tz-aware **poi ignorato** da `strftime` (vedi §6). |
 | `math.floor` | stdlib | `math` (in `arkimet.py`) | Conversione minuti → ore in `decode_run`. |
 | `pytest.raises` | meccanismo | `pytest` | Verifica `TypeError`/`ValueError` nei due test negativi di `decode_run`. |
-| `pytest.mark.integration` / `deterministic` | marker | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L13) | Solo classificazione. |
+| `pytest.mark.integration` / `deterministic` | marker | `projects/mistral/backend/tests/conftest.py` | Solo classificazione. |
 
-> **Nota infra**: nessun `conftest.py`/`support` locale in `integration/services/`; il file **non richiede fixture** (i metodi sono statici e puri). Le fixture condivise ([`test_runtime`/`cleanup_registry`](projects/mistral/backend/tests/conftest.py#L49)) non sono autouse e non vengono usate.
+> **Nota infra**: nessun `conftest.py`/`support` locale in `integration/services/`; il file **non richiede fixture** (i metodi sono statici e puri). Le fixture condivise (`test_runtime`/`cleanup_registry` (`projects/mistral/backend/tests/conftest.py`)) non sono autouse e non vengono usate.
 
 ## 4. Analisi dettagliata di ogni test
 
@@ -42,6 +43,8 @@
 - **Setup**: nessuna fixture.
 - **Assert**: `known_result is True`, `unknown_result is False` (identità su bool, non solo truthiness).
 - **Casi coperti**: happy path + reject. Verifica un solo filtro noto (`run`) sui 10 disponibili.
+- **Cosa non dimostra**: che tutti i nomi ammessi siano riconosciuti.
+- **Se fallisce, guarda**: `allowed_filters`, poi i chiamanti che filtrano i parametri utente in `projects/mistral/backend/endpoints/data.py` e `projects/mistral/backend/endpoints/schedules.py`.
 
 ### `test_parse_reftime_formats_inclusive_arkimet_bounds`
 - **Obiettivo**: conversione bounds ISO → matcher reftime con operatori inclusivi.
@@ -50,6 +53,8 @@
 - **Setup**: date sintetiche (non finestre dataset reali).
 - **Assert**: `matcher == "reftime: >=2026-05-28 00:00,<=2026-05-28 03:30"`.
 - **Casi coperti**: happy path. **Importante**: il suffisso `Z` viene parsato come UTC ma `strftime` formatta solo i campi wall-clock → **nessuna conversione di fuso** (vedi §6); il test passa perché input già in UTC.
+- **Cosa non dimostra**: la normalizzazione di offset diversi da `Z` e l'esecuzione di una query reale.
+- **Se fallisce, guarda**: `parse_reftime` e il suo uso in `projects/mistral/backend/tasks/data_extraction.py`; se si introduce una gestione dei fusi servono casi nuovi, questo test non la copre.
 
 ### `test_parse_matchers_decodes_run_and_quantity_filters`
 - **Obiettivo**: comporre più filtri nella sintassi matcher attesa.
@@ -58,6 +63,8 @@
 - **Setup**: dict letterale; **l'ordine delle chiavi è significativo** (run prima di quantity).
 - **Assert**: `matcher == "run:MINUTE,06:00 or MINUTE,00:00; quantity:B13011,B11001"` → join valori con `" or "`, join matcher con `"; "`, quantity join con `","`.
 - **Casi coperti**: happy path multi-filtro + multi-valore. Dipende dall'ordine d'inserzione del dict (vedi §6).
+- **Cosa non dimostra**: che il matcher prodotto sia accettato da Arkimet (non viene eseguito).
+- **Se fallisce, guarda**: i decoder e le `join` di `parse_matchers`, poi il chiamante in `projects/mistral/backend/tasks/data_extraction.py`: un cambio di formattazione è un cambio di contratto.
 
 ### `test_decode_run_valid_minute_style_returns_hour_minute`
 - **Obiettivo**: normalizzazione `MINUTE` → `HH:MM` zero-padded.
@@ -66,6 +73,8 @@
 - **Setup**: 75 minuti (copre sia quoziente ora sia resto minuti).
 - **Assert**: `decoded_run == "MINUTE,01:15"` (`floor(75/60)=1`, `75%60=15`).
 - **Casi coperti**: happy path con valore non-tondo (intercetta regressioni su padding/divisione).
+- **Cosa non dimostra**: i limiti della giornata (valori ≥ 1440 minuti) e la vecchia notazione `s`/`va`.
+- **Se fallisce, guarda**: quoziente, resto e formato in `decode_run`; ricontrolla poi i chiamanti `projects/mistral/backend/tasks/on_data_ready_extractions.py` (confronta la parte dopo la virgola con l'ora del run) e `projects/mistral/backend/endpoints/opendata.py`.
 
 ### `test_decode_run_invalid_input_type_raises_type_error`
 - **Obiettivo**: input non-dict rifiutato prima del parsing per style.
@@ -74,6 +83,8 @@
 - **Setup**: stringa al posto del dict.
 - **Assert**: solleva `TypeError`.
 - **Casi coperti**: error path (tipo errato). Non asserisce il messaggio.
+- **Cosa non dimostra**: i valori malformati dentro un dict (per esempio `MINUTE` con valore non intero, che solleva anch'esso `TypeError`).
+- **Se fallisce, guarda**: la guardia di tipo di `decode_run`, non il backend Arkimet. Nota per i chiamanti: il launcher data-ready cattura solo `ValueError`, quindi un `TypeError` si propaga e segue un ramo diverso dallo skip.
 
 ### `test_decode_run_invalid_style_raises_value_error`
 - **Obiettivo**: style non supportato fallisce esplicitamente.
@@ -82,6 +93,8 @@
 - **Setup**: style `HOUR` (non gestito).
 - **Assert**: solleva `ValueError`.
 - **Casi coperti**: error path (style non valido). Non asserisce il messaggio.
+- **Cosa non dimostra**: lo style `MINUTE` con valore non numerico (ramo `TypeError`, non `ValueError`).
+- **Se fallisce, guarda**: gli stili ammessi da `decode_run`; il launcher di `projects/mistral/backend/tasks/on_data_ready_extractions.py` gestisce proprio `ValueError` per saltare la schedule.
 
 ## 5. Call chain
 

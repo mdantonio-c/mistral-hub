@@ -1,24 +1,25 @@
 # Review — `test_observations_station_details.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 > Modulo **runtime-sensitive** e **parametrizzato** sui tre backend osservati (`dballe`, `arkimet`, `mixed`).
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/observed/test_observations_station_details.py](projects/mistral/backend/tests/integration/observed/test_observations_station_details.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/observed/test_observations_station_details.py`
 - **Scopo**: verificare le viste **station-only** (`onlyStations`) e **station-details** (`stationDetails`) di `GET /api/observations`: soppressione prodotti in modalità solo-stazioni, dettaglio per stazione nota, controllo network valido anche in modalità dettaglio, e 400 quando mancano le coordinate.
 - **Tipologia**: test di **integrazione HTTP** su **dati reali**. Marker di modulo: `integration`, `deterministic`, `runtime_sensitive`.
 - **Pattern chiave**: 4 funzioni, tutte `@pytest.mark.parametrize("case_fixture", ALL_CASES)` risolte con `request.getfixturevalue(...)` → **12 istanze** (`dballe`/`arkimet`/`mixed`).
+- **Percorso comune del dominio** (`MapsObservations.get`, licenza, durata della finestra, archivio): vedi [conftest.py.review.md](conftest.py.review.md).
 
 ## 2. Backend realmente testato
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `MapsObservations.get` | [endpoints/maps_observed.py](projects/mistral/backend/endpoints/maps_observed.py) | Blocco `stationDetails`: richiede `networks` (1 solo), `ident` **o** (`lat` e `lon`); imposta `query_station_data` e ricalcola il gruppo licenza via `get_license_group`. |
-| `onlyStations` (param) | [endpoints/maps_observed.py](projects/mistral/backend/endpoints/maps_observed.py) | Passato a `get_maps_response`; la risposta espone stazioni con `prod == []`. |
-| `BeArkimet.from_network_to_dataset` | [services/arkimet.py](projects/mistral/backend/services/arkimet.py#L278) | Network sconosciuto → `None` → **404**. |
-| `SqlApiDbManager.get_license_group` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L546) | Ricava il gruppo licenza del dataset di stazione per coerenza con la query. |
-| `BeDballe.parse_obs_maps_response` | [services/dballe.py](projects/mistral/backend/services/dballe.py#L2039) | Costruisce `data[].stat` (con `lat`/`lon`) e `data[].prod[]`. |
+| `MapsObservations.get` | `projects/mistral/backend/endpoints/maps_observed.py` | Blocco `stationDetails`: richiede `networks` (1 solo), `ident` **o** (`lat` e `lon`); imposta `query_station_data` e ricalcola il gruppo licenza via `get_license_group`. |
+| `onlyStations` (param) | `projects/mistral/backend/endpoints/maps_observed.py` | Passato a `get_maps_response`; la risposta espone stazioni con `prod == []`. |
+| `BeArkimet.from_network_to_dataset` | `projects/mistral/backend/services/arkimet.py` | Network sconosciuto → `None` → **404**. |
+| `SqlApiDbManager.get_license_group` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Ricava il gruppo licenza del dataset di stazione per coerenza con la query. |
+| `BeDballe.parse_obs_maps_response` | `projects/mistral/backend/services/dballe.py` | Costruisce `data[].stat` (con `lat`/`lon`) e `data[].prod[]`. |
 
 ## 3. Mappa delle dipendenze
 
@@ -26,11 +27,11 @@
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
 | `request` | fixture | `pytest` | `getfixturevalue(case_fixture)`: risolve lo scenario. |
-| `dballe_/arkimet_/mixed_observed_case` | fixture locale | [observed/conftest.py](projects/mistral/backend/tests/integration/observed/conftest.py) | `ObservedCase`; **possono `pytest.skip`**. |
-| `ALL_CASES` | costante | [observed/support.py](projects/mistral/backend/tests/integration/observed/support.py) | Nomi delle 3 fixture di scenario. |
-| `build_reftime_query`, `build_observations_endpoint`, `fetch_observations` | helper | [observed/support.py](projects/mistral/backend/tests/integration/observed/support.py) | Costruzione query/URL e chiamata HTTP. |
-| `fetch_station_sample` | helper | [observed/support.py](projects/mistral/backend/tests/integration/observed/support.py) | **Esegue una prima query observed reale** (asserisce 200 + dict nel setup) e ne estrae `lat`/`lon` della prima stazione. |
-| `auth_headers` (indiretta) | fixture | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | Utente DEFAULT con `allowed_obs_archive=True` ([customization.py](projects/mistral/backend/customization.py#L33)) → scenari archiviati non respinti. |
+| `dballe_/arkimet_/mixed_observed_case` | fixture locale | `projects/mistral/backend/tests/integration/observed/conftest.py` | `ObservedCase`; **possono `pytest.skip`**. |
+| `ALL_CASES` | costante | `projects/mistral/backend/tests/integration/observed/support.py` | Nomi delle 3 fixture di scenario. |
+| `build_reftime_query`, `build_observations_endpoint`, `fetch_observations` | helper | `projects/mistral/backend/tests/integration/observed/support.py` | Costruzione query/URL e chiamata HTTP. |
+| `fetch_station_sample` | helper | `projects/mistral/backend/tests/integration/observed/support.py` | **Esegue una prima query observed reale** (asserisce 200 + dict nel setup) e ne estrae `lat`/`lon` della prima stazione. |
+| `auth_headers` (indiretta) | fixture | `projects/mistral/backend/tests/integration/conftest.py` | Utente DEFAULT con `allowed_obs_archive=True` (`projects/mistral/backend/customization.py`) → scenari archiviati non respinti. |
 
 ## 4. Analisi dettagliata di ogni test
 
@@ -40,6 +41,8 @@
 - **Flusso**: URL con sola query reftime + `onlyStations=true` → 200.
 - **Assert**: payload `dict`, status `200`, `data` lista non vuota di dizionari e `prod == []` per **tutte** le stazioni.
 - **Casi coperti**: contratto della modalità solo-stazioni. Una risposta senza stazioni produce ora un `AssertionError` esplicito con il backend dello scenario, senza indicizzare direttamente `data[0]`.
+- **Cosa non dimostra**: non confronta metadati né completezza delle stazioni restituite.
+- **Se fallisce, guarda**: la soppressione dei prodotti con `only_stations` (`BeDballe.extract_data_for_maps` → `parse_obs_maps_response`) e la disponibilità di dati: una lista vuota fa fallire il test, non lo salta.
 
 ### `test_station_details_returns_success_for_known_station` — `ALL_CASES` (×3)
 - **Obiettivo**: `stationDetails` ha successo per una stazione **scoperta** da una query valida.
@@ -48,6 +51,8 @@
 - **Setup**: `fetch_station_sample` **asserisce 200 e dict nel suo interno** (un fallimento qui appare come errore di setup).
 - **Assert**: `200`, payload `dict`, una sola stazione, `stat.net` e coordinate uguali alla richiesta, lista prodotti non vuota; ogni prodotto espone `var`, `lev`, `trange` e una lista `val` non vuota.
 - **Casi coperti**: happy path e contratto strutturale del dettaglio della stazione richiesta, inclusi metadati di livello/timerange e valori osservati.
+- **Cosa non dimostra**: non verifica valori numerici né l'uguaglianza dei prodotti con quelli del campione; se la prima query risponde 200 con `data` vuota, `extract_station_coordinates` indicizza `data[0]` senza guardia e il test fallisce (`IndexError`) invece di fare skip.
+- **Se fallisce, guarda**: il campionamento (`fetch_station_sample`), la query di dettaglio stazione e il serializer, non solo il codice HTTP.
 
 ### `test_station_details_with_unknown_network_returns_not_found` — `ALL_CASES` (×3)
 - **Obiettivo**: anche in modalità dettaglio, un network inesistente dà **404**.
@@ -55,12 +60,16 @@
 - **Flusso**: `fetch_station_sample` (per ottenere lat/lon realistici) → chiamata con `networks="network_does_not_exist"`, `stationDetails=true`, lat/lon → 404.
 - **Assert**: `404`.
 - **Nota**: il 404 nasce dal **network** sconosciuto, non dalla stazione mancante (quel ramo è coperto — e problematico — in `test_observations_edge_cases.py`).
+- **Cosa non dimostra**: non copre una stazione inesistente in una rete valida né il diniego dei permessi (401).
+- **Se fallisce, guarda**: il mapping rete→dataset e le precondizioni del campione preliminare.
 
 ### `test_station_details_without_coordinates_returns_bad_request` — `ALL_CASES` (×3)
 - **Obiettivo**: `stationDetails` senza `lat`/`lon` (né `ident`) dà **400**.
 - **Backend coinvolto**: `stationDetails` → `if not ident: if not lat or not lon: raise BadRequest("Parameters to get station details are missing")`.
 - **Flusso**: URL con `networks=<scoperto>`, `stationDetails=true`, **senza** coordinate → 400.
 - **Assert**: `400`. **Non** usa `fetch_station_sample` (nessuna prima query).
+- **Cosa non dimostra**: non distingue la sola `lat` mancante dalla sola `lon` mancante, né esercita il percorso con `ident`.
+- **Se fallisce, guarda**: la guardia dei parametri di `stationDetails` in `MapsObservations.get`; per il contratto di forma del dettaglio riusare i test positivi.
 
 ## 5. Call chain
 

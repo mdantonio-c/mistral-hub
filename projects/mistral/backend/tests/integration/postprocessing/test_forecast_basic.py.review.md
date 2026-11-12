@@ -1,36 +1,37 @@
 # Review — `test_forecast_basic.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/postprocessing/test_forecast_basic.py](projects/mistral/backend/tests/integration/postprocessing/test_forecast_basic.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/postprocessing/test_forecast_basic.py`
 - **Scopo**: verificare i tre scenari forecast “base” di successo su dataset `lm5`: estrazione semplice che produce un file; postprocessore **derived_variables** che emette `relhum_2m` preservando gli altri campi; postprocessore **statistic_elaboration** che produce il `stepRange` di precipitazione atteso.
 - **Tipologia**: test di **integrazione end-to-end reale**. Il task `data_extract` è eseguito **sincrono/in-process** via `send_task`, quindi vengono invocati davvero estrazione Arkimet e i binari `vg6d_transform`/`eccodes`. Marker (modulo): `integration`, `deterministic`, **`runtime_sensitive`**.
 - **RUNTIME-SENSITIVE**: tutti e 3 i test ereditano da `pp_forecast_env` la guardia `require_dataset(db,"lm5")` → **`pytest.skip` silenzioso** se `lm5` non è presente. La presenza di **dati** in `lm5` e dei binari non è invece coperta da skip: in loro assenza i test **falliscono**.
+- **Percorso comune del dominio** (task diretto, ordine fisso dei processor, tool reali): vedi [conftest.py.review.md](conftest.py.review.md).
 
 ## 2. Backend realmente testato
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| Task `data_extract` | [tasks/data_extraction.py](projects/mistral/backend/tasks/data_extraction.py#L42) | Orchestrazione: estrazione + dispatch postprocessori (ordine fisso) + size/quota + record `FileOutput`. |
-| `arki.arkimet_extraction` | [services/arkimet.py](projects/mistral/backend/services/arkimet.py#L355) | Estrazione forecast reale via `query_bytes` su Arkimet. |
-| `arki.get_datasets_format` / `get_datasets_category` | [services/arkimet.py](projects/mistral/backend/services/arkimet.py#L197) | Determina formato (`grib`) e categoria (non-`OBS`) del dataset. |
-| `pp1.pp_derived_variables` | [tools/derived_variables.py](projects/mistral/backend/tools/derived_variables.py#L10) | `vg6d_transform --output-variable-list=B13003`, poi `cat input + step1` → unisce il derivato ai campi originali. |
-| `pp2.pp_statistic_elaboration` | [tools/statistic_elaboration.py](projects/mistral/backend/tools/statistic_elaboration.py#L15) | Split per timerange via `eccodes`, `vg6d_transform --comp-stat-proc/--comp-step`, ricomposizione `cat`. |
-| `check_user_quota` | [tasks/data_extraction.py](projects/mistral/backend/tasks/data_extraction.py) | Verifica quota/size dopo il postprocessing. |
-| `SqlApiDbManager.create_fileoutput_record` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py) | Crea il record `FileOutput` letto poi da `assert_success`. |
+| Task `data_extract` | `projects/mistral/backend/tasks/data_extraction.py` | Orchestrazione: estrazione + dispatch postprocessori (ordine fisso) + size/quota + record `FileOutput`. |
+| `arki.arkimet_extraction` | `projects/mistral/backend/services/arkimet.py` | Estrazione forecast reale via `query_bytes` su Arkimet. |
+| `arki.get_datasets_format` / `get_datasets_category` | `projects/mistral/backend/services/arkimet.py` | Determina formato (`grib`) e categoria (non-`OBS`) del dataset. |
+| `pp1.pp_derived_variables` | `projects/mistral/backend/tools/derived_variables.py` | `vg6d_transform --output-variable-list=B13003`, poi `cat input + step1` → unisce il derivato ai campi originali. |
+| `pp2.pp_statistic_elaboration` | `projects/mistral/backend/tools/statistic_elaboration.py` | Split per timerange via `eccodes`, `vg6d_transform --comp-stat-proc/--comp-step`, ricomposizione `cat`. |
+| `check_user_quota` | `projects/mistral/backend/tasks/data_extraction.py` | Verifica quota/size dopo il postprocessing. |
+| `SqlApiDbManager.create_fileoutput_record` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Crea il record `FileOutput` letto poi da `assert_success`. |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
-| `pp_forecast_env` | fixture | [postprocessing/conftest.py](projects/mistral/backend/tests/integration/postprocessing/conftest.py) | Ambiente forecast su `lm5`: utente dedicato, DB, cleanup; **skip** se dataset assente. |
-| `PostprocessingEnv.execute/assert_success` | helper | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | Invio reale del task; assert su `status=SUCCESS`, file unico non vuoto. |
-| `forecast_derived_variable_filters/postprocessor` | builder | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | Filtri P+T+dewpoint+Q e postprocessor `derived_variables` (`["B13003"]`). |
-| `forecast_statistic_elaboration_filters/postprocessor` | builder | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | Filtri TP+P e postprocessor `statistic_elaboration` (`step=3`, `hours`). |
-| `assert_grib_contains_short_name` / `…_preserves_independent_fields` / `…_contains_step_range` / `…_contains_short_name_other_than` | assert GRIB | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | Leggono il GRIB prodotto via `eccodes`. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py) | Teardown LIFO (riga `Request`, utente, filesystem). |
+| `pp_forecast_env` | fixture | `projects/mistral/backend/tests/integration/postprocessing/conftest.py` | Ambiente forecast su `lm5`: utente dedicato, DB, cleanup; **skip** se dataset assente. |
+| `PostprocessingEnv.execute/assert_success` | helper | `projects/mistral/backend/tests/integration/postprocessing/support.py` | Invio reale del task; assert su `status=SUCCESS`, file unico non vuoto. |
+| `forecast_derived_variable_filters/postprocessor` | builder | `projects/mistral/backend/tests/integration/postprocessing/support.py` | Filtri P+T+dewpoint+Q e postprocessor `derived_variables` (`["B13003"]`). |
+| `forecast_statistic_elaboration_filters/postprocessor` | builder | `projects/mistral/backend/tests/integration/postprocessing/support.py` | Filtri TP+P e postprocessor `statistic_elaboration` (`step=3`, `hours`). |
+| `assert_grib_contains_short_name` / `…_preserves_independent_fields` / `…_contains_step_range` / `…_contains_short_name_other_than` | assert GRIB | `projects/mistral/backend/tests/integration/postprocessing/support.py` | Leggono il GRIB prodotto via `eccodes`. |
+| `cleanup_registry` | fixture | `projects/mistral/backend/tests/conftest.py` | Teardown LIFO (riga `Request`, utente, filesystem). |
 | binari `vg6d_transform`, `cat`, `eccodes` | sistema | immagine backend | Eseguiti realmente dalla pipeline. |
 
 ## 4. Analisi dettagliata di ogni test
@@ -42,6 +43,8 @@
 - **Setup**: `pp_forecast_env` (utente `lm5`).
 - **Assert**: `assert_success` (status SUCCESS, `fileoutput` presente, file esistente, non vuoto, **un solo file** in `outputs/`) + `output_path.exists()`.
 - **Casi coperti**: happy path minimale dell'estrazione forecast reale.
+- **Cosa non dimostra**: non decodifica il GRIB né verifica quali prodotti o reftime siano stati estratti: basta un file non vuoto.
+- **Se fallisce, guarda**: dati e configurazione Arkimet di `lm5`, quota dell'utente di test (1 GiB, misurata con `du -sb`) e il task in `projects/mistral/backend/tasks/data_extraction.py`.
 
 ### `test_derived_variables_emit_relhum_2m`
 - **Obiettivo**: il postprocessore `derived_variables` calcola `relhum_2m` (da B13003) **preservando** gli altri campi.
@@ -49,6 +52,8 @@
 - **Flusso**: `create_request()` → `execute(filters=forecast_derived_variable_filters(), postprocessors=[forecast_derived_variable_postprocessor()])` → `assert_success`.
 - **Assert**: `assert_grib_contains_short_name(out,"relhum_2m")` (il derivato è presente) **e** `assert_grib_preserves_independent_fields(out,"relhum_2m")` (esiste almeno un campo con shortName diverso → la merge `cat` ha tenuto gli input).
 - **Casi coperti**: contratto del derivato + non-distruttività della merge.
+- **Cosa non dimostra**: non verifica i valori numerici di `relhum_2m` né la conservazione integrale degli input (basta un altro `shortName` qualunque).
+- **Se fallisce, guarda**: il builder (P/T/dewpoint/Q, derivato `B13003`), le definizioni ecCodes del `shortName`, `vg6d_transform` e la concatenazione `cat` in `projects/mistral/backend/tools/derived_variables.py`.
 
 ### `test_statistic_elaboration_emits_tp_step_range`
 - **Obiettivo**: `statistic_elaboration` su precipitazione produce `tp` con `stepRange == "3-6"` (accumulo a 3 ore, `step=3`) mantenendo la pressione come campo indipendente.
@@ -56,6 +61,8 @@
 - **Flusso**: `create_request()` → `execute(filters=forecast_statistic_elaboration_filters(), postprocessors=[forecast_statistic_elaboration_postprocessor()])` → `assert_success`.
 - **Assert**: `assert_grib_contains_step_range(out,"tp","3-6")` + `assert_grib_contains_short_name_other_than(out,"tp","sp")` (verifica che `sp` sia presente; vedi §6 sul parametro ignorato).
 - **Casi coperti**: contratto statistico (stepRange) + presenza campo indipendente.
+- **Cosa non dimostra**: non verifica l'accumulo numerico, né che `tp` sia assente fra i campi "altri" (`excluded` è ignorato).
+- **Se fallisce, guarda**: le definizioni timerange del builder (step 3h, input/output timerange 1) e `projects/mistral/backend/tools/statistic_elaboration.py`; poi l'assert sulla sola presenza di `sp`.
 
 ## 5. Call chain
 

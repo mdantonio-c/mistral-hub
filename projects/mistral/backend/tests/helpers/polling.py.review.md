@@ -4,7 +4,7 @@
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/helpers/polling.py](projects/mistral/backend/tests/helpers/polling.py)
+- **Percorso**: `projects/mistral/backend/tests/helpers/polling.py`
 - **Scopo**: sostituire gli `sleep()` ciechi con un retry su predicato osservabile.
 - **Tipologia**: infrastruttura di suite.
 
@@ -20,6 +20,9 @@
 - **Usa `time.monotonic()`** per la deadline (robusto a cambi d'orologio).
 - **Ritorna l'oggetto truthy**, non solo `True`: i chiamanti (es. `wait_for_schedule_requests`) lo usano per ottenere direttamente la lista attesa.
 - **Tra un tentativo e l'altro chiama `time.sleep(interval)`**: il primo controllo è immediato, poi attende.
+- **Valori falsy non possono indicare successo**: `[]`, `0` e `False` vengono trattati come "non ancora". Per esempio `wait_for_schedule_requests(expected_count=0)` restituirebbe `[]` al predicato e scadrebbe in timeout; i test attuali lo usano solo con 1 o 2. Per attendere un valore falsy serve un involucro truthy.
+- **Eccezioni del predicato non catturate**: un errore nel predicato interrompe subito l'attesa, senza ulteriori tentativi.
+- **È un'attesa, non una garanzia di stabilità**: lo stato osservato può cambiare subito dopo il ritorno.
 
 ## 4. Checklist di revisione
 

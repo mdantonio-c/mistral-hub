@@ -5,10 +5,10 @@
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/templates/support.py](projects/mistral/backend/tests/integration/templates/support.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/templates/support.py`
 - **Scopo**: centralizzare URL, creazione utenti con quota/limiti, seeding di file template sintetici e costruzione di zip shapefile in memoria per i due moduli di test del dominio templates.
 - **Tipologia**: modulo di supporto locale (costanti + builder + seeding filesystem). **Non** crea fixture globali né `conftest.py` locali.
-- **Usato da**: [test_templates_listing.py](projects/mistral/backend/tests/integration/templates/test_templates_listing.py) e [test_templates_upload_delete.py](projects/mistral/backend/tests/integration/templates/test_templates_upload_delete.py).
+- **Usato da**: `projects/mistral/backend/tests/integration/templates/test_templates_listing.py` e `projects/mistral/backend/tests/integration/templates/test_templates_upload_delete.py`.
 
 ## 2. Elementi definiti
 
@@ -24,7 +24,7 @@
 | `upload_payload` | builder | Payload multipart `{"file": (stream, filename)}`. |
 | `listed_filenames` | helper | Estrae i soli `name` dai `Path` serializzati come stringhe assolute. |
 
-- Import chiave: `DOWNLOAD_DIR` da [endpoints/__init__.py](projects/mistral/backend/endpoints/__init__.py) (`Path("/data")`), `DATA_PATH` da `restapi.config`, e gli helper di auth da [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py).
+- Import chiave: `DOWNLOAD_DIR` da `projects/mistral/backend/endpoints/__init__.py` (`Path("/data")`), `DATA_PATH` da `restapi.config`, e gli helper di auth da `projects/mistral/backend/tests/helpers/auth.py`.
 
 ## 3. Builder e seeding: dettaglio
 
@@ -56,7 +56,7 @@
 
 - **Radici toccate**: `DATA_PATH/<uuid>/uploads/grib`, `DATA_PATH/<uuid>/uploads/shp` (scrittura seed) e — via endpoint — l'intera `/data/<uuid>` (upload, estrazione zip, `du -sb`).
 - **Doppia registrazione**: `register_test_user_cleanup` registra `/data/<uuid>`; i seeding registrano anche `uploads`. Poiché `DOWNLOAD_DIR == Path("/data")` e `DATA_PATH` coincide con la stessa radice del container, le due voci puntano allo stesso sottoalbero: il LIFO rimuove prima `uploads`, poi `/data/<uuid>` (ridondante ma sicuro).
-- **`CleanupRegistry`** ([tests/helpers/cleanup.py](projects/mistral/backend/tests/helpers/cleanup.py)) usa `shutil.rmtree(..., ignore_errors=True)` ⇒ rimozione **best-effort**, non fallisce se il path è già assente.
+- **`CleanupRegistry`** (`projects/mistral/backend/tests/helpers/cleanup.py`) usa `shutil.rmtree(..., ignore_errors=True)` ⇒ rimozione **best-effort**, non fallisce se il path è già assente.
 - **Nessun dato reale**: tutti i contenuti sono byte/stringhe sintetiche; nessun dataset meteo, nessun shapefile valido, nessun GDAL.
 
 ## 5. Comportamenti nascosti

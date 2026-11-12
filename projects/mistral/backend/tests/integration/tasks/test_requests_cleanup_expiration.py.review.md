@@ -1,11 +1,11 @@
 # Review — `test_requests_cleanup_expiration.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 > Modulo: copertura dei rami di expiration/orphan di `automatic_cleanup`.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/tasks/test_requests_cleanup_expiration.py](projects/mistral/backend/tests/integration/tasks/test_requests_cleanup_expiration.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/tasks/test_requests_cleanup_expiration.py`
 - **Scopo**: verificare i rami di `automatic_cleanup` **non** coperti dal test pending-stale di `requests/test_delete_pending_request.py`: archiviazione/cancellazione di request completate **scadute** secondo la policy utente, esclusione di request recenti / già archiviate / di utenti con expiration disabilitata, e rimozione dei **file orfani** oltre il grace period.
 - **Tipologia**: test di **integrazione task** (DB di test + filesystem reale, task invocato in-process con `.run()`). Marker dichiarati: `integration`, `deterministic`.
 - **Conteggio**: 3 test in `TestAutomaticCleanupExpirationEXT`. Nessun `pytest.skip`.
@@ -14,11 +14,11 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `automatic_cleanup(self)` | [tasks/requests_cleanup.py](projects/mistral/backend/tasks/requests_cleanup.py#L17) | Costruisce la mappa utenti con expiration **truthy**; per ogni request decide skip/archive/delete; poi rimuove i file orfani/`.tmp` oltre grace period. |
-| `GRACE_PERIOD` | [tasks/requests_cleanup.py](projects/mistral/backend/tasks/requests_cleanup.py#L13) | `timedelta(days=GRACE_PERIOD env, default 2)`; soglia per file orfani/`.tmp` e pending stale. |
-| `SqlApiDbManager.delete_request_record` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L172) | Cancella il `FileOutput` e il **file fisico** collegato alla request (non la Request). |
-| `DOWNLOAD_DIR` | [endpoints/__init__.py](projects/mistral/backend/endpoints/__init__.py) | Root scandita per i file orfani (`<dir>/outputs`); nel test il task vede al suo posto la root temporanea del perimetro. |
-| Modelli `Request`/`FileOutput`/`User` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py) | Stato persistito letto/scritto dal task. |
+| `automatic_cleanup(self)` | `projects/mistral/backend/tasks/requests_cleanup.py` | Costruisce la mappa utenti con expiration **truthy**; per ogni request decide skip/archive/delete; poi rimuove i file orfani/`.tmp` oltre grace period. |
+| `GRACE_PERIOD` | `projects/mistral/backend/tasks/requests_cleanup.py` | `timedelta(days=GRACE_PERIOD env, default 2)`; soglia per file orfani/`.tmp` e pending stale. |
+| `SqlApiDbManager.delete_request_record` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Cancella il `FileOutput` e il **file fisico** collegato alla request (non la Request). |
+| `DOWNLOAD_DIR` | `projects/mistral/backend/endpoints/__init__.py` | Root scandita per i file orfani (`<dir>/outputs`); nel test il task vede al suo posto la root temporanea del perimetro. |
+| Modelli `Request`/`FileOutput`/`User` | `projects/mistral/backend/models/sqlalchemy.py` | Stato persistito letto/scritto dal task. |
 
 - Backend **realmente eseguito**: l'intero task in-process (query DB, `delete_request_record`, archiviazione, scansione filesystem), confinato alle righe registrate e alla root temporanea di `requests_cleanup_perimeter`.
 - Backend **non** coinvolto: Celery worker/beat (chiamata diretta `.run()`).
@@ -27,15 +27,15 @@
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
-| `create_task_test_user` | helper | [tasks/support.py](projects/mistral/backend/tests/integration/tasks/support.py) | Utente reale con policy expiration/delete forzate in DB; cleanup standard. |
-| `seed_request` | helper | [tasks/support.py](projects/mistral/backend/tests/integration/tasks/support.py) | Request sintetica con `status`/`end_date`/`archived` controllati. |
-| `seed_fileoutput` | helper | [tasks/support.py](projects/mistral/backend/tests/integration/tasks/support.py) | `FileOutput` + file fisico sotto la dir output utente; path nel `cleanup_registry`. |
-| `delete_requests_for_user` | helper | [tasks/support.py](projects/mistral/backend/tests/integration/tasks/support.py) | Cleanup idempotente request+fileoutput. |
-| `touch_mtime` | helper | [tasks/support.py](projects/mistral/backend/tests/integration/tasks/support.py) | Imposta `st_mtime` per i file orfani (vecchi/recenti). |
-| `client`, `cleanup_registry` | fixture | `restapi.tests` / [tests/conftest.py](projects/mistral/backend/tests/conftest.py) | Client di test + teardown LIFO. |
+| `create_task_test_user` | helper | `projects/mistral/backend/tests/integration/tasks/support.py` | Utente reale con policy expiration/delete forzate in DB; cleanup standard. |
+| `seed_request` | helper | `projects/mistral/backend/tests/integration/tasks/support.py` | Request sintetica con `status`/`end_date`/`archived` controllati. |
+| `seed_fileoutput` | helper | `projects/mistral/backend/tests/integration/tasks/support.py` | `FileOutput` + file fisico sotto la dir output utente; path nel `cleanup_registry`. |
+| `delete_requests_for_user` | helper | `projects/mistral/backend/tests/integration/tasks/support.py` | Cleanup idempotente request+fileoutput. |
+| `touch_mtime` | helper | `projects/mistral/backend/tests/integration/tasks/support.py` | Imposta `st_mtime` per i file orfani (vecchi/recenti). |
+| `client`, `cleanup_registry` | fixture | `restapi.tests` / `projects/mistral/backend/tests/conftest.py` | Client di test + teardown LIFO. |
 | `states` (celery) | costanti | `celery` | `states.SUCCESS` per le request seedate. |
-| `requests_cleanup.GRACE_PERIOD` | simbolo | [tasks/requests_cleanup.py](projects/mistral/backend/tasks/requests_cleanup.py) | Usato dal test per costruire mtime realistici. |
-| `requests_cleanup_perimeter` | fixture | [integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | `allow(...)` registra utenti/request visibili al task; `download_root` temporanea sostituisce `DOWNLOAD_DIR` del task ([helpers/task_perimeter.py](projects/mistral/backend/tests/helpers/task_perimeter.py)). |
+| `requests_cleanup.GRACE_PERIOD` | simbolo | `projects/mistral/backend/tasks/requests_cleanup.py` | Usato dal test per costruire mtime realistici. |
+| `requests_cleanup_perimeter` | fixture | `projects/mistral/backend/tests/integration/conftest.py` | `allow(...)` registra utenti/request visibili al task; `download_root` temporanea sostituisce `DOWNLOAD_DIR` del task (`projects/mistral/backend/tests/helpers/task_perimeter.py`). |
 | `sqlalchemy.get_instance()` | connettore | `restapi.connectors` | DB di test. |
 
 ## 4. Analisi dettagliata di ogni test
@@ -54,6 +54,8 @@
   - request recente: presente, `archived=False`;
   - request già archiviata: presente, `archived=True` (invariata).
 - **Casi coperti**: matrice completa archive/delete/skip-recente/skip-archiviata + side effect filesystem di `delete_request_record`.
+- **Cosa non dimostra**: l'esecuzione periodica del task né la pulizia di risorse estranee al perimetro; per le due request preservate (recente e già archiviata) il test non crea file, quindi non prova che i loro output restino intatti.
+- **Se fallisce, guarda**: la policy utente (`requests_expiration_days`/`requests_expiration_delete`), `delete_request_record` in `projects/mistral/backend/services/sqlapi_db_manager.py` e la facciata del perimetro; controlla gli id registrati con `allow(...)` prima di allargare le query.
 
 ### `test_automatic_cleanup_ignores_user_with_expiration_disabled`
 - **Obiettivo**: un utente con `requests_expiration_days=0` non perde request vecchie.
@@ -62,6 +64,8 @@
 - **Setup**: utente reale, cleanup request registrato; perimetro limitato a utente e request seedati.
 - **Assert**: request **presente**, `archived=False`, `status==SUCCESS`.
 - **Casi coperti**: opt-out dell'autocleaning (valore expiration falsy). Nota: `delete=True` è volutamente impostato per dimostrare che l'esclusione avviene **prima** del ramo distruttivo.
+- **Cosa non dimostra**: che un utente possa impostare `0` via API: `create_task_test_user` scrive il valore direttamente via ORM, mentre gli schemi di `projects/mistral/backend/customization.py` validano `requests_expiration_days` con `Range(min=1, max=180)`.
+- **Se fallisce, guarda**: la costruzione di `users_settings` in `automatic_cleanup`; la semantica di modello e task è distinta dalla validazione HTTP del profilo.
 
 ### `test_automatic_cleanup_removes_only_old_orphan_files`
 - **Obiettivo**: i file orfani (senza `FileOutput` DB) oltre grace period vengono rimossi; quelli recenti restano.
@@ -70,6 +74,8 @@
 - **Setup**: **nessun** utente/DB request registrato nel perimetro (il task non processa request); solo filesystem temporaneo; `cleanup_registry.add_path(orphan_root)`.
 - **Assert**: `.tmp` vecchio rimosso, `.grib` vecchio rimosso, `.grib` recente **presente**.
 - **Casi coperti**: cleanup orfani per `.tmp` e per file senza entry DB; rispetto della soglia temporale.
+- **Cosa non dimostra**: la scansione dell'intera root applicativa né il caso di un file vecchio con `FileOutput` valido associato (che deve restare). Il callback finale del cleanup rimuove solo la directory creata dal test.
+- **Se fallisce, guarda**: `GRACE_PERIOD`, gli mtime impostati da `touch_mtime` e la `download_root` del perimetro; non puntare mai il test alla root download condivisa.
 
 ## 5. Call chain
 
@@ -108,7 +114,7 @@ automatic_cleanup.run()
 
 ## 8. Possibili criticità
 
-- **Perimetro accoppiato al task**: la facciata di [helpers/task_perimeter.py](projects/mistral/backend/tests/helpers/task_perimeter.py) conosce le query attuali di `automatic_cleanup`; un refactor del task produce un errore esplicito finché la facciata non viene aggiornata.
+- **Perimetro accoppiato al task**: la facciata di `projects/mistral/backend/tests/helpers/task_perimeter.py` conosce le query attuali di `automatic_cleanup`; un refactor del task produce un errore esplicito finché la facciata non viene aggiornata.
 - **Accoppiamento orario con `now`/`GRACE_PERIOD`**: gli mtime sono calcolati con `now - GRACE_PERIOD - 5min`; un grace period molto piccolo o un clock skew potrebbe rendere fragile la distinzione vecchio/recente (margine 5 minuti).
 - **File delle request registrate**: `delete_request_record` cancella i file reali sotto `DOWNLOAD_DIR/<uuid utente temporaneo>/outputs`; restano nel perimetro perché utenti e request sono quelli creati dal test.
 - **Verifica indiretta del ramo `.tmp`**: il task tratta `.tmp` con un ramo dedicato (prima del check FileOutput); il test lo copre, ma un `.tmp` con FileOutput associato (caso misto) non è esercitato.

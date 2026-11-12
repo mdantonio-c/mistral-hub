@@ -4,15 +4,15 @@
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/requests/conftest.py](projects/mistral/backend/tests/integration/requests/conftest.py)
-- **Scopo**: fornire le fixture specifiche del dominio *pending-request* — un utente temporaneo dedicato e una coppia di richieste con età diverse — così che [test_delete_pending_request.py](projects/mistral/backend/tests/integration/requests/test_delete_pending_request.py) si concentri sulle regole del grace period invece che sul setup grezzo delle righe.
+- **Percorso**: `projects/mistral/backend/tests/integration/requests/conftest.py`
+- **Scopo**: fornire le fixture specifiche del dominio *pending-request* — un utente temporaneo dedicato e una coppia di richieste con età diverse — così che `projects/mistral/backend/tests/integration/requests/test_delete_pending_request.py` si concentri sulle regole del grace period invece che sul setup grezzo delle righe.
 - **Tipologia**: `conftest.py` di dominio (solo fixture locali, visibili a `integration/requests/**`).
-- **Consumatori**: i tre test di [test_delete_pending_request.py](projects/mistral/backend/tests/integration/requests/test_delete_pending_request.py). **Non** usato dal modulo `test_requests_listing_archive_clone.py` (che definisce in proprio `requests_user`/`seed_request_row`).
+- **Consumatori**: i tre test di `projects/mistral/backend/tests/integration/requests/test_delete_pending_request.py`. **Non** usato dal modulo `test_requests_listing_archive_clone.py` (che definisce in proprio `requests_user`/`seed_request_row`).
 
 ## 2. Backend realmente esercitato
 
-- **In setup (via helper):** creazione utente attraverso l'admin user-creation + `do_login` (dentro `create_authenticated_test_user`, [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py)).
-- **Seeding diretto del modello `Request`** ([models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L36)) tramite `create_pending_delete_requests` ([requests/support.py](projects/mistral/backend/tests/integration/requests/support.py)). Nessuna chiamata diretta agli endpoint `/requests` (quelle stanno nei test).
+- **In setup (via helper):** creazione utente attraverso l'admin user-creation + `do_login` (dentro `create_authenticated_test_user`, `projects/mistral/backend/tests/helpers/auth.py`).
+- **Seeding diretto del modello `Request`** (`projects/mistral/backend/models/sqlalchemy.py`) tramite `create_pending_delete_requests` (`projects/mistral/backend/tests/integration/requests/support.py`). Nessuna chiamata diretta agli endpoint `/requests` (quelle stanno nei test).
 
 ## 3. Elementi definiti
 

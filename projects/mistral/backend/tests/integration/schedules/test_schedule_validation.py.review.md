@@ -1,10 +1,10 @@
 # Review — `test_schedule_validation.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/schedules/test_schedule_validation.py](projects/mistral/backend/tests/integration/schedules/test_schedule_validation.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/schedules/test_schedule_validation.py`
 - **Scopo**: coprire gli **edge di validazione** di `POST /schedules`: assenza di setting (400), periodo `< 15 min` (403), opendata per non-admin (403), opendata multidataset (400), opendata su dataset osservato (400), postprocessor senza permesso (401), push senza/with coda inesistente (403×2).
 - **Tipologia**: test di **integrazione HTTP** (controller reale + schema marshmallow reale + DB SQLAlchemy). RabbitMQ **mockato** nei soli rami push; Celery/RedBeat **mai raggiunti** (guardia autouse, vedi §6). Marker di modulo: `pytestmark = [pytest.mark.integration, pytest.mark.deterministic]`. 8 test (classe `TestScheduleValidation`).
 - **Attenzione**: il test `test_opendata_as_non_admin_returns_403` era collegato all'anomalia **SCHEDULES-001** (vedi §8): l'utente "non admin" riceveva un ruolo casuale e a volte l'endpoint rispondeva `202` invece di `403`. Correzione applicata nel test: `schedules_user` ha ora il solo ruolo `Role.USER`. **Risolta**: validata il 10/11/2026 su commit `7858231d` con 10 run consecutive verdi del file (8 passed ciascuna) e run completa `--folder custom` verde.
@@ -13,29 +13,29 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `ScheduledDataExtraction.validate_schedule` | [endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py#L318) | `@pre_load`: "At least one schedule setting has to be specified" → **400** se mancano `period-settings`/`crontab-settings`/`on-data-ready`. |
-| `SingleSchedule.post` (ramo `period_settings`) | [endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py#L408) | `MIN_PERIOD = 15`: periodo in `minutes` con `every < 15` → `Forbidden` **403**. |
-| `SingleSchedule.post` (ramo `opendata`) | [endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py#L408) | `admin_root` mancante → **403**; `len(dataset_names) > 1` → **400**; `category.name == "OBS"` → **400**. |
-| `SingleSchedule.post` (ramo `postprocessors`) | [endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py#L408) | `allowed_postprocessing` falso → `Unauthorized` **401**. |
-| `SingleSchedule.post` (ramo `push`) | [endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py#L408) | `push=true` + `rabbit.queue_exists(...)` falso → `Forbidden` **403**. |
-| `SqlApiDbManager.get_user_permissions` / `get_datasets` / `get_license_group` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py) | Permessi, esistenza dataset, coerenza license group (precondizioni ai rami testati). |
-| Modello `Datasets` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L146) | `category` (OBS/FOR) e `license_id` usati dal ramo opendata. |
+| `ScheduledDataExtraction.validate_schedule` | `projects/mistral/backend/endpoints/schedules.py` | `@pre_load`: "At least one schedule setting has to be specified" → **400** se mancano `period-settings`/`crontab-settings`/`on-data-ready`. |
+| `SingleSchedule.post` (ramo `period_settings`) | `projects/mistral/backend/endpoints/schedules.py` | `MIN_PERIOD = 15`: periodo in `minutes` con `every < 15` → `Forbidden` **403**. |
+| `SingleSchedule.post` (ramo `opendata`) | `projects/mistral/backend/endpoints/schedules.py` | `admin_root` mancante → **403**; `len(dataset_names) > 1` → **400**; `category.name == "OBS"` → **400**. |
+| `SingleSchedule.post` (ramo `postprocessors`) | `projects/mistral/backend/endpoints/schedules.py` | `allowed_postprocessing` falso → `Unauthorized` **401**. |
+| `SingleSchedule.post` (ramo `push`) | `projects/mistral/backend/endpoints/schedules.py` | `push=true` + `rabbit.queue_exists(...)` falso → `Forbidden` **403**. |
+| `SqlApiDbManager.get_user_permissions` / `get_datasets` / `get_license_group` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Permessi, esistenza dataset, coerenza license group (precondizioni ai rami testati). |
+| Modello `Datasets` | `projects/mistral/backend/models/sqlalchemy.py` | `category` (OBS/FOR) e `license_id` usati dal ramo opendata. |
 | `rabbitmq.get_instance` | `restapi.connectors` | **Sostituito** da `MagicMock` nei test push (`queue_exists → False`). |
-| `schedules_endpoint.celery` | [endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py) | **Sostituito** in tutti i test dalla guardia `forbid_real_schedule_dispatch`: se l'handler arriva a `celery.get_instance()`, il test fallisce prima di creare la schedule. |
+| `schedules_endpoint.celery` | `projects/mistral/backend/endpoints/schedules.py` | **Sostituito** in tutti i test dalla guardia `forbid_real_schedule_dispatch`: se l'handler arriva a `celery.get_instance()`, il test fallisce prima di creare la schedule. |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO**. |
+| `cleanup_registry` | fixture | `projects/mistral/backend/tests/conftest.py` | Teardown **LIFO**. |
 | `monkeypatch` | fixture | `pytest` | Patcha `rabbitmq.get_instance` nei test push e il nome `celery` del modulo endpoint (guardia). |
 | `forbid_real_schedule_dispatch` | fixture **locale autouse** | questo file | Sostituisce `celery` nel solo modulo endpoint con una funzione che chiama `pytest.fail`. |
 | `schedules_user` | fixture **locale** | questo file | Utente non-admin con ruolo esplicito `Role.USER` (`roles` nei permessi, come in `admin/support.py`): `allowed_schedule`, `open_dataset`, `datasets=[agrmet, lm5, lm2.2]`. **Shadowa** la fixture omonima del conftest. |
 | `admin_user` | fixture **locale** | questo file | Utente con ruolo `admin_root` (via `base.create_user(..., ["admin_root"])`) + stessi dataset. |
 | `dataset_ids_for_user` | helper **locale** | questo file | Risolve `arkimet_id → id` e **asserisce** che ogni dataset esista (precondizione runtime hard, vedi §6). |
-| `create_authenticated_test_user`, `register_test_user_cleanup`, `AuthenticatedTestUser` | helper | [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) | Creazione/login/teardown utenti temporanei. |
-| `DOWNLOAD_DIR` | costante | [endpoints/__init__.py](projects/mistral/backend/endpoints/__init__.py) | Radice output usata per costruire `output_dir` dell'admin user. |
+| `create_authenticated_test_user`, `register_test_user_cleanup`, `AuthenticatedTestUser` | helper | `projects/mistral/backend/tests/helpers/auth.py` | Creazione/login/teardown utenti temporanei. |
+| `DOWNLOAD_DIR` | costante | `projects/mistral/backend/endpoints/__init__.py` | Radice output usata per costruire `output_dir` dell'admin user. |
 | `MagicMock` | mock | `unittest.mock` | Fake RabbitMQ (`queue_exists.return_value = False`). |
 | `sqlalchemy.get_instance()` | connettore | `restapi.connectors` | Risoluzione dataset, scrittura `amqp_queue` nel test 8. |
 

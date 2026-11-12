@@ -5,7 +5,7 @@
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/tasks/support.py](projects/mistral/backend/tests/integration/tasks/support.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/tasks/support.py`
 - **Scopo**: centralizzare i **fake** di SMTP/RabbitMQ/Celery e i **seed DB** (utente, request, schedule, fileoutput) usati dai test su `requests_cleanup` e `data_extraction`. I fake riproducono **solo** i metodi osservati dai task, così la verifica resta sui side effect (quota, cleanup, notification) e non sull'infrastruttura esterna reale.
 - **Tipologia**: modulo di supporto (dataclass + fake/double + builder DB + helper filesystem). Nessun marker, nessun test.
 - **Runtime dichiarato**: nessuna connessione SMTP/RabbitMQ/Celery/tool meteo reale; il DB è quello di test Rapydo; i file fisici vivono sotto la directory dell'utente temporaneo o sotto `tmp_path`.
@@ -32,16 +32,16 @@
 
 | Fake | Sistema esterno reale sostituito | Metodi simulati | Cosa NON viene esercitato |
 |---|---|---|---|
-| `RetryThenSuccessSmtpFactoryEXT` + `...ClientEXT` | connettore SMTP `restapi.connectors.smtp` usato in [tasks/data_extraction.py](projects/mistral/backend/tasks/data_extraction.py#L694) (`notify_by_email`) | `get_instance(**kwargs)`, `send(...)`, `__enter__`/`__exit__` | apertura connessione SMTP reale, invio TLS, retry/backoff del connettore reale. |
-| `RecordingRabbitFactoryEXT` + `...ConnectionEXT` | connettore `rabbitmq` usato in [tasks/data_extraction.py](projects/mistral/backend/tasks/data_extraction.py#L725) (`notify_by_amqp_queue`) | `get_instance()`, `send_json(payload, routing_key=...)`, `disconnect()` | pubblicazione reale su broker, canali, serializzazione AMQP. |
-| `RecordingPeriodicTaskDeletionEXT` | `CeleryExt.delete_periodic_task` usato in [tasks/data_extraction.py](projects/mistral/backend/tasks/data_extraction.py#L494) (`check_user_quota`) | `__call__(*args, **kwargs)` → `return_value` | rimozione reale del periodic task da RedBeat / worker Celery. |
+| `RetryThenSuccessSmtpFactoryEXT` + `...ClientEXT` | connettore SMTP `restapi.connectors.smtp` usato in `projects/mistral/backend/tasks/data_extraction.py` (`notify_by_email`) | `get_instance(**kwargs)`, `send(...)`, `__enter__`/`__exit__` | apertura connessione SMTP reale, invio TLS, retry/backoff del connettore reale. |
+| `RecordingRabbitFactoryEXT` + `...ConnectionEXT` | connettore `rabbitmq` usato in `projects/mistral/backend/tasks/data_extraction.py` (`notify_by_amqp_queue`) | `get_instance()`, `send_json(payload, routing_key=...)`, `disconnect()` | pubblicazione reale su broker, canali, serializzazione AMQP. |
+| `RecordingPeriodicTaskDeletionEXT` | `CeleryExt.delete_periodic_task` usato in `projects/mistral/backend/tasks/data_extraction.py` (`check_user_quota`) | `__call__(*args, **kwargs)` → `return_value` | rimozione reale del periodic task da RedBeat / worker Celery. |
 
 - **Punto di iniezione coerente con il reale**: i metodi dei factory si chiamano `get_instance` e vengono **monkeypatchati** sui simboli reali (`smtp.get_instance`, `rabbitmq.get_instance`).
 - **Semantica context manager preservata**: `__exit__` ritorna `False` in entrambi i fake → eventuali eccezioni si propagano come col connettore reale (importante per il test di retry SMTP).
 
 ## 4. Builder e seed DB (cosa tocca davvero il database)
 
-- **`create_task_test_user`**: passa dalla creazione utente reale ([tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) → `create_authenticated_test_user`), poi **scrive direttamente** in DB `requests_expiration_days`, `requests_expiration_delete`, `disk_quota`, `max_output_size`, `notify_on_successful_request`. Registra il cleanup standard (utente + dir output) via `register_test_user_cleanup`. Permessi: `allowed_schedule`, `open_dataset`.
+- **`create_task_test_user`**: passa dalla creazione utente reale (`projects/mistral/backend/tests/helpers/auth.py` → `create_authenticated_test_user`), poi **scrive direttamente** in DB `requests_expiration_days`, `requests_expiration_delete`, `disk_quota`, `max_output_size`, `notify_on_successful_request`. Registra il cleanup standard (utente + dir output) via `register_test_user_cleanup`. Permessi: `allowed_schedule`, `open_dataset`.
 - **`seed_request`**: inserisce una `Request` con `args` minimi (`datasets`/`reftime`/`filters`); default `status="SUCCESS"`, `submission_date=utcnow()`. Restituisce l'`id`.
 - **`seed_fileoutput`**: crea la dir `output_dir`, **scrive un file fisico** (`.grib` sintetico) sotto `DOWNLOAD_DIR/<uuid>/outputs`, inserisce `FileOutput(size=len(content))`, e **aggiunge il path al `cleanup_registry`**. È il ponte DB↔filesystem usato dal cleanup test.
 - **`seed_schedule`**: inserisce una `Schedule` non-crontab (`PeriodEnum.days`, `every=1`, `time_delta=1h`), `is_enabled`/`on_data_ready` configurabili. **Non** registra nulla in RedBeat.
@@ -54,16 +54,20 @@
 - **Fake “parziali” per costruzione**: implementano **solo** il sottoinsieme di API osservato. Se il task reale iniziasse a chiamare un altro metodo (es. un secondo `send`, o un `ack`), i fake **non** lo intercetterebbero e il test potrebbe passare ignorando una regressione.
 - **Accoppiamento sui kwargs di connessione**: `RetryThenSuccessSmtpFactoryEXT.get_instance_calls` registra i kwargs (`retries`, `retry_wait`) attesi dal task: un cambio di firma del connettore reale **non** romperebbe il fake, ma il test che vi si appoggia sì.
 - **Side effect filesystem confinati**: i path vivono sotto l'utente temporaneo o `tmp_path`; `seed_fileoutput` registra anche il parent dir nel `cleanup_registry`. Nessuna scrittura in aree runtime non controllate.
-- **`touch_mtime` riscrive il contenuto** del file prima di settare l'mtime: l'mtime finale è quello imposto, ma il file viene comunque toccato due volte.
+- **`touch_mtime` riscrive il contenuto** del file prima di settare l'mtime: il contenuto diventa il nome del file (un contenuto precedente non è preservato) e `os.utime` imposta sia atime sia mtime.
+- **Valori fuori schema via ORM**: `create_task_test_user` scrive i campi direttamente in DB, quindi accetta anche valori che lo schema profilo rifiuterebbe; `test_requests_cleanup_expiration.py` passa `requests_expiration_days=0`, mentre in `projects/mistral/backend/customization.py` il campo ha `Range(min=1, max=180)`. `allowed_schedule` invece passa dall'API come permesso.
+- **Fake attivi solo se agganciati**: importare il modulo non installa nulla; ogni test aggancia i fake con `monkeypatch` sui simboli reali, e il ripristino è quello di `monkeypatch`. `get_instance` del fake SMTP crea un client nuovo a ogni chiamata (uno per tentativo), mentre il fake Rabbit restituisce sempre la stessa connessione.
+- **Cleanup a carico del chiamante**: `seed_request` e `seed_schedule` non registrano nulla; `seed_fileoutput` registra solo la directory dell'utente, che non elimina le righe `Request`/`FileOutput`. I test devono registrare `delete_requests_for_user`/`delete_schedule`.
+- **Consumatori**: solo `test_data_extraction_quota_and_notifications.py` e `test_requests_cleanup_expiration.py` della stessa cartella; il modulo non dichiara fixture.
 
 ## 6. Dipendenze esterne
 
 | Dipendenza | Origine | Note |
 |---|---|---|
-| `create_authenticated_test_user`, `register_test_user_cleanup`, `AuthenticatedTestUser` | [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) | Creazione utente reale + cleanup standard. |
+| `create_authenticated_test_user`, `register_test_user_cleanup`, `AuthenticatedTestUser` | `projects/mistral/backend/tests/helpers/auth.py` | Creazione utente reale + cleanup standard. |
 | `sqlalchemy.get_instance()` | `restapi.connectors` | Sessione DB di test. |
 | `BaseTests`, `FlaskClient` | `restapi.tests` | Helper di creazione utente. |
-| `PeriodEnum`, `Schedule`/`Request`/`FileOutput`/`User` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py) | Modelli persistiti dai seed. |
+| `PeriodEnum`, `Schedule`/`Request`/`FileOutput`/`User` | `projects/mistral/backend/models/sqlalchemy.py` | Modelli persistiti dai seed. |
 
 ## 7. Checklist di revisione
 

@@ -1,11 +1,11 @@
 # Review — `test_data_endpoint_submission.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 > Modulo: copertura del contratto `POST /data` lato submission.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/data/test_data_endpoint_submission.py](projects/mistral/backend/tests/integration/data/test_data_endpoint_submission.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/data/test_data_endpoint_submission.py`
 - **Scopo**: verificare il **percorso di submission** di `POST /data`: happy path (creazione `Request` + routing Celery), i tre rami del flag `push` (queue utente assente, queue inesistente lato broker, queue valida con persistenza della `pushing_queue`) e il ramo quota su dati osservati (`OBS`) negato.
 - **Tipologia**: test di **integrazione HTTP** (controller reale + schema reale + DB SQLAlchemy reale) con **fake locali** per Celery/RabbitMQ/Arkimet e `monkeypatch` mirato su due funzioni di modulo. Marker: `integration`, `deterministic`. 5 test.
 - **Isolamento**: non avvia worker, broker o estrazioni reali; nessun `pytest.skip` → **nessun test silenziosamente saltabile**.
@@ -14,32 +14,32 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `Data.post` | [endpoints/data.py](projects/mistral/backend/endpoints/data.py) | Endpoint `POST /data`: sequenza di guardie (rate limit, catalogo, formato, licenze, postprocessors, output_format, push, only_reliable, quota OBS) → `create_request_record` → `send_task` → `202`. |
-| `repo.check_user_request_limit` | [services/sqlapi_db_manager.py#L644](projects/mistral/backend/services/sqlapi_db_manager.py#L644) | Limite richieste/ora (qui non scatta: utenti freschi). |
-| `repo.get_datasets` | [services/sqlapi_db_manager.py#L482](projects/mistral/backend/services/sqlapi_db_manager.py#L482) | Catalogo autorizzato: il payload usa `arkimet_id`, confrontato con `ds["id"]`. |
-| `repo.get_license_group` | [services/sqlapi_db_manager.py#L546](projects/mistral/backend/services/sqlapi_db_manager.py#L546) | Verifica gruppo licenza comune (qui dataset singolo → ok). |
-| `repo.create_request_record` | [services/sqlapi_db_manager.py#L111](projects/mistral/backend/services/sqlapi_db_manager.py#L111) | Crea `Request(status="CREATED")`; poi l'endpoint sovrascrive `task_id`/`status`. |
-| `queue_sorting` | [tasks/data_extraction_utilities.py#L6](projects/mistral/backend/tasks/data_extraction_utilities.py#L6) | Sceglie la coda da `(data_type, is_operational)`; usa **solo** `reftime["date_from"]`. Reftime 2020 → `archived_forecast` deterministico. |
-| `data_extract` (nome task) | [tasks/data_extraction.py#L44](projects/mistral/backend/tasks/data_extraction.py#L44) | Registrato come `"data_extract"`; **mai eseguito** (solo `send_task` registrato dal fake). |
-| `get_observed_data_size_count` / `check_user_quota_for_observed_data` | [endpoints/data.py](projects/mistral/backend/endpoints/data.py) | Funzioni di modulo del ramo OBS, **monkeypatchate** nel 5° test. |
-| Modelli `Request` / `User` | [models/sqlalchemy.py#L36](projects/mistral/backend/models/sqlalchemy.py#L36) | `Request.args` (JSONB), `task_id` (unique), `status`; `User.amqp_queue`. |
+| `Data.post` | `projects/mistral/backend/endpoints/data.py` | Endpoint `POST /data`: sequenza di guardie (rate limit, catalogo, formato, licenze, postprocessors, output_format, push, only_reliable, quota OBS) → `create_request_record` → `send_task` → `202`. |
+| `repo.check_user_request_limit` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Limite richieste/ora (qui non scatta: utenti freschi). |
+| `repo.get_datasets` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Catalogo autorizzato: il payload usa `arkimet_id`, confrontato con `ds["id"]`. |
+| `repo.get_license_group` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Verifica gruppo licenza comune (qui dataset singolo → ok). |
+| `repo.create_request_record` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Crea `Request(status="CREATED")`; poi l'endpoint sovrascrive `task_id`/`status`. |
+| `queue_sorting` | `projects/mistral/backend/tasks/data_extraction_utilities.py` | Sceglie la coda da `(data_type, is_operational)`; usa **solo** `reftime["date_from"]`. Reftime 2020 → `archived_forecast` deterministico. |
+| `data_extract` (nome task) | `projects/mistral/backend/tasks/data_extraction.py` | Registrato come `"data_extract"`; **mai eseguito** (solo `send_task` registrato dal fake). |
+| `get_observed_data_size_count` / `check_user_quota_for_observed_data` | `projects/mistral/backend/endpoints/data.py` | Funzioni di modulo del ramo OBS, **monkeypatchate** nel 5° test. |
+| Modelli `Request` / `User` | `projects/mistral/backend/models/sqlalchemy.py` | `Request.args` (JSONB), `task_id` (unique), `status`; `User.amqp_queue`. |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `cleanup_registry` | fixture | [tests/conftest.py#L59](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO** (utenti, dataset, request, file). |
+| `cleanup_registry` | fixture | `projects/mistral/backend/tests/conftest.py` | Teardown **LIFO** (utenti, dataset, request, file). |
 | `monkeypatch` | fixture | `pytest` | Applica i fake runtime; rollback automatico a fine test. |
-| `create_synthetic_dataset` | helper | [data/support.py](projects/mistral/backend/tests/integration/data/support.py) | Dataset/licenza/attribution sintetici + cleanup. |
-| `create_data_endpoint_user` | helper | [data/support.py](projects/mistral/backend/tests/integration/data/support.py) | Utente temporaneo con permessi + `amqp_queue` forzata sul DB. |
-| `build_data_payload` | helper | [data/support.py](projects/mistral/backend/tests/integration/data/support.py) | Body JSON con reftime sintetica `2020-01-01`. |
-| `patch_data_endpoint_runtime` | helper | [data/support.py](projects/mistral/backend/tests/integration/data/support.py) | `monkeypatch` su `arki/celery/rabbitmq` del modulo endpoint. |
-| `RecordingCelery` / `FakeRabbit` | fake locali | [data/support.py](projects/mistral/backend/tests/integration/data/support.py) | Registrano `send_task` / `queue_exists` senza servizi reali. |
-| `latest_request_for_user` / `delete_requests_for_user` | helper | [data/support.py](projects/mistral/backend/tests/integration/data/support.py) | Lettura ultima request / cleanup request. |
-| `queue_sorting` | funzione reale | [tasks/data_extraction_utilities.py#L6](projects/mistral/backend/tasks/data_extraction_utilities.py#L6) | Ricalcolata nel test per confronto con la coda scelta dall'endpoint. |
-| `DiskQuotaException` | eccezione | [mistral/exceptions.py](projects/mistral/backend/exceptions.py) | Sollevata dal fake quota nel 5° test → `Forbidden`. |
-| `DatasetCategories` | enum | [models/sqlalchemy.py#L132](projects/mistral/backend/models/sqlalchemy.py#L132) | Categoria `OBS` per il dataset osservato. |
+| `create_synthetic_dataset` | helper | `projects/mistral/backend/tests/integration/data/support.py` | Dataset/licenza/attribution sintetici + cleanup. |
+| `create_data_endpoint_user` | helper | `projects/mistral/backend/tests/integration/data/support.py` | Utente temporaneo con permessi + `amqp_queue` forzata sul DB. |
+| `build_data_payload` | helper | `projects/mistral/backend/tests/integration/data/support.py` | Body JSON con reftime sintetica `2020-01-01`. |
+| `patch_data_endpoint_runtime` | helper | `projects/mistral/backend/tests/integration/data/support.py` | `monkeypatch` su `arki/celery/rabbitmq` del modulo endpoint. |
+| `RecordingCelery` / `FakeRabbit` | fake locali | `projects/mistral/backend/tests/integration/data/support.py` | Registrano `send_task` / `queue_exists` senza servizi reali. |
+| `latest_request_for_user` / `delete_requests_for_user` | helper | `projects/mistral/backend/tests/integration/data/support.py` | Lettura ultima request / cleanup request. |
+| `queue_sorting` | funzione reale | `projects/mistral/backend/tasks/data_extraction_utilities.py` | Ricalcolata nel test per confronto con la coda scelta dall'endpoint. |
+| `DiskQuotaException` | eccezione | `projects/mistral/backend/exceptions.py` | Sollevata dal fake quota nel 5° test → `Forbidden`. |
+| `DatasetCategories` | enum | `projects/mistral/backend/models/sqlalchemy.py` | Categoria `OBS` per il dataset osservato. |
 
 ## 4. Analisi dettagliata di ogni test
 
@@ -117,7 +117,7 @@ POST /api/data[?push=<bool>]  → auth.require() (401 anonimo)
 
 ## 6. Comportamenti nascosti
 
-- **`queue_sorting` usa solo `date_from`**: il test ricostruisce `queue_sorting("FOR", {"date_from": ...})` ignorando `date_to`, coerente con [tasks/data_extraction_utilities.py#L6](projects/mistral/backend/tasks/data_extraction_utilities.py#L6). Reftime 2020 ⇒ `now - date_from` ≫ 3 giorni ⇒ `is_operational=False` ⇒ `archived_forecast` **sempre** (determinismo garantito dalla data sintetica vecchia).
+- **`queue_sorting` usa solo `date_from`**: il test ricostruisce `queue_sorting("FOR", {"date_from": ...})` ignorando `date_to`, coerente con `projects/mistral/backend/tasks/data_extraction_utilities.py`. Reftime 2020 ⇒ `now - date_from` ≫ 3 giorni ⇒ `is_operational=False` ⇒ `archived_forecast` **sempre** (determinismo garantito dalla data sintetica vecchia).
 - **Monkeypatch su funzioni di modulo (5° test)**: `get_observed_data_size_count` e `check_user_quota_for_observed_data` sono chiamate in `data.py` come **nomi nudi**; patcharle su `data_endpoint_module.<name>` funziona perché Python le risolve dai globals del modulo a runtime. È corretto ma sottile: un refactor che le importasse altrove invaliderebbe il patch.
 - **`status` finale = `PENDING`**: `create_request_record` imposta `"CREATED"`, poi l'endpoint sovrascrive con `task.status` (`states.PENDING` del fake) e committa. Il test verifica lo stato **finale**.
 - **Ordine dei rami come contratto implicito**: i test push/quota asseriscono *anche* l'assenza di request → verificano che il rifiuto avvenga **prima** di `create_request_record`. Se un refactor spostasse `create_request_record` più in alto, questi assert fallirebbero (rete di sicurezza utile).

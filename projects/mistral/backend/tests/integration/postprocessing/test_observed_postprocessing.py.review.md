@@ -1,38 +1,39 @@
 # Review — `test_observed_postprocessing.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/postprocessing/test_observed_postprocessing.py](projects/mistral/backend/tests/integration/postprocessing/test_observed_postprocessing.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/postprocessing/test_observed_postprocessing.py`
 - **Scopo**: verificare gli scenari **observed** di successo su dataset `agrmet`: estrazione semplice; postprocessore `derived_variables`; postprocessore `statistic_elaboration`; catena derived + statistic con export **JSON** e filtro qualità (`only_reliable=True`).
 - **Tipologia**: integrazione **end-to-end reale** su dati DBALLE; `data_extract` sincrono via `send_task` → esecuzione reale di `observed_extraction` (DBALLE), `v7d_transform` (BUFR), `dbamsg`, filtro qualità. Marker (modulo): `integration`, `deterministic`, **`runtime_sensitive`**.
 - **RUNTIME-SENSITIVE — skip silenziosi (doppia guardia)**: tutti i 4 test usano `pp_observed_env`, che può **skippare** sia per `require_dataset(db,"agrmet")` sia per `require_observed_lastdays()` (variabili `ALCHEMY_*` mancanti **o** nessun dato observed in DBALLE).
+- **Percorso comune del dominio** (task diretto, ordine fisso dei processor, tool reali): vedi [conftest.py.review.md](conftest.py.review.md).
 
 ## 2. Backend realmente testato
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| Task `data_extract` | [tasks/data_extraction.py](projects/mistral/backend/tasks/data_extraction.py#L42) | Ramo `OBS`: stima size observed (solo senza postprocessori) + `observed_extraction` + dispatch postprocessori. |
-| `observed_extraction` | [tasks/data_extraction.py](projects/mistral/backend/tasks/data_extraction.py#L586) | `parse_query_for_data_extraction`; con `reftime=None` imposta `db_type="mixed"` → `extract_data_for_mixed`. |
-| `dballe.parse_query_for_data_extraction` | [services/dballe.py](projects/mistral/backend/services/dballe.py#L2615) | Costruisce `fields/queries` dai filtri + reti del dataset. |
-| `dballe.extract_data_for_mixed` / `extract_data` | [services/dballe.py](projects/mistral/backend/services/dballe.py#L2655) | Estrazione BUFR reale da DBALLE/Arkimet. |
-| `pp1.pp_derived_variables` (BUFR) | [tools/derived_variables.py](projects/mistral/backend/tools/derived_variables.py#L10) | Per BUFR usa `v7d_transform --input/output-format=BUFR`. |
-| `pp2.pp_statistic_elaboration` (BUFR) | [tools/statistic_elaboration.py](projects/mistral/backend/tools/statistic_elaboration.py#L15) | Ramo non-grib: split via `dballe.Importer/Exporter`; `v7d_transform`. |
-| `qc.pp_quality_check_filter` | [tools/quality_check_filter.py](projects/mistral/backend/tools/quality_check_filter.py#L7) | Solo `only_reliable=True`: `BeDballe.filter_messages(quality_check=True)`. |
-| `output_formatting.pp_output_formatting` | [tools/output_formatting.py](projects/mistral/backend/tools/output_formatting.py#L7) | `dbamsg dump --json`. |
-| `BeDballe.LASTDAYS` (override) | [services/dballe.py](projects/mistral/backend/services/dballe.py#L33) | Sovrascritto dalla fixture per la durata del test. |
+| Task `data_extract` | `projects/mistral/backend/tasks/data_extraction.py` | Ramo `OBS`: stima size observed (solo senza postprocessori) + `observed_extraction` + dispatch postprocessori. |
+| `observed_extraction` | `projects/mistral/backend/tasks/data_extraction.py` | `parse_query_for_data_extraction`; con `reftime=None` imposta `db_type="mixed"` → `extract_data_for_mixed`. |
+| `dballe.parse_query_for_data_extraction` | `projects/mistral/backend/services/dballe.py` | Costruisce `fields/queries` dai filtri + reti del dataset. |
+| `dballe.extract_data_for_mixed` / `extract_data` | `projects/mistral/backend/services/dballe.py` | Estrazione BUFR reale da DBALLE/Arkimet. |
+| `pp1.pp_derived_variables` (BUFR) | `projects/mistral/backend/tools/derived_variables.py` | Per BUFR usa `v7d_transform --input/output-format=BUFR`. |
+| `pp2.pp_statistic_elaboration` (BUFR) | `projects/mistral/backend/tools/statistic_elaboration.py` | Ramo non-grib: split via `dballe.Importer/Exporter`; `v7d_transform`. |
+| `qc.pp_quality_check_filter` | `projects/mistral/backend/tools/quality_check_filter.py` | Solo `only_reliable=True`: `BeDballe.filter_messages(quality_check=True)`. |
+| `output_formatting.pp_output_formatting` | `projects/mistral/backend/tools/output_formatting.py` | `dbamsg dump --json`. |
+| `BeDballe.LASTDAYS` (override) | `projects/mistral/backend/services/dballe.py` | Sovrascritto dalla fixture per la durata del test. |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
-| `pp_observed_env` | fixture (**yield**) | [postprocessing/conftest.py](projects/mistral/backend/tests/integration/postprocessing/conftest.py) | Ambiente `agrmet`; override `BeDballe.LASTDAYS` attivo per tutto il test; **skip** su dataset/`ALCHEMY_*`/dati assenti. |
-| `observed_derived_variable_filters/postprocessor` | builder | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | Filtri B12101+B13003; postprocessor `["B12103"]`. |
-| `observed_statistic_elaboration_filters/postprocessor` | builder | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | Filtri B12101+B13011; `step=1`, `hours`. |
-| `observed_chaining_filters` | builder | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | B12101+B13003+B13011 (coprono derived **e** statistic). |
-| `env.execute/assert_success` | helper | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | Invio reale del task; assert su SUCCESS + file unico non vuoto. |
-| `cleanup_registry`, `test_runtime` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py) | Teardown LIFO; gestione override `LASTDAYS`. |
+| `pp_observed_env` | fixture (**yield**) | `projects/mistral/backend/tests/integration/postprocessing/conftest.py` | Ambiente `agrmet`; override `BeDballe.LASTDAYS` attivo per tutto il test; **skip** su dataset/`ALCHEMY_*`/dati assenti. |
+| `observed_derived_variable_filters/postprocessor` | builder | `projects/mistral/backend/tests/integration/postprocessing/support.py` | Filtri B12101+B13003; postprocessor `["B12103"]`. |
+| `observed_statistic_elaboration_filters/postprocessor` | builder | `projects/mistral/backend/tests/integration/postprocessing/support.py` | Filtri B12101+B13011; `step=1`, `hours`. |
+| `observed_chaining_filters` | builder | `projects/mistral/backend/tests/integration/postprocessing/support.py` | B12101+B13003+B13011 (coprono derived **e** statistic). |
+| `env.execute/assert_success` | helper | `projects/mistral/backend/tests/integration/postprocessing/support.py` | Invio reale del task; assert su SUCCESS + file unico non vuoto. |
+| `cleanup_registry`, `test_runtime` | fixture | `projects/mistral/backend/tests/conftest.py` | Teardown LIFO; gestione override `LASTDAYS`. |
 | binari `v7d_transform`, `dbamsg`, libreria `dballe` | sistema | immagine backend | Eseguiti realmente. |
 
 ## 4. Analisi dettagliata di ogni test
@@ -43,6 +44,8 @@
 - **Flusso**: `create_request()` → `execute(request_id)` (filters/postprocessors vuoti, `reftime=None`) → `assert_success` + `exists()`.
 - **Assert**: SUCCESS, file unico non vuoto.
 - **Casi coperti**: happy path estrazione observed reale (con ramo di stima size attivo perché niente postprocessori).
+- **Cosa non dimostra**: non verifica tempi, stazioni o contenuto del BUFR, né che entrambe le fonti dell'estrazione `mixed` (DB-All.e recente e archivio Arkimet) contribuiscano al file.
+- **Se fallisce, guarda**: dati `agrmet` reali, stima size/summary e DSN DB-All.e, poi il task in `projects/mistral/backend/tasks/data_extraction.py`; la sola riga di catalogo del dataset non basta.
 
 ### `test_observed_derived_variables_create_output`
 - **Obiettivo**: derived observed (`B12103`, dew-point) riesce con gli input richiesti.
@@ -50,6 +53,8 @@
 - **Flusso**: `create_request()` → `execute(filters=observed_derived_variable_filters(), postprocessors=[observed_derived_variable_postprocessor()])` → `assert_success` + `exists()`.
 - **Assert**: SUCCESS + file presente (**nessun** controllo sul contenuto BUFR del derivato — vedi §8).
 - **Casi coperti**: happy path derived observed.
+- **Cosa non dimostra**: non verifica la presenza né il valore di `B12103` nell'output.
+- **Se fallisce, guarda**: disponibilità degli input B12101/B13003 nei dati e `pp_derived_variables` in `projects/mistral/backend/tools/derived_variables.py`; distinguere il completamento del task dalla correttezza del contenuto.
 
 ### `test_observed_statistic_elaboration_creates_output`
 - **Obiettivo**: statistic elaboration observed riesce con gli input richiesti.
@@ -57,6 +62,8 @@
 - **Flusso**: `create_request()` → `execute(filters=observed_statistic_elaboration_filters(), postprocessors=[observed_statistic_elaboration_postprocessor()])` → `assert_success` + `exists()`.
 - **Assert**: SUCCESS + file presente.
 - **Casi coperti**: happy path statistic observed.
+- **Cosa non dimostra**: non verifica codice, timerange o valore dell'accumulo prodotto.
+- **Se fallisce, guarda**: i builder (filtri B12101+B13011; postprocessor con timerange 1→1 e step 1h), la presenza di dati pertinenti e il ramo BUFR di `projects/mistral/backend/tools/statistic_elaboration.py` con libsim (`v7d_transform`).
 
 ### `test_combined_observed_postprocessors_export_json`
 - **Obiettivo**: catena derived + statistic con export **JSON** e `only_reliable=True` (filtro qualità).
@@ -65,6 +72,8 @@
 - **Assert**: `output_path.suffix == ".json"`.
 - **Casi coperti**: catena observed + QC + conversione formato finale.
 - **Nota**: con `only_reliable=True`, `observed_extraction` estrae in un file `_to_be_qcfiltered.tmp`, applica `pp_quality_check_filter` (scarta i dati senza flag qualità validi) e rimuove il tmp; è un percorso reale aggiuntivo non esercitato dagli altri test del file.
+- **Cosa non dimostra**: non fa parsing del JSON né prova che il QC rimuova esattamente i dati inaffidabili.
+- **Se fallisce, guarda**: se il QC ha svuotato gli input (`projects/mistral/backend/tools/quality_check_filter.py`), poi i processor derived/statistic e la conversione `dbamsg` in `projects/mistral/backend/tools/output_formatting.py`.
 
 ## 5. Call chain
 

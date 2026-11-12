@@ -1,11 +1,11 @@
 # Review — `test_observations_edge_cases.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 > Modulo: copertura dei rami **controller-only** di `GET /api/observations` non già coperti dagli altri test del dominio.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/observed/test_observations_edge_cases.py](projects/mistral/backend/tests/integration/observed/test_observations_edge_cases.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/observed/test_observations_edge_cases.py`
 - **Scopo**: coprire limiti di intervallo (`MAX_REQ_DAYS`/`MAX_REQ_DAYS_AUTHENTICATED`), conflitto `interval`/`timerange` (409), `daily`, `last`, e i rami `stationDetails` (senza/multi network, stazione inesistente, `allStationProducts=false`).
 - **Tipologia**: test di **integrazione HTTP** su **dati reali** con finestra DBALLE `agrmet` **fissa** (`2020-04-06 00:00–01:00`). Marker di modulo: `integration`, `deterministic`, `runtime_sensitive`.
 - **Finestra dati fissa**: i rami positivi usano `agrmet DBALLE 2020-04-06`; i limiti di durata usano date sintetiche **solo** per fallire prima dell'accesso ai dati.
@@ -14,23 +14,23 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `MapsObservations.get` | [endpoints/maps_observed.py](projects/mistral/backend/endpoints/maps_observed.py) | Rami `MAX_REQ_DAYS`, `Conflict` interval/timerange, `daily`, `last`, blocco `stationDetails`, `allStationProducts`. |
-| `BeDballe.get_db_type` / `LASTDAYS` | [services/dballe.py](projects/mistral/backend/services/dballe.py#L117) | Senza override una data 2020 è **arkimet**; con override è **dballe**. |
-| `SqlApiDbManager.get_user_permissions` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L665) | `allowed_obs_archive` (rilevante per il test 409, vedi §6). |
-| `BeDballe.parse_obs_maps_response` | [services/dballe.py](projects/mistral/backend/services/dballe.py#L2039) | **Ritorna sempre** `{"descr":..., "data":[...]}` (dict non vuoto): centrale per il caso "stazione inesistente" (vedi §6, **EDGE-001**). |
-| `MapsObservations.get` via `/fields` | [endpoints/maps_observed.py](projects/mistral/backend/endpoints/maps_observed.py) | Probe `_require_dballe_product` / `_require_station_coordinates`. |
+| `MapsObservations.get` | `projects/mistral/backend/endpoints/maps_observed.py` | Rami `MAX_REQ_DAYS`, `Conflict` interval/timerange, `daily`, `last`, blocco `stationDetails`, `allStationProducts`. |
+| `BeDballe.get_db_type` / `LASTDAYS` | `projects/mistral/backend/services/dballe.py` | Senza override una data 2020 è **arkimet**; con override è **dballe**. |
+| `SqlApiDbManager.get_user_permissions` | `projects/mistral/backend/services/sqlapi_db_manager.py` | `allowed_obs_archive` (rilevante per il test 409, vedi §6). |
+| `BeDballe.parse_obs_maps_response` | `projects/mistral/backend/services/dballe.py` | **Ritorna sempre** `{"descr":..., "data":[...]}` (dict non vuoto): centrale per il caso "stazione inesistente" (vedi §6, **EDGE-001**). |
+| `MapsObservations.get` via `/fields` | `projects/mistral/backend/endpoints/maps_observed.py` | Probe `_require_dballe_product` / `_require_station_coordinates`. |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `auth_headers` | fixture | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | Utente DEFAULT (`allowed_obs_archive=True` via [customization.py](projects/mistral/backend/customization.py#L33)). |
-| `test_runtime` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L49) | `override_attr(BeDballe, "LASTDAYS", ...)`. |
-| `dballe_window_override` | helper condiviso | [helpers/observed_windows.py](projects/mistral/backend/tests/helpers/observed_windows.py) | Classifica `2020-04-06` come dballe per i soli test positivi. |
+| `auth_headers` | fixture | `projects/mistral/backend/tests/integration/conftest.py` | Utente DEFAULT (`allowed_obs_archive=True` via `projects/mistral/backend/customization.py`). |
+| `test_runtime` | fixture | `projects/mistral/backend/tests/conftest.py` | `override_attr(BeDballe, "LASTDAYS", ...)`. |
+| `dballe_window_override` | helper condiviso | `projects/mistral/backend/tests/helpers/observed_windows.py` | Classifica `2020-04-06` come dballe per i soli test positivi. |
 | `_require_dballe_product` | helper locale | (file) | Wrapper su `require_dballe_product` di `helpers/observed_windows.py`: probe `/fields`; **`pytest.skip`** se non 200 o nessun prodotto. |
 | `_require_station_coordinates` | helper locale | (file) | Esegue una query reale e ricava `lat`/`lon`; **`pytest.skip`** se nessuna stazione. |
-| `extract_products` | helper di dominio | [observed/support.py](projects/mistral/backend/tests/integration/observed/support.py) | Estrae i `var` dei prodotti dalla struttura annidata (stesso helper degli altri test del dominio). |
+| `extract_products` | helper di dominio | `projects/mistral/backend/tests/integration/observed/support.py` | Estrae i `var` dei prodotti dalla struttura annidata (stesso helper degli altri test del dominio). |
 | `_get_observations` | helper locale | (file) | GET `/observations`; usa `api_url` e, nei test, `parse_response` da `helpers/observed_windows.py`. |
 
 Nessun mock dei dati; l'unica patch è la soglia `LASTDAYS`. Nessuna scrittura DB.
@@ -114,7 +114,7 @@ probe (test 4,5,7,8,9): GET /api/fields?q=<DBALLE_QUERY>  dentro LASTDAYS overri
 
 - **EDGE-001 — `NotFound("Station data not found")` irraggiungibile**: `parse_obs_maps_response` costruisce sempre `response = {"descr": ..., "data": ...}` e lo ritorna; essendo un dict con chiavi, `not res` è **sempre False**. Quindi `if not res and stationDetails` non scatta mai e il backend, per una stazione inesistente, risponde **200 con `data` vuoto** invece di 404. Il test `..._unknown_station_...` lo riconosce e fa `pytest.skip`. **Conseguenza**: il contratto "404 stazione inesistente" **non è verificato**; è un probabile bug di backend mascherato da skip.
 - **Override `LASTDAYS` selettivo**: applicato solo ai test positivi (`daily`, `last`, probe). I test di limite/conflitto **non** lo usano: il 409 (test 3) si appoggia volutamente alla classificazione `arkimet`.
-- **Il 409 dipende dal permesso archivio dell'utente DEFAULT**: il controllo `interval` è **dopo** il gate archivio; con `db_type=arkimet` (nessun override) il 409 è raggiungibile solo perché l'utente DEFAULT ha `allowed_obs_archive=True`. Se quel default cambiasse, il test riceverebbe **401** invece di 409. (Non verificabile dal solo corpo del test; dipende da [customization.py](projects/mistral/backend/customization.py#L33).)
+- **Il 409 dipende dal permesso archivio dell'utente DEFAULT**: il controllo `interval` è **dopo** il gate archivio; con `db_type=arkimet` (nessun override) il 409 è raggiungibile solo perché l'utente DEFAULT ha `allowed_obs_archive=True`. Se quel default cambiasse, il test riceverebbe **401** invece di 409. (Non verificabile dal solo corpo del test; dipende da `projects/mistral/backend/customization.py`.)
 - **`network` dentro `q` ≠ parametro `networks`**: nei test stationDetails la `q` contiene `network:agrmet`, ma i controlli usano il **parametro** `networks`. Il 400 "Parameter networks is missing" scatta anche se `q` cita un network.
 - **Skip silenziosi multipli**: `_require_dballe_product` e `_require_station_coordinates` possono saltare 5 dei 9 test (4,5,7,8,9). Il test 8 ha **in più** lo skip EDGE-001.
 - **Limiti di durata prima del `db_type`**: i test 1 e 2 falliscono al gate `MAX_REQ_DAYS` **prima** di qualsiasi accesso dati → deterministici, niente skip, niente dipendenza archivio.

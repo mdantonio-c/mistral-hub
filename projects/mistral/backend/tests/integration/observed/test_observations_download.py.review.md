@@ -1,11 +1,11 @@
 # Review — `test_observations_download.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 > Modulo: copertura di `MapsObservations.post` (download).
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/observed/test_observations_download.py](projects/mistral/backend/tests/integration/observed/test_observations_download.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/observed/test_observations_download.py`
 - **Scopo**: coprire il **download** osservato `POST /api/observations`: stream JSON/BUFR, smoke `reliabilityCheck`, validazioni di schema/controller (`output_format`, bbox, license, `singleStation`), mismatch licenza, network inesistente/non autorizzato e autorizzazione ai dati archiviati.
 - **Tipologia**: test di **integrazione HTTP** su **dati reali** (DBALLE/Arkimet) con finestre `agrmet` **fisse**. Marker di modulo: `integration`, `deterministic`, `runtime_sensitive`.
 - **Finestre dati fisse** (dall'intestazione del file): DBALLE `agrmet 2020-04-06 00:00–01:00`; Arkimet `agrmet 2020-03-31/2020-04-01`. Le date fuori da queste finestre servono solo come trigger di validazione, non come oracolo dati.
@@ -14,31 +14,31 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `MapsObservations.post` | [endpoints/maps_observed.py](projects/mistral/backend/endpoints/maps_observed.py) | Endpoint download (legge **tutto dalla query string**, non dal body): bbox, parsing `q`, network auth, `singleStation`, license, reftime, `db_type`, streaming. |
-| `ObservationsDownloader` (schema) | [endpoints/maps_observed.py](projects/mistral/backend/endpoints/maps_observed.py) | `output_format` **required** con `OneOf(["BUFR","JSON"])` (CSV → 400 di schema); `q` **required**. |
-| `BeArkimet.from_network_to_dataset` | [services/arkimet.py](projects/mistral/backend/services/arkimet.py#L278) | Network ignoto → `None` → **404** "The requested network does not exist". |
-| `SqlApiDbManager.check_dataset_authorization` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L562) | Network privato senza grant → `Unauthorized` → **401**. |
-| `BeDballe.check_access_authorization` | [services/dballe.py](projects/mistral/backend/services/dballe.py#L196) | `UnexistingLicenseGroup`→400, `NetworkNotInLicenseGroup`→400, `UnAuthorizedUser`→401. |
-| `BeDballe.get_db_type` / `LASTDAYS` | [services/dballe.py](projects/mistral/backend/services/dballe.py#L117) | Classifica la finestra; senza override una data del 2020 è **arkimet**. |
-| `SqlApiDbManager.get_user_permissions` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L665) | `allowed_obs_archive` per il ramo archiviato (401 se assente). |
-| `MapsObservations.get` (via `/fields`) | [endpoints/maps_observed.py](projects/mistral/backend/endpoints/maps_observed.py) | **Probe** indiretto: `_require_dballe_product` interroga `/fields` per scegliere un prodotto reale. |
-| Modelli `Datasets`/`License`/`GroupLicense` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L101) | Letti; il test 10 crea solo righe sintetiche tramite `create_test_dataset` (vedi §6). |
+| `MapsObservations.post` | `projects/mistral/backend/endpoints/maps_observed.py` | Endpoint download (legge **tutto dalla query string**, non dal body): bbox, parsing `q`, network auth, `singleStation`, license, reftime, `db_type`, streaming. |
+| `ObservationsDownloader` (schema) | `projects/mistral/backend/endpoints/maps_observed.py` | `output_format` **required** con `OneOf(["BUFR","JSON"])` (CSV → 400 di schema); `q` **required**. |
+| `BeArkimet.from_network_to_dataset` | `projects/mistral/backend/services/arkimet.py` | Network ignoto → `None` → **404** "The requested network does not exist". |
+| `SqlApiDbManager.check_dataset_authorization` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Network privato senza grant → `Unauthorized` → **401**. |
+| `BeDballe.check_access_authorization` | `projects/mistral/backend/services/dballe.py` | `UnexistingLicenseGroup`→400, `NetworkNotInLicenseGroup`→400, `UnAuthorizedUser`→401. |
+| `BeDballe.get_db_type` / `LASTDAYS` | `projects/mistral/backend/services/dballe.py` | Classifica la finestra; senza override una data del 2020 è **arkimet**. |
+| `SqlApiDbManager.get_user_permissions` | `projects/mistral/backend/services/sqlapi_db_manager.py` | `allowed_obs_archive` per il ramo archiviato (401 se assente). |
+| `MapsObservations.get` (via `/fields`) | `projects/mistral/backend/endpoints/maps_observed.py` | **Probe** indiretto: `_require_dballe_product` interroga `/fields` per scegliere un prodotto reale. |
+| Modelli `Datasets`/`License`/`GroupLicense` | `projects/mistral/backend/models/sqlalchemy.py` | Letti; il test 10 crea solo righe sintetiche tramite `create_test_dataset` (vedi §6). |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `auth_headers` | fixture | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | Utente DEFAULT (`allowed_obs_archive=True` via [customization.py](projects/mistral/backend/customization.py#L33)). |
-| `test_runtime` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L49) | Singleton di sessione; usato per `override_attr(BeDballe, "LASTDAYS", ...)`. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO**; raccoglie utenti temporanei e il dataset privato sintetico. |
-| `create_dataset_test_user` | helper condiviso | [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) | Crea utente via API admin + login + cleanup (FS + delete utente). |
+| `auth_headers` | fixture | `projects/mistral/backend/tests/integration/conftest.py` | Utente DEFAULT (`allowed_obs_archive=True` via `projects/mistral/backend/customization.py`). |
+| `test_runtime` | fixture | `projects/mistral/backend/tests/conftest.py` | Singleton di sessione; usato per `override_attr(BeDballe, "LASTDAYS", ...)`. |
+| `cleanup_registry` | fixture | `projects/mistral/backend/tests/conftest.py` | Teardown **LIFO**; raccoglie utenti temporanei e il dataset privato sintetico. |
+| `create_dataset_test_user` | helper condiviso | `projects/mistral/backend/tests/helpers/auth.py` | Crea utente via API admin + login + cleanup (FS + delete utente). |
 | `sqlalchemy.get_instance()` | connettore | `restapi.connectors` | Accesso DB diretto (dataset privato sintetico). |
-| `dballe_window_override`, `api_url`, costanti `OBS_*`/`OBSERVED_*` | helper condivisi | [helpers/observed_windows.py](projects/mistral/backend/tests/helpers/observed_windows.py) | Patch di `BeDballe.LASTDAYS` perché `2020-04-06` sia classificata **dballe** anche eseguendo nel 2026; URL e finestre dati comuni con `/fields`. |
-| `require_observed_dataset_user` | helper condiviso | [helpers/observed_windows.py](projects/mistral/backend/tests/helpers/observed_windows.py) | Utente con grant `agrmet` e archive flag controllato; **`pytest.skip`** se `agrmet` non esiste. |
+| `dballe_window_override`, `api_url`, costanti `OBS_*`/`OBSERVED_*` | helper condivisi | `projects/mistral/backend/tests/helpers/observed_windows.py` | Patch di `BeDballe.LASTDAYS` perché `2020-04-06` sia classificata **dballe** anche eseguendo nel 2026; URL e finestre dati comuni con `/fields`. |
+| `require_observed_dataset_user` | helper condiviso | `projects/mistral/backend/tests/helpers/observed_windows.py` | Utente con grant `agrmet` e archive flag controllato; **`pytest.skip`** se `agrmet` non esiste. |
 | `_require_dballe_product` | helper locale | (file) | Wrapper su `require_dballe_product` (helpers/observed_windows.py): probe `/fields`; **`pytest.skip`** se 200 non ottenuto o nessun prodotto. |
-| `create_dataset_test_user` (senza dataset) | helper condiviso | [helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) | Utente senza grant del test 10. |
-| `create_private_test_network` | helper condiviso | [helpers/datasets.py](projects/mistral/backend/tests/helpers/datasets.py) | Crea un dataset privato sintetico e mappa una rete sintetica su di esso; le altre reti usano la mappatura reale. Condiviso con `fields/test_fields_api.py`. |
+| `create_dataset_test_user` (senza dataset) | helper condiviso | `projects/mistral/backend/tests/helpers/auth.py` | Utente senza grant del test 10. |
+| `create_private_test_network` | helper condiviso | `projects/mistral/backend/tests/helpers/datasets.py` | Crea un dataset privato sintetico e mappa una rete sintetica su di esso; le altre reti usano la mappatura reale. Condiviso con `fields/test_fields_api.py`. |
 | `uuid4` | stdlib | `uuid` | Nomi/licenze/network sicuramente inesistenti. |
 
 ## 4. Analisi dettagliata di ogni test
@@ -139,7 +139,7 @@ probe interno (success path): GET /api/fields?q=<DBALLE_QUERY;network:agrmet>  (
 - **Validazioni indipendenti dai dati** (test 4 e 5): usano `_download_query()` senza prodotto e senza probe `/fields`; verificano il payload specifico del 400 di schema/controller, senza dipendere dalla disponibilità della finestra DBALLE.
 - **Triplice canale di skip silenzioso** (runtime-sensitive): (1) `require_observed_dataset_user` (via `require_dataset`) se agrmet manca; (2) `_require_dballe_product` se `/fields` non risponde 200 o non espone prodotti; (3) `_require_dballe_product` se `summarystats["c"] <= 0`.
 - **NDJSON nel test JSON**: l'asserzione decodifica **riga per riga** (`splitlines`), perché il downloader DBALLE emette JSON newline-delimited e non un array unico. Un reviewer potrebbe aspettarsi `json.loads(response.data)` su tutto il body.
-- **`allowed_obs_archive` di default True** per gli utenti creati ([customization.py](projects/mistral/backend/customization.py#L33)): il test 15 passa **esplicitamente** `False` per ottenere il 401; senza quell'override l'utente avrebbe accesso archivio.
+- **`allowed_obs_archive` di default True** per gli utenti creati (`projects/mistral/backend/customization.py`): il test 15 passa **esplicitamente** `False` per ottenere il 401; senza quell'override l'utente avrebbe accesso archivio.
 
 ## 7. Checklist di revisione
 

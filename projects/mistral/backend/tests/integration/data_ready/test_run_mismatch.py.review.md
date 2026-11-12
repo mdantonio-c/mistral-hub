@@ -1,21 +1,22 @@
 # Review — `test_run_mismatch.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/data_ready/test_run_mismatch.py](projects/mistral/backend/tests/integration/data_ready/test_run_mismatch.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/data_ready/test_run_mismatch.py`
 - **Scopo**: verificare che un evento data-ready relativo a un **modello/dataset diverso** o con **run-hour diverso** non attivi una schedule `on-data-ready` esistente.
 - **Tipologia**: test di **integrazione HTTP** (endpoint reale + DB SQLAlchemy). Marker: `integration`, `deterministic`, `runtime_sensitive`.
+- **Percorso comune del dominio** (guardie del launcher, confine dei fake): vedi [conftest.py.review.md](conftest.py.review.md).
 
 ## 2. Backend realmente testato
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `DataReady.post` | [endpoints/data_ready.py](projects/mistral/backend/endpoints/data_ready.py) | `POST /api/data/ready` — accoda `launch_all_on_data_ready_extractions` e ritorna `"1"`/202. |
-| `SingleSchedule.post` | [endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py) | Crea la schedule crontab `on-data-ready` su `lm5`. |
-| `launch_all_on_data_ready_extractions` (gating modello/runhour) | [tasks/on_data_ready_extractions.py](projects/mistral/backend/tasks/on_data_ready_extractions.py) | `if datasets[0] != model: continue` e `if runhour not in requested_runs: continue` — eseguiti inline. |
-| `GET /api/schedules/<id>/requests` | [endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py) | Listing per l'assert di cardinalità. |
+| `DataReady.post` | `projects/mistral/backend/endpoints/data_ready.py` | `POST /api/data/ready` — accoda `launch_all_on_data_ready_extractions` e ritorna `"1"`/202. |
+| `SingleSchedule.post` | `projects/mistral/backend/endpoints/schedules.py` | Crea la schedule crontab `on-data-ready` su `lm5`. |
+| `launch_all_on_data_ready_extractions` (gating modello/runhour) | `projects/mistral/backend/tasks/on_data_ready_extractions.py` | `if datasets[0] != model: continue` e `if runhour not in requested_runs: continue` — eseguiti inline. |
+| `GET /api/schedules/<id>/requests` | `projects/mistral/backend/endpoints/schedules.py` | Listing per l'assert di cardinalità. |
 
 ## 3. Mappa delle dipendenze
 
@@ -23,15 +24,15 @@
 |---|---|---|---|
 | `monkeypatch` | fixture | `pytest` | Sostituisce il trasporto Celery dell'endpoint e del launcher. |
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py) | Teardown **LIFO**. |
-| `data_ready_base` | fixture | [data_ready/conftest.py](projects/mistral/backend/tests/integration/data_ready/conftest.py) | `BaseTests` + override `ON_DATA_READY_DATASETS`. |
-| `data_ready_admin_headers` | fixture | [data_ready/conftest.py](projects/mistral/backend/tests/integration/data_ready/conftest.py) | Header admin per il trigger. |
-| `data_ready_db` | fixture | [data_ready/conftest.py](projects/mistral/backend/tests/integration/data_ready/conftest.py) | Connettore SQLAlchemy passato al fake annidato. |
-| `data_ready_user` | fixture | [data_ready/conftest.py](projects/mistral/backend/tests/integration/data_ready/conftest.py) | Utente `admin_root` su `lm5`; **skip** se assente. |
-| `build_crontab_schedule` | helper | [tests/helpers/schedules.py](projects/mistral/backend/tests/helpers/schedules.py) | Body schedule crontab. |
-| `create_schedule`, `list_schedule_requests`, `register_schedule_cleanup` | helper | [tests/helpers/data_ready.py](projects/mistral/backend/tests/helpers/data_ready.py) | Creazione schedule + listing + cleanup LIFO. |
-| `trigger_data_ready_inline` | helper | [tests/helpers/data_ready.py](projects/mistral/backend/tests/helpers/data_ready.py) | Verifica una submit del launcher, esegue il task reale inline e intercetta l'eventuale `data_extract`. |
-| `fetch_dataset_window` | helper | [tests/helpers/dataset_window.py](projects/mistral/backend/tests/helpers/dataset_window.py) | Finestra dataset via `/api/fields`; **skip** se 404. |
+| `cleanup_registry` | fixture | `projects/mistral/backend/tests/conftest.py` | Teardown **LIFO**. |
+| `data_ready_base` | fixture | `projects/mistral/backend/tests/integration/data_ready/conftest.py` | `BaseTests` + override `ON_DATA_READY_DATASETS`. |
+| `data_ready_admin_headers` | fixture | `projects/mistral/backend/tests/integration/data_ready/conftest.py` | Header admin per il trigger. |
+| `data_ready_db` | fixture | `projects/mistral/backend/tests/integration/data_ready/conftest.py` | Connettore SQLAlchemy passato al fake annidato. |
+| `data_ready_user` | fixture | `projects/mistral/backend/tests/integration/data_ready/conftest.py` | Utente `admin_root` su `lm5`; **skip** se assente. |
+| `build_crontab_schedule` | helper | `projects/mistral/backend/tests/helpers/schedules.py` | Body schedule crontab. |
+| `create_schedule`, `list_schedule_requests`, `register_schedule_cleanup` | helper | `projects/mistral/backend/tests/helpers/data_ready.py` | Creazione schedule + listing + cleanup LIFO. |
+| `trigger_data_ready_inline` | helper | `projects/mistral/backend/tests/helpers/data_ready.py` | Verifica una submit del launcher, esegue il task reale inline e intercetta l'eventuale `data_extract`. |
+| `fetch_dataset_window` | helper | `projects/mistral/backend/tests/helpers/dataset_window.py` | Finestra dataset via `/api/fields`; **skip** se 404. |
 | `_mismatching_rundate` | helper locale | (questo file) | `reference + 1h`, formattato `%Y%m%d%H`. |
 
 ## 4. Analisi dettagliata di ogni test
@@ -43,6 +44,8 @@
 - **Setup**: `data_ready_user`, `data_ready_db`, `monkeypatch`, `cleanup_registry`.
 - **Assert**: `status_code in {200,202}`, `content == "1"`, `list_schedule_requests(...)` vuoto.
 - **Casi coperti**: gating reale sul modello; una regressione invierebbe `data_extract`, il fake creerebbe una riga e l'assert fallirebbe.
+- **Cosa non dimostra**: l'autorizzazione o la disponibilità fisica di `lm2.2`, che è solo il modello notificato.
+- **Se fallisce, guarda**: il confronto `datasets[0] != model` del launcher e la lista forzata dalla fixture `data_ready_base`.
 
 ### `test_data_ready_skips_schedule_for_different_runhour`
 - **Obiettivo**: un **run-hour** non corrispondente non attiva la schedule.
@@ -51,6 +54,8 @@
 - **Setup**: `data_ready_user`, `data_ready_db`, `monkeypatch`, `cleanup_registry`.
 - **Assert**: `status_code in {200,202}`, `content == "1"`, `list_schedule_requests(...)` vuoto.
 - **Casi coperti**: gating reale sul run-hour; una submit annidata inattesa diventa una riga osservabile.
+- **Cosa non dimostra**: tutti i formati di run. Assume, senza verificarlo, che lo shift di +1h produca un run diverso da quello filtrato.
+- **Se fallisce, guarda**: i run restituiti da `/fields`, `_mismatching_rundate`, il decoder `arki.decode_run` e la guardia run del launcher.
 
 ## 5. Call chain
 

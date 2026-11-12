@@ -1,364 +1,469 @@
-# Meteo-Hub Backend Test Suite Manual
+# Manuale pratico dei test backend Meteo-Hub
 
-## Parti da qui
+## A cosa serve questa documentazione
 
-Questa cartella contiene la suite custom del backend Meteo-Hub dopo il refactor strutturale.
+Usa questo manuale per orientarti, scegliere un comando, scrivere un test e
+capire dove cercare quando qualcosa non funziona.
 
-La documentazione mantenuta della suite e concentrata solo in questi file:
+| Documento | Quando leggerlo |
+|---|---|
+| Questo README | Per capire **come** lavorare con la suite e con il suo ambiente. |
+| [TEST_REVIEW_GUIDE.md](TEST_REVIEW_GUIDE.md) | Per sapere **cosa** è coperto, quali sono i limiti delle verifiche e quanto fidarsi dei risultati. Contiene anche l'indice e i riferimenti a conteggi ed esiti. |
+| `*.py.review.md`, per esempio la [scheda del test access key](integration/access_key/test_access_key_api.py.review.md) | Per il dettaglio di un singolo file, delle sue precondizioni e di ciò che le sue asserzioni dimostrano. |
 
-1. `projects/mistral/backend/tests/docs/guida_finale_suite_test_backend.md`
-   - overview corrente, struttura finale e metodo di validazione;
-2. `projects/mistral/backend/tests/README.md`
-   - mappa pratica della cartella `tests`, cioe questo file;
-3. `projects/mistral/backend/tests/docs/legacy_to_new_suite_matrix.md`
-   - mappa esplicita `legacy -> nuova suite` per i contratti migrati;
-4. `projects/mistral/backend/tests/docs/piano_refactoring_suite_test.md`
-   - rationale storico del refactor, utile solo quando serve ricostruire il percorso fatto.
-
-## Stato corrente della suite
-
-Lo stato corrente e questo:
-
-- il refactor strutturale della suite e validato;
-- per conteggi ed esiti aggiornati dei test fare riferimento al report dell'ultima pipeline del branch, indicando commit e job (ultima validazione locale: 10/11/2026, commit `7858231d`, 351 passed, 10 skipped, 2 xfailed; dettaglio in `TEST_REVIEW_GUIDE.md`);
-- i test reali vivono sotto `integration/` e sono separati per dominio;
-- `helpers/` contiene solo riuso cross-area o infrastruttura di suite;
-- il root della cartella `tests` non contiene piu moduli `test_*.py`: oggi espone solo infrastruttura di suite, documentazione e lo smoke script `test_arpaesimc.sh`;
-- la fase successiva, fuori scope rispetto a questo lavoro, e l'eventuale estensione della copertura verso endpoint, services e task non ancora coperti dai test storici.
+La documentazione vive in un repository separato; i percorsi dei sorgenti citati
+qui sono relativi alla root del repository `meteo-hub`. Nell'indice della guida
+trovi i file e i domini della suite, senza doverli cercare in questo manuale.
 
 ## Modello mentale in cinque minuti
 
-La suite si legge bene se la dividi in quattro strati:
+La suite è un unico insieme di test, organizzato in quattro strati:
 
-1. `conftest.py` globale
-   - espone solo fixture davvero trasversali come `test_runtime` e `cleanup_registry`;
-2. `helpers/`
-   - contiene building block riusabili tra piu aree, non test veri;
-3. `integration/`
-   - contiene i test reali organizzati per dominio funzionale;
-4. `integration/<area>/conftest.py` e `integration/<area>/support.py`
-   - contengono rispettivamente fixture locali e logica di supporto di dominio singolo.
+1. **Configurazione globale.**
+   `projects/mistral/backend/tests/conftest.py` registra i marker e rende
+   disponibili le fixture condivise dall'intera suite.
+2. **Helper condivisi.**
+   `projects/mistral/backend/tests/helpers/` contiene funzioni e componenti
+   riusabili tra aree. Un helper si chiama esplicitamente: non è una fixture
+   solo perché si trova in questa cartella.
+3. **Test di integrazione.**
+   `projects/mistral/backend/tests/integration/` raccoglie i test per area.
+   `projects/mistral/backend/tests/integration/conftest.py` espone le fixture
+   comuni a questo sottoalbero.
+4. **Supporto di dominio.**
+   Le fixture e le funzioni utili a una sola area stanno vicino ai suoi test.
+   Un esempio è `projects/mistral/backend/tests/integration/access_key/conftest.py`,
+   affiancato da `projects/mistral/backend/tests/integration/access_key/support.py`.
 
-Se ti stai chiedendo dove vive davvero un comportamento, la risposta corretta quasi sempre non e nel root della cartella, ma in `integration/<area>/`.
+### Un esempio guidato
 
-## Path host e path container
+In `projects/mistral/backend/tests/integration/access_key/test_access_key_api.py`,
+`test_02_get_existing_access_key` verifica la lettura di una chiave esistente:
 
-Percorso host nel repository:
+1. Pytest prepara `client` e `fresh_access_key`. Quest'ultima usa
+   `access_key_owner` per creare un proprietario temporaneo e una chiave.
+2. Il test esegue la richiesta di lettura con gli header del proprietario.
+3. Le asserzioni verificano la risposta HTTP e che la chiave restituita sia la
+   stessa creata nel setup.
+4. Il teardown revoca la chiave prima di eliminare l'utente temporaneo.
 
-- `projects/mistral/backend/tests/...`
+La [scheda del file](integration/access_key/test_access_key_api.py.review.md)
+spiega il dettaglio dei singoli casi. Qui interessa riconoscere il percorso:
+fixture, azione, asserzioni e pulizia.
 
-Percorso visto dal container backend durante l'esecuzione:
+## Glossario
 
-- `tests/custom/...`
-
-La differenza conta: quando lanci i test con `rapydo`, i comandi devono quasi sempre usare il path `tests/custom/...`, anche se nel repository i file stanno sotto `projects/mistral/backend/tests/...`.
-
-## Il giro che fanno i test
-
-Il flusso reale della suite e questo:
-
-1. Si lancia pytest attraverso il wrapper di progetto, di solito con `.mhub-venv/bin/rapydo shell backend 'restapi tests --file tests/custom/...''`.
-2. `restapi tests` esegue pytest dentro il container backend, con l'ambiente Meteo-Hub gia pronto e con i servizi richiesti collegati nel modo previsto dal progetto.
-3. Pytest parte dalla radice della suite custom e carica subito `tests/custom/conftest.py`, che nel repository corrisponde a `projects/mistral/backend/tests/conftest.py`.
-4. Quel `conftest.py` registra il marker `integration` e mette a disposizione solo fixture globali di suite: `test_runtime`, `cleanup_registry`.
-5. Pytest colleziona i moduli Python trovati sotto la cartella dei test. I test veri della suite corrente vivono sotto `integration/`, mentre il root contiene infrastruttura e documentazione di suite.
-6. Quando un test si trova sotto `integration/`, pytest carica anche `integration/conftest.py`, che espone le fixture condivise tra i test HTTP integrati, come `auth_headers` e le fixture legate alle access key.
-7. Se il test appartiene a un sottoalbero con un suo `conftest.py`, per esempio `integration/observed/conftest.py` o `integration/postprocessing/conftest.py`, pytest aggiunge anche quelle fixture locali solo a quel dominio.
-8. Il test usa le fixture per preparare utenti, dataset, schedule, richieste, file di output o override temporanei. La logica ripetibile viene tenuta nei moduli `helpers/` se serve a piu aree, oppure in moduli locali come `integration/<area>/support.py` se resta confinata a un solo dominio.
-9. A fine test, il cleanup avviene in teardown tramite `cleanup_registry.run()`, in modo centralizzato e coerente.
-
-## Come funziona pytest in questa suite
-
-### Regola piu importante: visibilita dei `conftest.py`
-
-Pytest non tratta tutti i `conftest.py` allo stesso modo. Ogni `conftest.py` vale per la directory in cui si trova e per le sue sottodirectory.
-
-In questa suite la scelta corretta e:
-
-- `tests/conftest.py`: solo fixture davvero globali, valide per tutta la suite.
-- `tests/integration/conftest.py`: fixture condivise da tutti i test di integrazione HTTP.
-- `tests/integration/<dominio>/conftest.py`: fixture valide solo per quel dominio.
-
-Questa e la risposta pratica al dubbio iniziale: il punto di divisione corretto e `root` contro `integration`, non `root` contro un singolo dominio.
-
-### Fixture globali
-
-`projects/mistral/backend/tests/conftest.py` espone due mattoni di base:
-
-- `test_runtime`: singleton di sessione per cache e override temporanei di attributi.
-- `cleanup_registry`: registro LIFO di callback e path da ripulire in teardown.
-
-Contiene anche l'hook `pytest_collection_modifyitems`, che salta i test `async_real` quando lo stack non è avviato con `rapydo --testing` (vedi sotto).
-
-### Fixture di integrazione
-
-`projects/mistral/backend/tests/integration/conftest.py` espone fixture usate da molti test API:
-
-- `auth_headers`: login del test user di default, da usare per letture o operazioni che non modificano l'account.
-- `access_key_owner`: utente temporaneo proprietario delle access key dei test; teardown revoca la chiave e poi elimina utente e directory.
-- `fresh_access_key`: genera una access key appena creata per `access_key_owner`; nei test BasicAuth va abbinata a `access_key_owner.email`.
-- `requests_cleanup_perimeter`: confina `automatic_cleanup` agli utenti e alle request registrati dal test con `allow(...)` e a una root download temporanea.
-
-Le fixture access-key usate solo da quel dominio, come `fresh_access_key_with_expiration`, stanno invece in `projects/mistral/backend/tests/integration/access_key/conftest.py`.
-
-### Task globali eseguiti dai test
-
-Alcuni task sono globali per progetto: `automatic_cleanup` visita tutte le request, gli utenti e la root dei download; `launch_all_on_data_ready_extractions` visita tutte le schedule. Nei test in-process non vanno mai eseguiti senza perimetro:
-
-- per il cleanup usa la fixture `requests_cleanup_perimeter` e registra solo le righe create dal test;
-- per il data-ready usa `trigger_data_ready_inline(..., schedule_ids=[...])` oppure `confine_data_ready_schedules(monkeypatch, [...])` da `helpers/task_perimeter.py`.
-
-Il perimetro lascia reali codice del task e scritture ORM, ma rifiuta con errore gli accessi al database che non sa restringere. I test `async_real`, eseguiti da worker separati, non possono essere confinati così: richiedono uno stack di test dedicato.
-
-Lo stesso vale per i servizi reali raggiunti dagli endpoint. `POST /schedules` crea un task RedBeat e, con `on-data-ready`, invia subito un `data_extract` al broker. Il task RedBeat viene rimosso solo da `DELETE /schedules` eseguito con il Celery reale: cancellare l'utente o la riga `schedules` non basta, e il task continua a lanciare estrazioni.
-
-- Per neutralizzare un servizio, sostituisci il nome importato dal modulo endpoint o task, per esempio `monkeypatch.setattr(schedules_endpoint, "celery", ...)`. Non patchare il connettore condiviso: `cleanup_registry` gira prima che `monkeypatch` venga annullato, quindi anche le cancellazioni del cleanup finirebbero sul fake. Esempi: `integration/data_ready/conftest.py` e `integration/schedules/test_schedule_validation_EXT.py`.
-- I test di validazione non devono raggiungere un servizio reale se la validazione viene superata per errore: devono fallire con `pytest.fail`. Un `AssertionError` sollevato dentro l'endpoint verrebbe convertito in HTTP 400.
-- Non modificare dataset, licenze o gruppi reali: per ottenere un 401 o un caso privato crea dataset sintetici con `helpers/datasets.py`.
-
-### Test con worker reali (`async_real`)
-
-Nei test `async_real` i task girano sui worker Celery reali, dove `monkeypatch` non arriva: tutto quello che il task fa avviene davvero. Per restare nel proprio perimetro:
-
-- girano solo sugli stack avviati con `rapydo --testing`, come in CI: solo lì i worker hanno `APP_MODE=test` e usano il mock SMTP. Altrove `tests/conftest.py` li salta, perché un'estrazione fallita invierebbe email vere, compresi i report di errore all'amministratore. Il processo dei test non vede l'ambiente dei worker: il controllo (`workers_use_smtp_mock`) usa le variabili `PYTHONMALLOC=debug`, `PYTHONASYNCIODEBUG=1` e `PYTHONFAULTHANDLER=1`, che `rapydo --testing` imposta nel container backend;
-- crea gli utenti con `create_data_ready_user`: disattiva le email di successo e usa un indirizzo `@example.invalid`, mai consegnato. Altrimenti `BaseTests` sceglierebbe a caso il flag e un indirizzo Faker, spesso su domini reali. Per verificare un'email inviata da un worker usa `wait_for_mock_email`, che la legge dai file del mock in `/logs`;
-- registra `register_wait_for_user_requests` (`helpers/real_workers.py`) dopo il cleanup dell'utente. Il cleanup aspetta che le request dell'utente siano chiuse e che nessun worker abbia in coda o in esecuzione un suo `data_extract`. Se i worker sono troppo lenti, revoca i task dell'utente (SIGKILL per quelli in esecuzione) e cancella le request aperte solo dopo la conferma dei worker. Senza conferma fallisce e non cancella nulla;
-- per le schedule controlla la voce RedBeat con `read_periodic_task` e cancellale con la `DELETE` reale;
-- scrivi l'output nella cartella dell'utente (`opendata=False`) quando il test non riguarda opendata.
-
-Eseguili solo su uno stack di test dedicato: i worker eseguono anche i task di altri utenti.
-
-### Marker e parametrizzazione
-
-La suite rifattorizzata espone ora questi marker:
-
-- `integration`: tutti i test veri della suite nuova sotto `integration/`.
-- `deterministic`: il controllo del flusso resta nel runtime del test e non aspetta latenze reali di beat, broker o worker.
-- `async_real`: il test aspetta davvero la catena asincrona `celerybeat -> broker -> worker`. Gira solo sugli stack `rapydo --testing`; altrove viene saltato.
-- `runtime_sensitive`: il contratto e stabile, ma dipende anche dallo stato del runtime, dai dataset presenti o da servizi infrastrutturali vivi.
-
-Mappa pratica attuale:
-
-- `access_key`, `arco`, `data`, `requests`: `integration`, `deterministic`.
-- `dataset`, `data_ready`, `observed`, `opendata`, `postprocessing`: `integration`, `deterministic`, `runtime_sensitive`.
-- `integration/schedules/test_schedule_opendata_bridge.py::test_on_data_ready_schedule_publishes_opendata_package`: `integration`, `deterministic`, `runtime_sensitive`.
-- `integration/schedules/test_schedule_opendata_bridge.py::test_crontab_schedule_publishes_opendata_package`: `integration`, `async_real`, `runtime_sensitive`.
-- `integration/data/test_data_extraction_real_worker.py` e `integration/schedules/test_schedule_on_data_ready_real_worker.py`: `integration`, `async_real`, `runtime_sensitive`.
-- `integration/data/test_real_worker_cleanup.py`: `integration`, `deterministic`; simula i worker e non richiede uno stack `--testing`.
-
-L'aggiunta dei marker non cambia da sola il comportamento della CI attuale: il workflow backend continua a eseguire l'intera suite finche non usa esplicitamente selezioni `-m`.
-
-In alcuni domini, come `observed`, i test usano `pytest.mark.parametrize(...)` con il nome di una fixture e poi recuperano la fixture con `request.getfixturevalue(...)`. Questo pattern permette di riutilizzare la stessa batteria di assert su scenari diversi (`dballe`, `arkimet`, `mixed`) senza duplicare il test body.
-
-## Come leggere la nuova modulazione
-
-La suite e organizzata in tre strati.
-
-### 1. Root della suite
-
-Qui stanno solo i pezzi che devono essere visibili ovunque e la documentazione locale della suite.
-
-- `README.md`: manuale pratico della cartella `tests`.
-- `docs/`: guida finale, matrice `legacy -> nuova suite` e piano storico del refactor.
-- `__init__.py`: marca la cartella come package Python della suite custom.
-- `conftest.py`: definisce le fixture globali, registra i marker e salta i test `async_real` fuori dagli stack `rapydo --testing`.
-- `helpers/`: helper riusabili e infrastruttura condivisa.
-- `integration/`: test reali organizzati per dominio.
-- `test_arpaesimc.sh`: smoke script shell per verificare la presenza dei tool meteo di base (`arki-query`, `dballe`, `vg6d_transform`, `v7d_transform`, `dbadb`).
-
-### 2. Helper riusabili
-
-I moduli sotto `helpers/` non sono test. Contengono solo setup, polling, builder di payload, assertion specializzate, factory di utenti e infrastruttura che servono davvero a piu aree.
-
-Quando builder, parser, seed o assert servono solo a un dominio, vivono invece in moduli locali importabili sotto `integration/<area>/`, per esempio `integration/observed/support.py` o `integration/postprocessing/support.py`.
-
-### 3. Domini di integrazione
-
-Ogni cartella sotto `integration/` raggruppa un contratto funzionale:
-
-- `access_key`: ciclo di vita e validazione delle API key.
-- `arco`: proxy e catalogo ARCO.
-- `data`: autorizzazione dell'endpoint dati.
-- `data_ready`: trigger `/data/ready` e interazione con le schedule.
-- `dataset`: visibilita e autorizzazione dei dataset.
-- `observed`: query osservate, filtri e dettagli stazione.
-- `opendata`: listing, download e autorizzazioni sui package opendata.
-- `postprocessing`: esecuzione dei postprocessor forecast e observed.
-- `requests`: cancellazione di richieste pendenti e cleanup automatico.
-- `schedules`: bridge tra schedule on-data-ready e pubblicazione opendata.
+| Termine | Significato pratico |
+|---|---|
+| Rapydo / `restapi` | Rapydo gestisce lo stack e i container; `restapi` fornisce il framework backend e il comando che avvia i test nel container. |
+| Pytest / collection | Pytest raccoglie i casi e li esegue. La collection comprende anche le combinazioni dei test parametrizzati. |
+| Fixture | Funzione richiesta per nome a pytest. Può preparare risorse, dipendere da altre fixture e avere un teardown dopo `yield`. |
+| Helper / builder | Funzione chiamata dal codice del test. Un builder prepara, per esempio, un payload o uno scenario; non ha automaticamente il ciclo di vita di una fixture. |
+| `client` / `FlaskClient` | Client HTTP nello stesso processo: attraversa l'app Flask, ma non verifica proxy, TLS o la rete esterna. |
+| ORM / SQLAlchemy | Strato che collega oggetti Python e tabelle del database. Un `commit` può rendere persistenti le modifiche del test. |
+| Fake / `monkeypatch` | Il fake sostituisce un componente con un comportamento controllato. `monkeypatch` applica sostituzioni temporanee nel processo del test, non nei worker separati. |
+| Celery / broker / worker | Celery definisce i task; il broker trasporta i messaggi; un worker li esegue. Una chiamata locale non prova la consegna al worker. |
+| Beat / RedBeat | Beat pianifica i task periodici; RedBeat conserva le voci dello scheduler in Redis. Una riga di schedule nel database non è la stessa cosa di una voce RedBeat. |
+| Dataset / licenza / attribution | Il catalogo descrive i dati, le condizioni di accesso e la provenienza. Un dataset sintetico può essere solo una riga di catalogo, senza dati meteorologici. |
+| Forecast / observed | Previsioni e osservazioni: i test possono dipendere rispettivamente da dati archiviati o da osservazioni disponibili nei servizi configurati. |
+| `reftime` / `run` | Tempo di riferimento dei dati e identificativo dell'emissione. Servono, tra l'altro, a scegliere una finestra utile per una richiesta. |
+| Schedule / request / `FileOutput` | Una schedule è una regola; una request è una singola estrazione; `FileOutput` rappresenta un file prodotto. Sono risorse distinte. |
+| Opendata / ARCO | Opendata riguarda i pacchetti pubblicati per il download; ARCO espone anche catalogo e oggetti Zarr tramite storage S3. |
+| GRIB / BUFR / shapefile | Formati meteorologici o geografici. Un file segnaposto con un suffisso corretto non prova che il contenuto sia valido. |
 
 ## Come lanciare i test
 
-Esempi pratici consigliati:
+Lavora dalla root del repository, con `rapydo` disponibile nell'ambiente del
+progetto e lo stack necessario avviato. Se usi un ambiente virtuale, attivalo
+prima. Se devi attendere i servizi del backend:
 
 ```bash
-.mhub-venv/bin/rapydo shell backend 'restapi tests --file tests/custom/integration/access_key/test_access_key_api.py'
+rapydo shell backend 'restapi wait'
 ```
+
+### Percorsi host e container
+
+I test del progetto sono montati nel container sotto `tests/custom/`. Il
+percorso da usare dipende anche dall'opzione del wrapper:
+
+| Dove | Esempio |
+|---|---|
+| File sul repository host | `projects/mistral/backend/tests/integration/access_key/test_access_key_api.py` |
+| File nel container, con `--file` | `tests/custom/integration/access_key/test_access_key_api.py` |
+| Cartella nel container, con `--folder` | `custom/integration/access_key` |
+
+`--file` deve indicare un file fisico: non aggiungere al percorso selettori
+come `::Classe::metodo`. `--core`, `--file` e `--folder` sono alternative,
+non opzioni da combinare. `--wait` attende l'inizializzazione dei servizi.
+
+### Dal più stretto al più largo
+
+Parti dal file che verifica il comportamento modificato. Questi sono esempi
+alternativi, non una sequenza obbligatoria:
 
 ```bash
-.mhub-venv/bin/rapydo shell backend 'restapi tests --file tests/custom/integration/observed/test_observations_filters.py'
+rapydo shell backend 'restapi tests --wait --file tests/custom/integration/access_key/test_access_key_api.py'
+rapydo shell backend 'restapi tests --wait --file tests/custom/integration/observed/test_observations_filters.py'
+rapydo shell backend 'restapi tests --wait --file tests/custom/integration/dataset/test_dataset_authorization.py'
+rapydo shell backend 'restapi tests --wait --file tests/custom/integration/tasks/test_requests_cleanup_expiration.py'
+rapydo shell backend 'restapi tests --wait --file tests/custom/integration/postprocessing/test_forecast_spatial.py'
 ```
+
+Se cambi supporto condiviso da più file, allarga alla cartella interessata:
 
 ```bash
-.mhub-venv/bin/rapydo shell backend 'restapi tests --folder custom/integration/observed'
+rapydo shell backend 'restapi tests --wait --folder custom/integration/observed'
 ```
+
+Quando serve una regressione dell'intera suite del progetto:
 
 ```bash
-.mhub-venv/bin/rapydo shell backend 'restapi tests --folder custom'
+rapydo shell backend 'restapi tests --wait --folder custom'
 ```
+
+Senza una selezione di file o cartella, il runner include anche i test del
+framework: non è equivalente alla sola suite custom. Il runner si ferma al
+primo errore, applica un timeout per caso e raccoglie la coverage. Se si ferma
+prima della fine, i casi successivi non sono stati verificati.
+
+Evita `--destroy` su ambienti con dati da conservare: abilita la modalità
+distruttiva usata da alcuni test del framework. Anche senza questa opzione,
+i test possono scrivere nel database e nel filesystem configurati.
+
+### Selezione per marker
+
+Passa le opzioni di pytest attraverso `PYTEST_ADDOPTS`, mantenendo il wrapper:
 
 ```bash
-.mhub-venv/bin/rapydo shell backend "env PYTEST_ADDOPTS='-m \"integration and not async_real\" -rs' restapi tests --folder custom"
+rapydo shell backend "env PYTEST_ADDOPTS='-m \"integration and not async_real\" -rs' restapi tests --wait --folder custom"
 ```
+
+`-rs` mostra i motivi degli skip. La sezione sul ciclo di vita spiega il
+significato dei marker: selezionarne uno non crea da solo un ambiente isolato.
+
+### Perché non chiamare pytest direttamente
+
+Fuori dalla produzione, `restapi tests` imposta `APP_MODE=test` per il processo
+dei test. In questa modalità il connettore SMTP usa il mock. Una chiamata
+diretta a pytest su uno stack di sviluppo non offre la stessa protezione:
+task ed endpoint eseguiti nel processo potrebbero inviare email reali.
+
+Il wrapper modifica l'ambiente del processo avviato, **non** quello di worker
+già in esecuzione. Per questo la protezione del processo di test non basta per
+i casi con worker reali.
+
+### Test con worker reali
+
+I test `async_real` usano worker separati e possono coinvolgere broker,
+Redis e Beat. Eseguili solo su uno stack **dedicato ai test**, senza dati
+operativi o altri utenti: i worker e i task periodici possono agire anche su
+risorse non create dal singolo test.
+
+Su uno stack dedicato, configurato fuori produzione, avvia o ricrea tutti i
+servizi con la modalità di test e poi seleziona i casi asincroni:
 
 ```bash
-.mhub-venv/bin/rapydo shell backend "env PYTEST_ADDOPTS='-m async_real -rs' restapi tests --wait --folder custom"
+rapydo --testing start -f
+rapydo shell backend "env PYTEST_ADDOPTS='-m async_real -rs' restapi tests --wait --folder custom"
 ```
 
-L'ultimo comando esegue davvero i test `async_real` solo su uno stack avviato con `rapydo --testing start -f`: `--testing` va passato allo `start`, non solo a `init`, e `-f` forza la ricreazione dei container esistenti, inclusi worker e beat, con il nuovo ambiente. Su uno stack `development` i test risultano `SKIPPED`, con il motivo indicato da `-rs`.
+`--testing` va applicato allo `start`; `-f` forza la ricreazione dei container,
+inclusi i worker e Beat. Il comando può interrompere servizi già in uso: non
+eseguirlo su uno stack condiviso. Dopo una modifica al codice dei task,
+assicurati che anche tutti i worker interessati usino il codice aggiornato.
 
-Per selezionare i marker passa `-m` tramite `PYTEST_ADDOPTS` e lancia sempre `restapi tests`, non `pytest` direttamente. Solo `restapi tests` imposta `APP_MODE=test`, che nel processo dei test sostituisce l'SMTP reale con il mock. Con `pytest` diretto, su uno stack `development` partirebbero email reali: per esempio `data_extract` eseguito in-process scrive agli utenti di test, e `/data/ready` avvisa un indirizzo di supporto reale se non riesce ad accodare il launcher.
+I worker devono avere `APP_MODE=test` per usare il mock SMTP. Il controllo della
+suite è indiretto: verifica nel backend `PYTHONMALLOC=debug`,
+`PYTHONASYNCIODEBUG=1` e `PYTHONFAULTHANDLER=1`, impostati dalla modalità di
+test Rapydo fuori produzione. Non impostare queste variabili a mano per
+aggirare lo skip: il controllo passerebbe anche se i worker usassero SMTP reale.
+Verifica che backend e worker siano stati tutti ricreati con la configurazione
+corretta; i soli segnali del backend non certificano l'ambiente dei worker.
 
-Regola pratica:
+## Ciclo di vita di un test
 
-- partire sempre dal file o dal dominio toccato;
-- allargare a una cartella solo se il cambiamento tocca fixture o helper condivisi;
-- evitare regressioni larghe quando esiste una verifica piu stretta.
+### Dal comando al teardown
 
-## Come aggiungere nuovi test senza rompere la struttura
+Il percorso normale è il seguente:
 
-Linee guida operative:
+1. `rapydo shell backend` esegue `restapi tests` nel container.
+2. Il wrapper verifica la selezione e avvia il runner del framework, che vede
+   i test del progetto come `tests/custom/...`.
+3. Pytest raccoglie i casi, i marker e i parametri. Carica anche la
+   configurazione del framework in `submodules/http-api/tests/conftest.py`.
+4. Per il file selezionato, pytest rende visibili i `conftest.py` delle
+   directory antenate e risolve le fixture necessarie.
+5. Si eseguono setup, azione e asserzioni; poi i teardown delle fixture
+   preparate vengono eseguiti secondo le loro dipendenze.
 
-1. Se una fixture serve a tutta la suite, mettila in `tests/conftest.py`.
-2. Se una fixture serve a piu domini di integrazione ma non alla suite intera, mettila in `tests/integration/conftest.py`.
-3. Se una fixture serve a un solo dominio, mettila nel `conftest.py` del dominio.
-4. Se una logica e riusabile ma non e una fixture, mettila in `helpers/` solo se serve a piu aree; se resta di un solo dominio, mettila in `integration/<area>/support.py` o in un modulo locale equivalente.
-5. Non reintrodurre moduli root `test_*.py`: i nuovi test vanno direttamente sotto `integration/<area>/`.
-6. Mantieni i test in forma `arrange / act / assert`.
-7. Per attese asincrone usa `helpers/polling.py`, non `sleep` sparsi.
-8. Per setup o cleanup di oggetti creati al volo usa `cleanup_registry` o helper dedicati.
+Il wrapper è definito in `submodules/http-api/restapi/__commands__.py`; il
+runner è `submodules/http-api/tests/tests.sh`. Il fatto che un test arrivi al
+teardown non implica un rollback generale delle modifiche persistenti.
 
-## Mappa file per file
+### Visibilità, scope e ordine delle fixture
 
-### Root della suite
+Un `conftest.py` vale per la propria directory e per le sue discendenti, non
+per le directory sorelle:
 
-- `README.md`: manuale pratico della suite custom backend.
-- `docs/`: documentazione mantenuta della suite.
-- `__init__.py`: marca la cartella come package Python della suite custom.
-- `conftest.py`: definisce le fixture globali, registra i marker e salta i test `async_real` fuori dagli stack `rapydo --testing`.
-- `helpers/`: infrastruttura e helper condivisi tra domini.
-- `integration/`: test reali organizzati per dominio funzionale.
-- `test_arpaesimc.sh`: smoke script shell per i tool meteo di base.
+| Livello | Esempio di ciò che rende disponibile |
+|---|---|
+| `projects/mistral/backend/tests/conftest.py` | `test_runtime` e `cleanup_registry`, disponibili nella suite custom. |
+| `projects/mistral/backend/tests/integration/conftest.py` | `auth_headers`, `access_key_owner`, `fresh_access_key` e `requests_cleanup_perimeter` per i test di integrazione. |
+| `projects/mistral/backend/tests/integration/access_key/conftest.py` | `fresh_access_key_with_expiration` per i test di quell'area. |
 
-### Helpers condivisi
+Una fixture non automatica parte se il test la richiede, direttamente o come
+dipendenza. Una fixture `autouse` parte anche se non compare nella firma del
+test: per esempio `schedules_endpoint_without_real_celery` in
+`projects/mistral/backend/tests/integration/data_ready/conftest.py`.
+Un helper importato, invece, non diventa una fixture.
 
-- `helpers/__init__.py`: marca la cartella dei helper riusabili.
-- `helpers/auth.py`: crea utenti temporanei autenticati (anche con grant dataset espliciti tramite `create_dataset_test_user`), compone header auth e centralizza il cleanup condiviso degli utenti di test.
-- `helpers/celery_fakes.py`: espone finti wrapper Celery per tenere alcuni test completamente locali o inline senza dipendere dal broker reale.
-- `helpers/cleanup.py`: implementa il registro di cleanup LIFO per callback e percorsi filesystem.
-- `helpers/data_ready.py`: contiene l'infrastruttura condivisa del cluster `data_ready/schedules`, inclusi helper per utenti dedicati, payload `/data/ready`, creazione schedule, polling delle richieste schedule e cleanup collegati.
-- `helpers/datasets.py`: crea bundle dataset sintetici pubblici o privati con license, group license, attribution e teardown completo; `create_private_test_network` aggiunge una rete sintetica che punta a un dataset privato per i 401 network authorization; `require_dataset` salta il test se un dataset reale (per nome o `arkimet_id`) non e presente.
-- `helpers/dataset_window.py`: legge `/fields` e normalizza finestra temporale e filtri run di un dataset.
-- `helpers/observed_windows.py`: costanti e helper condivisi tra `integration/fields` e `integration/observed` (finestre dati observed dballe/arkimet, `api_url`, `parse_response`, override `BeDballe.LASTDAYS` tramite `dballe_window_override`, utente agrmet `require_observed_dataset_user`, probe `require_dballe_product`).
-- `helpers/polling.py`: utility generica `wait_until` per attese osservabili.
-- `helpers/runtime.py`: contiene `TestRuntime`, cioe il runtime condiviso di sessione per cache e override temporanei.
-- `helpers/schedules.py`: costruisce payload JSON per schedule on-data-ready, crontab e periodiche condivisi tra `integration/data_ready/` e `integration/schedules/`.
-- `helpers/task_perimeter.py`: confina i task globali `automatic_cleanup` e `launch_all_on_data_ready_extractions` alle sole righe e ai soli file del test che li esegue.
-- `helpers/real_workers.py`: supporto dei test `async_real`: controllo dello stack `rapydo --testing`, attesa della fine delle request eseguite dai worker reali, cleanup che ferma i task dell'utente prima di cancellare, lettura delle email del mock SMTP e della voce RedBeat di una schedule.
+Le fixture senza scope esplicito sono normalmente per funzione.
+`test_runtime` è di sessione: conserva, tra le altre cose, una cache degli
+identificativi dei dataset e permette override temporanei di attributi.
+Lo scope stabilisce la durata del valore, non obbliga pytest a creare una
+fixture che nessun test richiede.
 
-### Template di riferimento
+Le dipendenze stabiliscono il setup: `fresh_access_key`, per esempio, richiede
+`access_key_owner`, che a sua volta usa `cleanup_registry`. Una fixture che
+dipende da un'altra termina prima della propria dipendenza. Non affidarti a un
+ordine implicito fra fixture indipendenti: se l'ordine è importante, esprimilo
+con una dipendenza o con un contesto esplicito.
 
-- `helpers/templates/endpoint_template.py`: file guida non collezionato da pytest che mostra la forma canonica di un modulo di test Meteo-Hub.
+Alcuni test parametrizzati scelgono una fixture per nome con
+`request.getfixturevalue`: il nome deve comunque essere visibile al test.
 
-### Integrazione condivisa
+### Pulizia e patch temporanee
 
-- `integration/conftest.py`: fixture condivise dai test HTTP integrati: autenticazione base, proprietario temporaneo delle access key, chiave appena creata e perimetro del task di cleanup.
+`cleanup_registry` raccoglie callback nel registro implementato da
+`projects/mistral/backend/tests/helpers/cleanup.py`. Le esegue in ordine LIFO:
+l'ultima registrata è la prima eseguita. Registra quindi prima la pulizia del
+proprietario e poi quella della risorsa che ne dipende.
 
-### Dominio `access_key`
+Nel caso access key, la revoca è registrata dopo la cancellazione dell'utente:
+parte prima, perché la FK di `AccessKey` verso l'utente non ammette NULL e
+l'utente non si può eliminare finché la chiave esiste.
+Il registro esegue il teardown anche dopo un'asserzione fallita, se il processo
+arriva normalmente a quel punto.
 
-- `integration/access_key/conftest.py`: fixture usate solo dai test access key, come la chiave con scadenza esplicita.
-- `integration/access_key/support.py`: centralizza gli endpoint access key usati dai test e dalle fixture locali.
-- `integration/access_key/test_access_key_api.py`: testa il ciclo di vita della access key, inclusi recupero, rigenerazione, chiave senza scadenza e chiave scaduta.
-- `integration/access_key/test_access_key_validation.py`: testa l'endpoint di validazione della access key con credenziali mancanti, email errata, chiave errata e casi validi.
+`monkeypatch` ripristina i simboli al proprio teardown. Se una fixture con
+patch viene preparata prima del registro, il cleanup può girare **mentre la
+patch è ancora attiva**. Nel sottoalbero data-ready la fixture automatica
+richiede `monkeypatch` prima delle fixture non automatiche: il registro viene
+quindi ripulito prima del ripristino della patch. Non generalizzare questo
+ordine a due fixture indipendenti.
 
-### Dominio `arco`
+Prima di sostituire un servizio, verifica quali chiamate avverranno anche nel
+cleanup. Preferisci, quando possibile, sostituire il nome usato dal singolo
+modulo sotto test invece del connettore condiviso: una patch globale potrebbe
+intercettare anche le cancellazioni via API. Se usi un helper che applica
+patch, controllane durata ed effetti.
 
-- `integration/arco/test_arco_catalog.py`: verifica il comportamento del catalogo ARCO.
-- `integration/arco/test_arco_proxy.py`: verifica il proxy ARCO e le sue risposte integrate.
+La pulizia non è infallibile: un errore in una callback interrompe le azioni
+successive; la rimozione delle directory registrate con `add_path` è
+best-effort. Un errore prima della registrazione o l'interruzione del processo
+possono lasciare risorse. Controlla il teardown e registra le pulizie appena le
+risorse esistono.
 
-### Dominio `data`
+### Autenticazione e risorse reali
 
-- `integration/data/test_data_endpoint_auth.py`: verifica regole di autenticazione e autorizzazione sull'endpoint dati.
-- `integration/data/test_data_extraction_real_worker.py` (`async_real`): verifica con un worker reale tre casi di `POST /data`: estrazione riuscita e scaricabile; estrazione fallita, con email di esito registrata dal mock SMTP; cleanup scaduto che revoca il task ancora in coda prima di cancellare la request.
-- `integration/data/test_real_worker_cleanup.py`: verifica in modo deterministico, con worker simulati, che il cleanup dei test `async_real` aspetti i task in coda, fermi solo quelli dell'utente di test e non cancelli nulla senza la conferma dei worker.
+`auth_headers` usa l'account predefinito condiviso: è adatto a letture e
+operazioni che non cambiano quell'account. Per operazioni invasive usa un
+utente temporaneo, come `access_key_owner` per creare o revocare chiavi.
+Verifica ruoli e permessi richiesti dallo scenario: creare un utente di test
+non implica automaticamente che sia privo di privilegi amministrativi.
 
-### Dominio `data_ready`
+Fixture e fake non rendono automaticamente finti database e filesystem.
+La suite può eseguire commit reali, creare utenti e scrivere file nelle root
+configurate. Per testare visibilità e permessi del catalogo, preferisci risorse
+sintetiche al cambiamento di dataset o licenze già presenti.
 
-- `integration/data_ready/conftest.py`: prepara fixture locali per data-ready, inclusi override dei dataset abilitati, base test, header admin, accesso al DB e utente dedicato. Nel solo modulo endpoint `/schedules` sostituisce Celery e la creazione dei task RedBeat, così le schedule di test non inviano `data_extract` reali e non lasciano task periodici.
-- `integration/data_ready/test_base_cases.py`: copre accettazione base di `/data/ready`, dataset non abilitati e schedule da ignorare per flag o inattivita.
-- `integration/data_ready/test_crontab.py`: verifica che una schedule on-data-ready non parta quando il crontab non combacia.
-- `integration/data_ready/test_periodic.py`: verifica la logica periodica, cioe quando una nuova richiesta deve o non deve essere rigenerata in base al tempo trascorso.
-- `integration/data_ready/test_run_mismatch.py`: verifica che modello e run-hour non coerenti non attivino la schedule.
+### Task globali: prima il perimetro
 
-### Dominio `dataset`
+Alcuni task percorrono risorse dell'intero progetto. Non chiamarli in-process
+senza aver ristretto ciò che possono vedere:
 
-- `integration/dataset/test_dataset_authorization.py`: verifica con cataloghi sintetici isolati quali dataset sono accessibili in base ai permessi utente.
-- `integration/dataset/test_dataset_visibility.py`: verifica con un dataset pubblico sintetico la visibilita anonima del catalogo.
+| Task | Perimetro da predisporre |
+|---|---|
+| `automatic_cleanup` | Usa `requests_cleanup_perimeter` e il suo metodo `allow` per registrare solo utenti e request del test. La ricerca degli orfani usa una root temporanea. |
+| `launch_all_on_data_ready_extractions` | Usa `trigger_data_ready_inline` con `schedule_ids` oppure `confine_data_ready_schedules`, passando solo gli identificativi delle schedule del test. |
 
-### Dominio `observed`
+Il perimetro è implementato in
+`projects/mistral/backend/tests/helpers/task_perimeter.py`; il trigger è in
+`projects/mistral/backend/tests/helpers/data_ready.py`. La logica del task e
+le scritture ORM restano reali. Gli accessi non previsti sollevano
+`OutsideTestPerimeterError` invece di ripiegare su una query globale.
 
-- `integration/observed/conftest.py`: crea scenari osservati validi per `dballe`, `arkimet` e `mixed`, applicando anche eventuali override a `BeDballe.LASTDAYS`.
-- `integration/observed/support.py`: scopre parametri validi dal backend osservato corrente, costruisce endpoint e query, espone i casi parametrizzati condivisi e le utility di parsing stazione/prodotti.
-- `integration/observed/test_observations_auth.py`: verifica gli errori di validazione base quando mancano porzioni obbligatorie della query osservata.
-- `integration/observed/test_observations_filters.py`: verifica filtri per reftime, network, bounding box, product e combinazioni di filtri sui tre backend osservati.
-- `integration/observed/test_observations_station_details.py`: verifica `onlyStations`, `stationDetails`, coordinate richieste e casi con network non valido.
+Il perimetro non controlla che gli identificativi forniti appartengano davvero
+al test: sceglili con cura. Nel cleanup, solo la scansione degli orfani usa la
+root temporanea; i file delle request ammesse possono trovarsi nelle directory
+reali degli utenti temporanei. Le patch di questo processo non confinano i
+worker esterni.
 
-### Dominio `opendata`
+Anche gli endpoint possono avviare effetti esterni. Una schedule
+`on-data-ready` può accodare subito una prima estrazione; una schedule
+periodica può creare una voce RedBeat. Se la voce è reale, cancella la schedule
+tramite l'API con Celery reale: eliminare soltanto la riga SQL o l'utente non
+garantisce la rimozione della voce periodica.
 
-- `integration/opendata/support.py`: semina dataset, utenti, record di richiesta e file opendata fittizi, oltre ai piccoli builder di scenario riusati tra authorization, listing e download.
-- `integration/opendata/test_authorization.py`: verifica accesso negato o consentito ai package opendata di dataset privati.
-- `integration/opendata/test_download.py`: verifica download dataset, validazione di query `reftime` e `run`, zip multiple, file singolo e file mancanti.
-- `integration/opendata/test_listing_filters.py`: verifica il listing dei package opendata con filtri `run` e `reftime`.
+### Diretto, inline, finto o asincrono?
 
-### Dominio `postprocessing`
+Leggi quale percorso usa il test prima di dedurre che cosa copra:
 
-- `integration/postprocessing/conftest.py`: crea gli ambienti forecast e observed per i test di postprocessing.
-- `integration/postprocessing/support.py`: espone ambienti di test forecast/observed, builder dei postprocessor, helper per template e assert specialistici su output GRIB/JSON/BUFR.
-- `integration/postprocessing/test_error_handling.py`: verifica i fallimenti attesi per postprocessor sconosciuti o input incompleti.
-- `integration/postprocessing/test_forecast_basic.py`: verifica estrazione forecast semplice, derived variables e statistic elaboration.
-- `integration/postprocessing/test_forecast_chaining.py`: verifica concatenazioni di piu postprocessor forecast e output JSON dopo spare point.
-- `integration/postprocessing/test_forecast_spatial.py`: verifica interpolazione, cropping, uso di template e output BUFR per spare point.
-- `integration/postprocessing/test_observed_postprocessing.py`: verifica estrazione observed semplice e chaining observed con output JSON.
+| Percorso | Che cosa esegue | Che cosa non dimostra |
+|---|---|---|
+| Chiamata diretta a una funzione o a `task.run()` | Il codice invocato nel processo del test; un task può comunque avere effetti su database, file o notifiche. | La consegna tramite broker e worker. |
+| `BaseTests.send_task` | Cerca il task nel registro Celery e lo chiama nel processo corrente. | L'accodamento e l'esecuzione su un worker separato. |
+| `AcceptTasksWithoutRunningCelery` | Registra gli invii accettati dal fake. | L'esecuzione del task o la produzione di file. |
+| `InlineDataReadyExtractionCelery` | Simula l'effetto sul database con una request riuscita. | Un'estrazione meteorologica o un file di output. |
+| `InlineDataExtractCelery` | Esegue subito il vero task di estrazione nel processo del test. | Il trasporto tramite broker e worker; gli effetti su dati e file restano possibili. |
+| Worker reale | Il task attraversa il broker ed è eseguito da un processo separato; i casi periodici possono coinvolgere anche Beat e RedBeat. | L'isolamento tramite `monkeypatch` del processo pytest. |
 
-### Dominio `requests`
+I fake sono definiti in `projects/mistral/backend/tests/helpers/celery_fakes.py`.
+Una risposta di accettazione o una request sintetica non dimostrano da sole
+che un'estrazione sia stata eseguita o che il contenuto di un file sia corretto.
 
-- `integration/requests/conftest.py`: tiene solo le fixture locali per le richieste pending.
-- `integration/requests/support.py`: contiene i seed helper locali del dominio requests senza promuoverli a helper globali.
-- `integration/requests/test_delete_pending_request.py`: verifica la cancellazione manuale delle richieste in base al grace period e il comportamento del task `automatic_cleanup`.
+### Marker e ambiente
 
-### Dominio `schedules`
+I marker sono registrati nel `conftest.py` globale:
 
-- `integration/schedules/conftest.py`: prepara fixture locali per i test schedule che fanno ponte con il data-ready e l'opendata.
-- `integration/schedules/test_schedule_opendata_bridge.py`: verifica il flusso completo in cui una schedule on-data-ready genera una richiesta, pubblica un package opendata e rende quel file scaricabile. Il test crontab (`async_real`) verifica anche che la voce RedBeat venga creata e rimossa dalla `DELETE` reale.
-- `integration/schedules/test_schedule_on_data_ready_real_worker.py` (`async_real`): verifica che il primo `data_extract` di una schedule on-data-ready venga eseguito da un worker reale e che la schedule non lasci voci RedBeat.
+| Marker | Come leggerlo |
+|---|---|
+| `integration` | Classifica un test nella suite di integrazione; non implica che ogni servizio o la rete esterna siano reali. |
+| `deterministic` | Il flusso è controllato nel runtime del test, senza attendere la catena asincrona reale. Non garantisce da solo l'isolamento di dati e servizi. |
+| `async_real` | Il test attende l'esecuzione asincrona tramite worker e, quando necessario, Beat. Richiede lo stack dedicato descritto sopra. |
+| `runtime_sensitive` | L'esito dipende anche da dati o infrastruttura presenti nell'ambiente. |
 
-## In sintesi
+I marker sono etichette per selezione e lettura, non avviano servizi e non
+rendono innocui gli effetti collaterali. Per `async_real` esiste anche un
+controllo in collection: se mancano i segnali della modalità di test, il caso
+viene saltato prima di eseguire test e fixture. Uno skip non è una verifica
+riuscita del comportamento.
 
-La modularizzazione nuova separa in modo netto:
+La configurazione del progetto in
+`projects/mistral/project_configuration.yaml` dichiara PostgreSQL, Redis,
+RabbitMQ, Celery e Beat. La configurazione dichiarata non prova che i servizi
+siano avviati, raggiungibili o privi di override locali.
 
-- infrastruttura globale di suite;
-- helper riusabili;
-- test veri, organizzati per dominio.
+### Dati e risorse fuori dalla cartella dei test
 
-La regola chiave da ricordare e questa: in pytest la posizione del `conftest.py` decide chi vede una fixture. In questa suite, quindi, il punto di divisione corretto e `root` contro `integration`, non `root` contro un singolo dominio.
+Alcuni scenari usano righe sintetiche; altri richiedono dati meteorologici,
+metadati, servizi e strumenti installati nell'ambiente. La presenza di un
+dataset nel catalogo o di metadati in `/api/fields` non garantisce che esista
+una finestra di dati utile per l'estrazione.
 
-## Documentazione mantenuta della suite
+Le fixture degli osservati cercano scenari disponibili nel runtime. Alcuni
+casi richiedono anche un secondo prodotto; se manca la precondizione, il test
+può essere saltato con un motivo esplicito. Altri casi dipendono da
+connessioni DB-All.e, archivi Arkimet o template esterni. Leggi il motivo
+dello skip e il supporto del dominio prima di cambiare l'asserzione.
 
-Per il lavoro quotidiano usa solo questi file:
+Lo script `.gitlab/scripts/setup-backend-and-datasets.sh` mostra come la CI
+prepara metadati, dati di esempio e template. Comprende anche una pulizia
+distruttiva di DB-All.e: non eseguirlo su dati da conservare.
 
-- `projects/mistral/backend/tests/docs/guida_finale_suite_test_backend.md`
-- `projects/mistral/backend/tests/README.md`
-- `projects/mistral/backend/tests/docs/legacy_to_new_suite_matrix.md`
-- `projects/mistral/backend/tests/docs/piano_refactoring_suite_test.md`
+Per i worker reali, `create_data_ready_user` prepara un utente temporaneo con
+notifiche di successo disattivate e un indirizzo non consegnabile. Serve
+comunque il mock SMTP sui worker, anche per le notifiche di errore.
+Registra `register_wait_for_user_requests` dopo il cleanup dell'utente:
+grazie al LIFO, l'attesa dei task precede la cancellazione di request, file e
+account. Se necessario l'helper ferma i task dell'utente di test; se i worker
+non confermano, il cleanup fallisce senza cancellare quelle risorse.
+Gli helper in `projects/mistral/backend/tests/helpers/real_workers.py` includono
+anche `wait_for_mock_email` per le notifiche e `read_periodic_task` per
+controllare la voce RedBeat di una schedule.
 
-Non ci sono piu riferimenti operativi mantenuti verso altre cartelle `docs/` del repository per capire lo stato corrente della suite backend.
+## Modificare o aggiungere test
+
+### Regole pratiche
+
+1. Definisci il contratto da verificare e scegli il livello necessario:
+   funzione, endpoint con fake, estrazione inline o worker reale. Non attribuire
+   a un fake le garanzie di un servizio reale.
+2. Tieni riconoscibili **arrange**, **act** e **assert**: prepara lo scenario,
+   esegui il comportamento e verifica effetti osservabili e risultato. Copri
+   anche i rifiuti pertinenti, senza confondere un errore di setup con il
+   contratto.
+3. Metti una fixture globale in
+   `projects/mistral/backend/tests/conftest.py` solo se serve davvero a tutta
+   la suite. Per più aree di integrazione usa
+   `projects/mistral/backend/tests/integration/conftest.py`; per una sola area
+   usa il suo `conftest.py`.
+4. Metti gli helper usati tra aree in
+   `projects/mistral/backend/tests/helpers/`. Se servono a una sola area,
+   tienili nel relativo modulo di supporto. Evita di copiare builder o
+   preparazioni già disponibili.
+5. Crea risorse temporanee e registra subito il teardown con
+   `cleanup_registry`. Considera relazioni tra risorse, ordine LIFO, file,
+   schedule e task ancora in corso. Non usare l'account condiviso come risorsa
+   sacrificabile.
+6. Attendi una condizione osservabile con timeout, non con una pausa fissa.
+   `wait_until` in `projects/mistral/backend/tests/helpers/polling.py` restituisce
+   il primo risultato utile o fallisce con un messaggio alla scadenza.
+7. Confina i task globali prima della chiamata. Per i test di validazione,
+   impedisci anche l'invio a servizi reali se la validazione viene superata
+   per errore: un fallimento esplicito è preferibile a un effetto esterno.
+   In `projects/mistral/backend/tests/integration/schedules/test_schedule_validation.py`
+   si usa `pytest.fail` per fermare l'invio; un `AssertionError` nell'endpoint
+   potrebbe invece essere convertito in una risposta HTTP.
+8. Applica i marker corrispondenti al percorso effettivo e verifica i motivi
+   degli skip. Per un worker reale usa lo stack dedicato e il cleanup che attende
+   i task.
+
+Come traccia per la forma di un test puoi leggere
+`projects/mistral/backend/tests/helpers/templates/endpoint_template.py`: è un
+esempio strutturale, non un test raccolto da pytest.
+
+### Modifiche tipiche e prima selezione
+
+Usa le opzioni della tabella con `rapydo shell backend 'restapi tests ...'`.
+I percorsi indicati qui sono quelli del container. Parti dal file pertinente e
+allarga solo ai consumatori o alle aree coinvolte dal cambiamento.
+
+| Modifica | Prima selezione utile e successivo allargamento |
+|---|---|
+| Contratto di un endpoint o validazione | `--file tests/custom/integration/access_key/test_access_key_api.py` per un cambiamento a quel contratto; poi `--folder custom/integration/access_key` se coinvolge anche gli altri casi dell'area. |
+| Autorizzazione o visibilità del catalogo | `--file tests/custom/integration/dataset/test_dataset_authorization.py`; poi la cartella `custom/integration/dataset` se cambiano anche le letture. |
+| Cleanup, ORM o file delle request | `--file tests/custom/integration/tasks/test_requests_cleanup_expiration.py`; allarga a `custom/integration/requests` se cambia il ciclo di vita delle request. |
+| Decisioni data-ready o perimetro delle schedule | Parti dai file interessati in `custom/integration/data_ready`; allarga alle schedule e ai consumatori del perimetro. |
+| Postprocessing o formato di output | `--file tests/custom/integration/postprocessing/test_forecast_spatial.py` per il percorso spaziale; scegli il file relativo al formato o all'errore modificato. |
+| Broker, worker o scheduler reale | Il file interessato con `async_real`, per esempio `--file tests/custom/integration/schedules/test_schedule_on_data_ready_real_worker.py`, su stack dedicato. Per Beat serve anche un caso che lo attraversi: il primo invio on-data-ready non lo verifica. |
+| Fixture o helper condivisi | Prima i file che li usano, poi le cartelle coinvolte. Se cambia una fixture globale, considera infine `--folder custom`. |
+| Inizializzazione e seed | Parti da `--folder custom/integration/initializer`, distinguendo preparazione dei dati e verifica dell'applicazione. |
+
+Aggiorna la scheda `*.py.review.md` del file di test o di supporto toccato.
+Se cambia la copertura o cambiano i conteggi, aggiorna anche
+[TEST_REVIEW_GUIDE.md](TEST_REVIEW_GUIDE.md).
+
+## Diagnosi di un test rosso o saltato
+
+Prima di cambiare il test, riproduci il caso più stretto e distingui:
+
+- **Contratto:** l'azione è arrivata al comportamento previsto, ma risposta o
+  effetto non rispettano ciò che il test chiede.
+- **Setup:** fixture, dati, permessi, fake o cleanup non hanno preparato lo
+  scenario previsto.
+- **Ambiente:** mancano o non rispondono servizi, worker, dati, strumenti o
+  risorse esterne richieste.
+
+Leggi l'intero errore, incluso il teardown; per gli skip usa `-rs`. Il primo
+sintomo non identifica sempre la causa.
+
+| Sintomo | Cosa controllare prima di intervenire |
+|---|---|
+| File o cartella non trovati | Traduci il percorso host in `tests/custom/...` per `--file` o `custom/...` per `--folder`. Non aggiungere un selettore di metodo a `--file`. |
+| Fixture non trovata | Controlla nome e visibilità dei `conftest.py`, compreso il lookup dinamico. Importare un helper non registra una fixture. |
+| Errore di autenticazione inatteso | Controlla credenziali, tipo di autenticazione, ruoli e permessi dell'utente. Distingui l'account condiviso dall'utente temporaneo. |
+| `async_real` saltato | Leggi il motivo con `-rs`; verifica modalità di test e ricreazione di backend, worker e Beat. Non forzare i segnali nel solo backend. |
+| Dataset o osservazioni non disponibili | Controlla catalogo, metadati, finestra, prodotti e dati effettivi. Uno skip per precondizioni mancanti non dimostra il contratto dell'endpoint. |
+| Metadati presenti ma osservazioni vuote | Verifica rete, prodotti, connessione DB-All.e e licenza: i metadati non provano la presenza dei dati richiesti. |
+| `OutsideTestPerimeterError` | Il task ha richiesto un accesso non ammesso. Verifica gli identificativi e adegua il perimetro in modo stretto, senza tornare a query globali. |
+| Task non trovato | Se usi `BaseTests.send_task`, controlla l'app e il nome nel registro Celery prima di cercare un guasto del broker. |
+| Invio accettato ma nessun file | Controlla quale fake è attivo: un'accettazione o una request sintetica non eseguono necessariamente l'estrazione. |
+| Request inattesa dopo la creazione di una schedule | Verifica se l'opzione `on-data-ready` ha già inviato la prima estrazione e quale trasporto era attivo durante il setup. |
+| Timeout con worker reale | Distingui schedule e voce RedBeat, Beat, broker, routing, worker e stato della request. Consulta i log e confronta, se utile, il percorso inline. |
+| Risorse residue o errore in teardown | Controlla registrazione, ordine LIFO, patch ancora attive e prima callback fallita. La rimozione best-effort di una directory può non essere riuscita. |
+| File presente ma contenuto inatteso | Verifica quali proprietà sono davvero asserite: nome, suffisso o presenza non certificano il contenuto meteorologico. |
+
+Non allargare subito l'esecuzione: chiarisci prima se è cambiato il contratto,
+se il test ha preparato lo scenario corretto o se l'ambiente non soddisfa le
+precondizioni. Poi ripeti la selezione minima e amplia la verifica se serve.

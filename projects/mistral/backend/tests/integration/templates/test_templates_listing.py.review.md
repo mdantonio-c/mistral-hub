@@ -1,10 +1,10 @@
 # Review — `test_templates_listing.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/templates/test_templates_listing.py](projects/mistral/backend/tests/integration/templates/test_templates_listing.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/templates/test_templates_listing.py`
 - **Scopo**: verificare il contratto di `GET /api/templates` (listing): autenticazione obbligatoria, forma `grib`/`shp` con liste vuote, filtro `format`, ramo compatto `get_total`, e flag `max_allowed` quando il numero di template di un tipo raggiunge `max_templates`.
 - **Tipologia**: test di **integrazione HTTP** (controller reale + **filesystem reale** sotto `/data/<uuid>/uploads` + lettura del campo `max_templates` dal DB). Marker: `integration`, `deterministic`.
 - **Dati reali**: nessuno. I file `grib`/`shp` sono **byte sintetici** scritti solo nella directory dell'utente temporaneo; nessun dataset meteo viene letto. Nessun monkeypatch, nessun worker/broker.
@@ -13,26 +13,26 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `Templates.get` | [endpoints/templates.py#L46](projects/mistral/backend/endpoints/templates.py#L46) | `GET /api/templates` — `glob` su `uploads/grib/*` e `uploads/shp/*.shp`, costruisce gli oggetti `grib`/`shp`, applica `format` e `get_total`. |
-| Ramo `get_total` | [endpoints/templates.py#L63](projects/mistral/backend/endpoints/templates.py#L63) | Ritorna subito `{"total": counter}` (grib, shp o somma) **senza** costruire gli oggetti né leggere `max_templates`. |
-| Calcolo `max_allowed` | [endpoints/templates.py#L83](projects/mistral/backend/endpoints/templates.py#L83) | `True` se `max_templates` è valorizzato **e** `len(files) >= int(max_templates)`; altrimenti `False`. |
-| `TemplatesFormatter` | [endpoints/templates.py#L26](projects/mistral/backend/endpoints/templates.py#L26) | Schema query: `format` `OneOf(["grib","shp"])`, `perpage`, `currentpage`, `get_total` (Bool). |
-| `SqlApiDbManager.get_user_permissions` | [services/sqlapi_db_manager.py#L665](projects/mistral/backend/services/sqlapi_db_manager.py#L665) | Per `param="templates"` ritorna `user.max_templates`. |
-| `User.max_templates` | [models/sqlalchemy.py#L27](projects/mistral/backend/models/sqlalchemy.py#L27) | Colonna `Integer` **nullable senza default**: limite condiviso fra grib e shp. |
+| `Templates.get` | `projects/mistral/backend/endpoints/templates.py` | `GET /api/templates` — `glob` su `uploads/grib/*` e `uploads/shp/*.shp`, costruisce gli oggetti `grib`/`shp`, applica `format` e `get_total`. |
+| Ramo `get_total` | `projects/mistral/backend/endpoints/templates.py` | Ritorna subito `{"total": counter}` (grib, shp o somma) **senza** costruire gli oggetti né leggere `max_templates`. |
+| Calcolo `max_allowed` | `projects/mistral/backend/endpoints/templates.py` | `True` se `max_templates` è valorizzato **e** `len(files) >= int(max_templates)`; altrimenti `False`. |
+| `TemplatesFormatter` | `projects/mistral/backend/endpoints/templates.py` | Schema query: `format` `OneOf(["grib","shp"])`, `perpage`, `currentpage`, `get_total` (Bool). |
+| `SqlApiDbManager.get_user_permissions` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Per `param="templates"` ritorna `user.max_templates`. |
+| `User.max_templates` | `projects/mistral/backend/models/sqlalchemy.py` | Colonna `Integer` **nullable senza default**: limite condiviso fra grib e shp. |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `cleanup_registry` | fixture | [tests/conftest.py#L59](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO** (`CleanupRegistry`); non ingoia eccezioni. |
-| `TEMPLATES_ENDPOINT` | costante | [templates/support.py](projects/mistral/backend/tests/integration/templates/support.py) | URL `{API_URI}/templates`. |
-| `create_templates_user` | helper | [templates/support.py](projects/mistral/backend/tests/integration/templates/support.py) | Crea utente via API admin con `max_templates`/`disk_quota` espliciti; registra cleanup dell'utente e di `/data/<uuid>`. |
-| `seed_template_file` | helper | [templates/support.py](projects/mistral/backend/tests/integration/templates/support.py) | Scrive un file sintetico in `uploads/grib` o `uploads/shp` (dedotto dall'estensione) e registra `uploads` nel cleanup. |
-| `listed_filenames` | helper | [templates/support.py](projects/mistral/backend/tests/integration/templates/support.py) | Estrae i **soli nomi** dai `Path` serializzati come stringhe assolute. |
+| `cleanup_registry` | fixture | `projects/mistral/backend/tests/conftest.py` | Teardown **LIFO** (`CleanupRegistry`); non ingoia eccezioni. |
+| `TEMPLATES_ENDPOINT` | costante | `projects/mistral/backend/tests/integration/templates/support.py` | URL `{API_URI}/templates`. |
+| `create_templates_user` | helper | `projects/mistral/backend/tests/integration/templates/support.py` | Crea utente via API admin con `max_templates`/`disk_quota` espliciti; registra cleanup dell'utente e di `/data/<uuid>`. |
+| `seed_template_file` | helper | `projects/mistral/backend/tests/integration/templates/support.py` | Scrive un file sintetico in `uploads/grib` o `uploads/shp` (dedotto dall'estensione) e registra `uploads` nel cleanup. |
+| `listed_filenames` | helper | `projects/mistral/backend/tests/integration/templates/support.py` | Estrae i **soli nomi** dai `Path` serializzati come stringhe assolute. |
 | `BaseTests().get_content` | helper | `restapi.tests` | Decodifica il body della risposta. |
 
-> Infrastruttura condivisa solo referenziata: [tests/conftest.py](projects/mistral/backend/tests/conftest.py), helper di auth in [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py). Il dettaglio dei builder è in [support.py.review.md](projects/mistral/backend/tests/integration/templates/support.py.review.md).
+> Infrastruttura condivisa solo referenziata: `projects/mistral/backend/tests/conftest.py`, helper di auth in `projects/mistral/backend/tests/helpers/auth.py`. Il dettaglio dei builder è in [support.py.review.md](support.py.review.md).
 
 ## 4. Analisi dettagliata di ogni test
 
@@ -70,7 +70,7 @@
 
 ### `test_templates_listing_marks_max_allowed_when_limit_is_reached`
 - **Obiettivo**: `max_allowed=True` quando ciascun tipo raggiunge `max_templates`.
-- **Backend coinvolto**: `Templates.get`, blocco `max_allowed` ([endpoints/templates.py#L83](projects/mistral/backend/endpoints/templates.py#L83)).
+- **Backend coinvolto**: `Templates.get`, blocco `max_allowed` (`projects/mistral/backend/endpoints/templates.py`).
 - **Flusso**: utente `max_templates=1`, seed di un grib e uno shp → GET singola.
 - **Setup**: `max_templates=1`; un file per tipo.
 - **Assert**: `200`; `by_type["grib"]["max_allowed"] is True` e `by_type["shp"]["max_allowed"] is True`.

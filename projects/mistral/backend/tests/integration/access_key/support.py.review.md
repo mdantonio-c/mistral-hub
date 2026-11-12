@@ -4,7 +4,7 @@
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/access_key/support.py](projects/mistral/backend/tests/integration/access_key/support.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/access_key/support.py`
 - **Scopo**: centralizzare le costanti URL del dominio access-key.
 - **Tipologia**: modulo di supporto (sole costanti).
 
@@ -19,7 +19,7 @@
 
 ## 3. Comportamenti nascosti
 
-- `ACCESS_KEY_ENDPOINT` è importato anche dal `conftest` di integrazione globale ([integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py)) per la fixture `fresh_access_key`: una modifica a questa costante ha impatto **cross-dominio**, non solo locale.
+- `ACCESS_KEY_ENDPOINT` è importato anche dal `conftest` di integrazione globale (`projects/mistral/backend/tests/integration/conftest.py`) per la fixture `fresh_access_key`: una modifica a questa costante ha impatto **cross-dominio**, non solo locale.
 
 ## 4. Checklist di revisione
 

@@ -1,11 +1,11 @@
 # Review — `test_initializer_seed.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: test di **stato reale** su `mistral.initialization.Initializer`, complementare allo smoke [test_initializer_smoke.py](./test_initializer_smoke.py).
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
+> Modulo: test di **stato reale** su `mistral.initialization.Initializer`, complementare allo smoke `projects/mistral/backend/tests/integration/initializer/test_initializer_smoke.py`.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [test_initializer_seed.py](./test_initializer_seed.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/initializer/test_initializer_seed.py`
 - **Scopo**: verificare ciò che l'initializer **persiste davvero**, non solo il suo flusso di controllo. Copre i tre scenari prioritari: (a) prima creazione del seed, (b) doppia esecuzione idempotente, (c) ripristino di **un singolo campo** divergente.
 - **Tipologia**: integrazione su **PostgreSQL e modelli SQLAlchemy reali**. Fake solo per Arkimet (input sintetico) e Celery (recorder con stato). Marker: `integration`, `deterministic`.
 - **Numero di test**: 18 raccolti → 17 attesi verdi + 1 `xfail(strict=True)` che documenta un bug reale.
@@ -18,11 +18,11 @@
 
 | Elemento | Path | Ruolo nel test |
 |---|---|---|
-| Seed `GroupLicense` | [initialization.py](../../../initialization.py#L26) | Creazione da zero, ripristino di `descr` / `is_public` / `dballe_dsn`. |
-| Seed `License` | [initialization.py](../../../initialization.py#L85) | Creazione con FK al gruppo corretto; ripristino di `descr` / `url` / `group_license_id`. |
-| Seed `Attribution` | [initialization.py](../../../initialization.py#L213) | Creazione di tutti i 19 nomi; ripristino di `descr` / `url`. |
-| Seed `Datasets` | [initialization.py](../../../initialization.py#L258) | Creazione da config Arkimet; ripristino di 7 campi (incluso il ramo separato `fileformat` / `bounding`). |
-| Cron `requests_cleanup` | [initialization.py](../../../initialization.py#L351) | Prima installazione (solo create) e reinstallazione (get → delete → create). |
+| Seed `GroupLicense` | `projects/mistral/backend/initialization.py` | Creazione da zero, ripristino di `descr` / `is_public` / `dballe_dsn`. |
+| Seed `License` | `projects/mistral/backend/initialization.py` | Creazione con FK al gruppo corretto; ripristino di `descr` / `url` / `group_license_id`. |
+| Seed `Attribution` | `projects/mistral/backend/initialization.py` | Creazione di tutti i 19 nomi; ripristino di `descr` / `url`. |
+| Seed `Datasets` | `projects/mistral/backend/initialization.py` | Creazione da config Arkimet; ripristino di 7 campi (incluso il ramo separato `fileformat` / `bounding`). |
+| Cron `requests_cleanup` | `projects/mistral/backend/initialization.py` | Prima installazione (solo create) e reinstallazione (get → delete → create). |
 
 ## 3. Mappa delle dipendenze
 
@@ -30,13 +30,13 @@
 |---|---|---|---|
 | `app` | fixture | `tests/conftest.py` di restapi | Garantisce l'app context Flask richiesto dal connettore SQLAlchemy. |
 | `monkeypatch` | fixture | pytest | Sostituisce `session.commit`, `celery.get_instance` e `arki.load_datasets`; ripristinati a fine test. |
-| `initializer_harness` | fixture locale | [test_initializer_seed.py](./test_initializer_seed.py#L257) | Rollback iniziale, snapshot `(id, name)` delle 4 tabelle, `commit → flush`, dataset sintetico uuid, recorder Celery. In teardown esegue `rollback` e **asserisce** che le tabelle siano identiche allo snapshot iniziale. |
-| `_InitializerHarness` | dataclass locale | [test_initializer_seed.py](./test_initializer_seed.py#L175) | `run()` istanzia l'`Initializer` reale e chiama `expire_all()`, così le letture successive vanno al DB; `commits` conta i commit. |
-| `_RecordingCelery` | fake locale | [test_initializer_seed.py](./test_initializer_seed.py#L148) | Stato `installed` + log `calls`. `get` restituisce il task solo se creato; `create` **fallisce** se il task esiste già (duplicato). |
-| `_hide_existing_seed_rows` | helper | [test_initializer_seed.py](./test_initializer_seed.py#L219) | Rinomina tutte le righe `GroupLicense` / `License` / `Attribution` nella transazione per simulare un DB non inizializzato. Le FK dei dataset reali impediscono di cancellarle. |
-| `_capture_writes` | context manager | [test_initializer_seed.py](./test_initializer_seed.py#L132) | Listener `before_cursor_execute` sull'engine: registra gli statement `INSERT` / `UPDATE` / `DELETE` realmente inviati. |
-| `_seed_snapshot` / `_row_values` | helper | [test_initializer_seed.py](./test_initializer_seed.py#L235) | Snapshot di **tutte le colonne** delle righe seed e del dataset sintetico, più `(id, name)` di ogni tabella. |
-| `EXPECTED_*` | costanti | [test_initializer_seed.py](./test_initializer_seed.py) | Aspettative scritte a mano, senza importarle dal codice di produzione. Coprono gruppi e licenze completi, tutti i nomi delle attribution, `descr` / `url` di 3 attribution campione e il cron atteso. |
+| `initializer_harness` | fixture locale | `projects/mistral/backend/tests/integration/initializer/test_initializer_seed.py` | Rollback iniziale, snapshot `(id, name)` delle 4 tabelle, `commit → flush`, dataset sintetico uuid, recorder Celery. In teardown esegue `rollback` e **asserisce** che le tabelle siano identiche allo snapshot iniziale. |
+| `_InitializerHarness` | dataclass locale | `projects/mistral/backend/tests/integration/initializer/test_initializer_seed.py` | `run()` istanzia l'`Initializer` reale e chiama `expire_all()`, così le letture successive vanno al DB; `commits` conta i commit. |
+| `_RecordingCelery` | fake locale | `projects/mistral/backend/tests/integration/initializer/test_initializer_seed.py` | Stato `installed` + log `calls`. `get` restituisce il task solo se creato; `create` **fallisce** se il task esiste già (duplicato). |
+| `_hide_existing_seed_rows` | helper | `projects/mistral/backend/tests/integration/initializer/test_initializer_seed.py` | Rinomina tutte le righe `GroupLicense` / `License` / `Attribution` nella transazione per simulare un DB non inizializzato. Le FK dei dataset reali impediscono di cancellarle. |
+| `_capture_writes` | context manager | `projects/mistral/backend/tests/integration/initializer/test_initializer_seed.py` | Listener `before_cursor_execute` sull'engine: registra gli statement `INSERT` / `UPDATE` / `DELETE` realmente inviati. |
+| `_seed_snapshot` / `_row_values` | helper | `projects/mistral/backend/tests/integration/initializer/test_initializer_seed.py` | Snapshot di **tutte le colonne** delle righe seed e del dataset sintetico, più `(id, name)` di ogni tabella. |
+| `EXPECTED_*` | costanti | `projects/mistral/backend/tests/integration/initializer/test_initializer_seed.py` | Aspettative scritte a mano, senza importarle dal codice di produzione. Coprono gruppi e licenze completi, tutti i nomi delle attribution, `descr` / `url` di 3 attribution campione e il cron atteso. |
 
 ## 4. Analisi dettagliata di ogni test
 
@@ -51,6 +51,8 @@
   - dataset: `name`, `description`, `source="arkimet"`, `category is DatasetCategories.OBS`, `fileformat`, `bounding`, licenza e attribution **nuove** tramite relazione;
   - esattamente 3 commit;
   - cron: `[get, create]` (**nessun delete**) e spec esatta (`automatic_cleanup`, `3:45`, `args=[]`).
+- **Cosa non dimostra**: il comportamento su un DB fisicamente vuoto (le righe esistenti sono solo rinominate) né una vera installazione RedBeat. `descr`/`url` delle attribution sono verificati solo per i 3 campioni.
+- **Se fallisce, guarda**: il seed in `projects/mistral/backend/initialization.py` confrontato con le costanti `EXPECTED_*`, che sono indipendenti dal seed applicativo. Mantenere il rollback e le verifiche dopo `expire_all()`.
 
 ### `test_second_run_keeps_rows_ids_and_values`
 - **Obiettivo**: idempotenza reale. Due run consecutivi partendo da un DB senza seed.
@@ -59,13 +61,17 @@
   - durante il secondo run nessun `INSERT` e nessun `UPDATE` sulle tabelle seed; l'unica scrittura tollerata è `KNOWN_CATEGORY_REWRITE`, documentata dal test xfail;
   - 6 commit totali;
   - cron: `[get, create, get, delete, create]` con un solo task installato.
+- **Cosa non dimostra**: l'assenza di ogni `UPDATE`: la riscrittura `KNOWN_CATEGORY_REWRITE` è ammessa esplicitamente.
+- **Se fallisce, guarda**: distinguere l'idempotenza dello stato (snapshot) da quella delle scritture (`writes`), e confrontare con il test xfail seguente.
 
 ### `test_second_run_on_aligned_state_writes_nothing` — `xfail(strict=True)`
 - **Obiettivo**: con DB già allineato, un rerun non dovrebbe scrivere nulla.
 - **Esito osservato**: fallisce con un solo statement:
   `UPDATE datasets SET category=%(category)s WHERE datasets.id = %(datasets_id)s`.
-- **Causa**: [initialization.py](../../../initialization.py#L316) confronta `ds_entry.category`, un enum `DatasetCategories.OBS`, con la stringa Arkimet `"OBS"`. Il confronto è sempre `True`, quindi il dataset viene riscritto **a ogni avvio**.
+- **Causa**: `projects/mistral/backend/initialization.py` confronta `ds_entry.category`, un enum `DatasetCategories.OBS`, con la stringa Arkimet `"OBS"`. Il confronto è sempre `True`, quindi il dataset viene riscritto **a ogni avvio**.
 - **Perché strict**: quando il bug sarà corretto, il test passerà come XPASS e la suite fallirà, segnalando di rimuovere il marker. Verificato con un mutante che corregge il confronto: `[XPASS(strict)]`.
+- **Cosa non dimostra**: non è uno skip e non misura un risultato positivo. Un eventuale `XPASS(strict)` segnala solo che il marker va rimosso. Con `raises=AssertionError`, gli errori di altro tipo non diventano xfail.
+- **Se fallisce, guarda**: il confronto `DatasetCategories`/stringa nel costruttore e la tolleranza `KNOWN_CATEGORY_REWRITE` del test precedente, da rimuovere insieme al marker.
 
 ### `test_rerun_restores_single_drifted_field` × 15
 - **Obiettivo**: per ogni campo gestito, una divergenza **isolata** viene corretta sulla **stessa riga**.
@@ -81,7 +87,9 @@
   - `license-{descr,url,group_license_id}`;
   - `attribution-{descr,url}`;
   - `dataset-{name,description,license_id,attribution_id,category,fileformat,bounding}`.
-- **Valori stale FK**: puntano ad altre righe seed esistenti (`CCBY-SA_COMPLIANT`, `CCBY-SA4.0`, `MISTRAL`), quindi i vincoli FK sono rispettati.
+- **Valori stale FK**: puntano ad altre righe seed esistenti (`CCBY-SA_COMPLIANT`, `CCBY-SA4.0`, `MISTRAL`), quindi i vincoli FK sono rispettati. Sono calcolati a runtime da `_row_id_by_name`. Ogni caso è un `_DriftCase(model, lookup, field, stale_value)`. I casi FK provano la correzione della relazione, quelli descrittivi la correzione del campo.
+- **Cosa non dimostra**: la correttezza di ogni confronto dataset. Finché esiste il bug `category`, la riscrittura forzata può mascherare i difetti degli altri confronti dataset (vedi §7). I 15 casi sono quelli dichiarati, non un esito misurato qui.
+- **Se fallisce, guarda**: il seed e il singolo campo del caso fallito. Controllare anche lo xfail no-write, per non dare una falsa fiducia agli aggiornamenti.
 
 ## 5. Call chain
 
@@ -103,7 +111,8 @@ teardown
 - **`commit` sostituito da `flush`**: SQL, vincoli e FK sono reali, ma il comportamento di `COMMIT` (visibilità ad altre connessioni, eventi post-commit) non è testato. L'Initializer non ne dipende.
 - **Righe "nascoste" tramite rename**: alternativa necessaria alla cancellazione, bloccata dalle FK dei dataset reali. Le righe rinominate restano nel DB transazionale e generano i warning diagnostici "in db but not in the inizializing schema": è atteso.
 - **Warning sui dataset reali**: poiché Arkimet restituisce solo il dataset sintetico, l'Initializer logga un warning per ogni dataset reale "not in the arkimet config". È solo log, senza scritture.
-- **Lock di riga temporanei**: durante il test le righe seed rinominate o aggiornate sono bloccate dalla transazione aperta. La durata è breve (~0,5 s per test), ma eventuali scritture concorrenti su quelle righe attenderebbero.
+- **Lock di riga temporanei**: durante il test le righe seed rinominate o aggiornate sono bloccate dalla transazione aperta. La durata è breve (~0,5 s per test), ma eventuali scritture concorrenti su quelle righe attenderebbero. `_hide_existing_seed_rows` rinomina **tutte** le righe di gruppo, licenza e attribution, non solo quelle legate al dataset UUID: conviene eseguire il modulo su uno stack dedicato.
+- **Controllo di teardown parziale**: `initializer_harness` è una fixture locale, non usa il `cleanup_registry` della suite. Dopo il rollback confronta solo `(id, name)` delle quattro tabelle (`SEED_MODELS`), non tutte le colonne né le sequenze SQL.
 - **Dipendenza dal DB già seedato**: i casi drift e il test di aggiornamento usano lo stato reale di partenza (seed già presente dallo startup). La fixture parte comunque da `rollback()` e verifica l'invarianza a fine test.
 
 ## 7. Verifica di efficacia (mutation testing)
@@ -125,7 +134,7 @@ Mutanti dell'Initializer caricati **solo nel processo pytest** tramite plugin `-
 
 ## 8. Checklist di revisione
 
-- [ ] Decidere se correggere il confronto `category` in [initialization.py](../../../initialization.py#L316), ad esempio confrontando `ds_entry.category.name` oppure convertendo la stringa in `DatasetCategories`. Poi rimuovere lo `xfail` e `KNOWN_CATEGORY_REWRITE`.
+- [ ] Decidere se correggere il confronto `category` in `projects/mistral/backend/initialization.py`, ad esempio confrontando `ds_entry.category.name` oppure convertendo la stringa in `DatasetCategories`. Poi rimuovere lo `xfail` e `KNOWN_CATEGORY_REWRITE`.
 - [ ] Confermare che la strategia `commit → flush + rollback` sia accettabile per l'isolamento sul DB condiviso di test.
 - [ ] Confermare che le aspettative esplicite (`EXPECTED_*`) siano il contratto desiderato. Un cambio intenzionale al seed richiede l'aggiornamento del test.
 - [ ] Valutare se aggiungere i rami di errore: config dataset incompleta, licenza/attribution inesistente, gruppo mancante per una licenza.

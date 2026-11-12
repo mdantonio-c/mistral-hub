@@ -15,7 +15,7 @@ automatica di pytest, senza import della fixture nei test.
 - I test continuano a richiedere `admin_headers` come parametro; non dipendono
   piu' da import che un auto-fix potrebbe considerare inutilizzati.
 - Payload builder, creazione di record sintetici e cleanup rimangono in
-  [support.py](support.py), descritti nella [review del supporto](support.py.review.md).
+  `projects/mistral/backend/tests/integration/admin/support.py`, descritti nella [review del supporto](support.py.review.md).
 
 ## Limite invariato
 

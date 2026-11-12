@@ -1,12 +1,12 @@
 # Review — `test_fields_api.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 > Modulo: copertura dedicata a `Fields.get`.
 > Runtime-sensitive: i rami happy path interrogano dati reali nelle finestre dati consentite.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/fields/test_fields_api.py](projects/mistral/backend/tests/integration/fields/test_fields_api.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/fields/test_fields_api.py`
 - **Scopo**: coprire l'endpoint `GET /api/fields` (summary stats / filtri) nei tre modi operativi — **OBS map mode** (senza `datasets`, via `network`/`license`), **OBS dataset mode** (autenticato), **FOR/Arkimet dataset mode** — più i numerosi rami di errore (401/404/400) e le opzioni `onlySummaryStats`/`SummaryStats`/`allAvailableProducts`.
 - **Tipologia**: test di **integrazione HTTP** (controller reale + `SqlApiDbManager` + `BeDballe`/`BeArkimet` + DB). Mix di **happy path su dati reali** e **rami di validazione su dataset sintetici + monkeypatch**. Marker: `integration`, `deterministic`, `runtime_sensitive`.
 - **Numero di test**: **21**, tutti in funzioni `test_*` a livello di modulo.
@@ -15,31 +15,31 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `Fields.get` | [endpoints/fields.py](projects/mistral/backend/endpoints/fields.py) | `GET /api/fields` — `auth.optional()`; instrada OBS vs FOR, valida bbox, autorizzazioni, license group; restituisce `summary`. |
-| `SqlApiDbManager.get_datasets` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L482) | Verifica esistenza/visibilità dataset in dataset mode (404 se non trovato/non autorizzato). |
-| `SqlApiDbManager.get_license_group` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L546) | Ritorna `None` se i dataset appartengono a gruppi licenza diversi (→ 400). |
-| `SqlApiDbManager.check_dataset_authorization` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L562) | Autorizzazione di rete in map mode (privato non assegnato → 401). |
-| `SqlApiDbManager.get_user_permissions` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L665) | `allowed_obs_archive` per il ramo dati archiviati (401 se assente). |
-| `BeDballe.get_db_type` / `LASTDAYS` | [services/dballe.py](projects/mistral/backend/services/dballe.py#L117) | Classifica reftime come `dballe`/`mixed`/`arkimet` con soglia mobile su `LASTDAYS`; decide se serve `allowed_obs_archive`. |
-| `BeDballe.check_access_authorization` | [services/dballe.py](projects/mistral/backend/services/dballe.py#L196) | Solleva `UnexistingLicenseGroup`/`UnAuthorizedUser`/`NetworkNotInLicenseGroup` (→ 400/401). |
-| `BeArkimet.get_datasets_category` | [services/arkimet.py](projects/mistral/backend/services/arkimet.py#L218) | Categoria comune dei dataset; `None` se incompatibili (→ 400). **Monkeypatchata** in 2 test. |
-| `BeArkimet.from_network_to_dataset` / `load_summary` | [services/arkimet.py](projects/mistral/backend/services/arkimet.py#L278) | Mapping network→dataset (404 se assente) e summary Arkimet per FOR. |
+| `Fields.get` | `projects/mistral/backend/endpoints/fields.py` | `GET /api/fields` — `auth.optional()`; instrada OBS vs FOR, valida bbox, autorizzazioni, license group; restituisce `summary`. |
+| `SqlApiDbManager.get_datasets` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Verifica esistenza/visibilità dataset in dataset mode (404 se non trovato/non autorizzato). |
+| `SqlApiDbManager.get_license_group` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Ritorna `None` se i dataset appartengono a gruppi licenza diversi (→ 400). |
+| `SqlApiDbManager.check_dataset_authorization` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Autorizzazione di rete in map mode (privato non assegnato → 401). |
+| `SqlApiDbManager.get_user_permissions` | `projects/mistral/backend/services/sqlapi_db_manager.py` | `allowed_obs_archive` per il ramo dati archiviati (401 se assente). |
+| `BeDballe.get_db_type` / `LASTDAYS` | `projects/mistral/backend/services/dballe.py` | Classifica reftime come `dballe`/`mixed`/`arkimet` con soglia mobile su `LASTDAYS`; decide se serve `allowed_obs_archive`. |
+| `BeDballe.check_access_authorization` | `projects/mistral/backend/services/dballe.py` | Solleva `UnexistingLicenseGroup`/`UnAuthorizedUser`/`NetworkNotInLicenseGroup` (→ 400/401). |
+| `BeArkimet.get_datasets_category` | `projects/mistral/backend/services/arkimet.py` | Categoria comune dei dataset; `None` se incompatibili (→ 400). **Monkeypatchata** in 2 test. |
+| `BeArkimet.from_network_to_dataset` / `load_summary` | `projects/mistral/backend/services/arkimet.py` | Mapping network→dataset (404 se assente) e summary Arkimet per FOR. |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient`. |
-| `auth_headers` | fixture | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py#L28) | Utente **DEFAULT** loggato, header condivisi (admin di default → `allowed_obs_archive` non garantito). |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L59) | Teardown LIFO per utenti/dataset/licenze sintetici. |
-| `test_runtime` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L49) | Singleton di sessione; fornisce `override_attr` per il patch di `LASTDAYS`. |
+| `auth_headers` | fixture | `projects/mistral/backend/tests/integration/conftest.py` | Utente **DEFAULT** loggato, header condivisi (admin di default → `allowed_obs_archive` non garantito). |
+| `cleanup_registry` | fixture | `projects/mistral/backend/tests/conftest.py` | Teardown LIFO per utenti/dataset/licenze sintetici. |
+| `test_runtime` | fixture | `projects/mistral/backend/tests/conftest.py` | Singleton di sessione; fornisce `override_attr` per il patch di `LASTDAYS`. |
 | `monkeypatch` | fixture | pytest | Patch di `fields_endpoint_module.arki.get_datasets_category` (test 17, 18). |
-| `dballe_window_override`, `require_observed_dataset_user`, `parse_response`, costanti `OBSERVED_*` | helper condivisi | [helpers/observed_windows.py](projects/mistral/backend/tests/helpers/observed_windows.py) | Override di `BeDballe.LASTDAYS` per il 2020-04-06; utente agrmet (**`pytest.skip`** se agrmet manca); decodifica risposta; costanti comuni con `observed`. |
-| `require_forecast_fields_case` | helper | [fields/support.py](projects/mistral/backend/tests/integration/fields/support.py) | Scenario forecast reale; **`pytest.skip`** se nessuna finestra lm5/lm2.2 espone dati. |
-| `create_fields_synthetic_dataset` / `get_or_create_multim_forecast_dataset` / `create_private_observed_dataset_for_all_available_products` | helper | [fields/support.py](projects/mistral/backend/tests/integration/fields/support.py) | Setup dataset/licenze + cleanup; nessuno modifica il catalogo reale. |
-| `create_dataset_test_user` | helper condiviso | [helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) | Utente temporaneo con grant dataset espliciti e flag archive + cleanup. |
-| `create_private_test_network` | helper condiviso | [helpers/datasets.py](projects/mistral/backend/tests/helpers/datasets.py) | Dataset privato sintetico + rete sintetica mappata su di esso; le altre reti usano la mappatura reale. |
-| `fields_url`, query `OBS_*_QUERY` | helper/cost. | [fields/support.py](projects/mistral/backend/tests/integration/fields/support.py) | Costruzione URL `/fields` e query sulle finestre dati ammesse. |
+| `dballe_window_override`, `require_observed_dataset_user`, `parse_response`, costanti `OBSERVED_*` | helper condivisi | `projects/mistral/backend/tests/helpers/observed_windows.py` | Override di `BeDballe.LASTDAYS` per il 2020-04-06; utente agrmet (**`pytest.skip`** se agrmet manca); decodifica risposta; costanti comuni con `observed`. |
+| `require_forecast_fields_case` | helper | `projects/mistral/backend/tests/integration/fields/support.py` | Scenario forecast reale; **`pytest.skip`** se nessuna finestra lm5/lm2.2 espone dati. |
+| `create_fields_synthetic_dataset` / `get_or_create_multim_forecast_dataset` / `create_private_observed_dataset_for_all_available_products` | helper | `projects/mistral/backend/tests/integration/fields/support.py` | Setup dataset/licenze + cleanup; nessuno modifica il catalogo reale. |
+| `create_dataset_test_user` | helper condiviso | `projects/mistral/backend/tests/helpers/auth.py` | Utente temporaneo con grant dataset espliciti e flag archive + cleanup. |
+| `create_private_test_network` | helper condiviso | `projects/mistral/backend/tests/helpers/datasets.py` | Dataset privato sintetico + rete sintetica mappata su di esso; le altre reti usano la mappatura reale. |
+| `fields_url`, query `OBS_*_QUERY` | helper/cost. | `projects/mistral/backend/tests/integration/fields/support.py` | Costruzione URL `/fields` e query sulle finestre dati ammesse. |
 
 ## 4. Analisi dettagliata di ogni test
 
@@ -130,7 +130,7 @@
 
 #### `test_fields_forecast_summary_stats_false_is_skipped_for_known_backend_bug` — S (bug noto)
 - **Obiettivo**: sondare `SummaryStats=false` sul forecast e **saltare esplicitamente** un bug backend.
-- **Bug documentato**: in [endpoints/fields.py](projects/mistral/backend/endpoints/fields.py) `resulting_fields` è inizializzato **solo** nel ramo OBS, ma il blocco finale `if not SummaryStats: resulting_fields.pop(...)` lo usa anche dopo il ramo forecast → `UnboundLocalError` (esposto come 400/500).
+- **Bug documentato**: in `projects/mistral/backend/endpoints/fields.py` `resulting_fields` è inizializzato **solo** nel ramo OBS, ma il blocco finale `if not SummaryStats: resulting_fields.pop(...)` lo usa anche dopo il ramo forecast → `UnboundLocalError` (esposto come 400/500).
 - **Assert/skip**: se status ∈ {400,500} e il body cita `resulting_fields`/`UnboundLocalError` → `pytest.skip` verboso; altrimenti `200` e `"summarystats" not in items`. **Skip** anche via `require_forecast_fields_case`. Politica: niente `xfail` stabile, il test tornerà verde dopo il fix.
 
 ### Gruppo F — FOR validazione (dataset sintetici + monkeypatch)
@@ -190,7 +190,7 @@ GET /api/fields (dataset)   → not user? 401 → for ds: get_datasets()→ not 
 
 - [ ] Confermare che le finestre dati (agrmet 2020-04-06, lm5 2021-10-19, lm2.2 2019-09-10) siano presenti nell'ambiente di CI, altrimenti gli happy path falliranno o skipperanno.
 - [ ] Verificare che l'override di `LASTDAYS` rispecchi fedelmente la logica di `get_db_type` e non mascheri regressioni nella classificazione dballe/arkimet.
-- [ ] Tracciare il **bug forecast `SummaryStats=False`** (UnboundLocalError) come difetto reale di [endpoints/fields.py](projects/mistral/backend/endpoints/fields.py) e pianificare il ritorno a verde del test 21.
+- [ ] Tracciare il **bug forecast `SummaryStats=False`** (UnboundLocalError) come difetto reale di `projects/mistral/backend/endpoints/fields.py` e pianificare il ritorno a verde del test 21.
 - [ ] Verificare che il test 6 resti un controllo dell'autorizzazione reale: solo la mappatura rete→dataset della rete sintetica è finta.
 - [ ] Distinguere chiaramente, nei report CI, i test che **skippano** da quelli che **falliscono** per assenza dati (rischio di rumore).
 - [ ] Confermare che i monkeypatch di `get_datasets_category` non nascondano differenze rispetto al comportamento reale di Arkimet.

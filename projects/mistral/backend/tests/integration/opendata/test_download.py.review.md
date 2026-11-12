@@ -1,41 +1,42 @@
 # Review — `test_download.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 > Dominio **opendata** marcato `runtime_sensitive`: tutti i **12 test** sono eseguiti senza skip dipendenti dal catalogo runtime.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/opendata/test_download.py](projects/mistral/backend/tests/integration/opendata/test_download.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/opendata/test_download.py`
 - **Scopo**: verificare i due endpoint di download opendata: download per dataset (`/opendata/<id>/download`, con validazione `reftime`/`run`, filtri, zip multiplo vs file singolo, `404` vari) e download diretto del file (`/opendata/<filename>`).
 - **Tipologia**: integrazione HTTP reale (controller + schema marshmallow + DB SQLAlchemy + **file reali** su `/opendata` + `zipfile` in memoria). Marker: `integration`, `deterministic`, `runtime_sensitive`. Nessun mock.
 - **Endpoint coperti**: `OpendataDownload.get` e `OpendataDownloadFile.get`.
+- **Percorso comune del dominio** (tre endpoint, rami 404/file singolo/ZIP, proprietà della request ≠ grant): vedi [support.py.review.md](support.py.review.md).
 
 ## 2. Backend realmente testato
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `OpendataDownload.get` | [endpoints/opendata.py](projects/mistral/backend/endpoints/opendata.py#L282) | Validazione query → dataset lookup (`NotFound` 404) → auth → query `args.contains` + `opendata.is_(True)` + `archived.is_(False)` → filtro reftime (**uguaglianza di data**) → `0`=404 / `1`=file diretto / `>1`=zip. |
-| `OpenDataDownloadQuery` + `Reftime` | [endpoints/opendata.py](projects/mistral/backend/endpoints/opendata.py#L229) | `Reftime` accetta `YYYYMMDD` o `YYYY-mm-dd` (altrimenti `ValidationError` → `reftime`); `@pre_load validate_run` esige `HH:MM` (altrimenti errore sotto `_schema`). |
-| `OpendataDownloadFile.get` | [endpoints/opendata.py](projects/mistral/backend/endpoints/opendata.py#L203) | `FileOutput` per nome → `NotFound` 404 se assente. |
-| `check_dataset_authorization` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L562) | Su dataset pubblici dei test ritorna sempre `True` (non è il focus qui). |
-| `db.Request` / `db.FileOutput` (JSONB) | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L36) | Righe opendata sintetiche; `args.contains(...)` per il match dei filtri. |
-| `OPENDATA_DIR` (`/opendata`) | [endpoints/__init__.py](projects/mistral/backend/endpoints/__init__.py#L5) | File reali letti da `send_from_directory` / impacchettati nello zip. |
+| `OpendataDownload.get` | `projects/mistral/backend/endpoints/opendata.py` | Validazione query → dataset lookup (`NotFound` 404) → auth → query `args.contains` + `opendata.is_(True)` + `archived.is_(False)` → filtro reftime (**uguaglianza di data**) → `0`=404 / `1`=file diretto / `>1`=zip. |
+| `OpenDataDownloadQuery` + `Reftime` | `projects/mistral/backend/endpoints/opendata.py` | `Reftime` accetta `YYYYMMDD` o `YYYY-mm-dd` (altrimenti `ValidationError` → `reftime`); `@pre_load validate_run` esige `HH:MM` (altrimenti errore sotto `_schema`). |
+| `OpendataDownloadFile.get` | `projects/mistral/backend/endpoints/opendata.py` | `FileOutput` per nome → `NotFound` 404 se assente. |
+| `check_dataset_authorization` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Su dataset pubblici dei test ritorna sempre `True` (non è il focus qui). |
+| `db.Request` / `db.FileOutput` (JSONB) | `projects/mistral/backend/models/sqlalchemy.py` | Righe opendata sintetiche; `args.contains(...)` per il match dei filtri. |
+| `OPENDATA_DIR` (`/opendata`) | `projects/mistral/backend/endpoints/__init__.py` | File reali letti da `send_from_directory` / impacchettati nello zip. |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient`; chiamate **anonime** (dataset pubblici). |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py) | Teardown **LIFO** (righe DB + file su disco); nei quattro happy path viene eseguito esplicitamente prima della fine del test. |
-| `create_test_dataset` | helper condiviso | [tests/helpers/datasets.py](projects/mistral/backend/tests/helpers/datasets.py) | Dataset pubblico isolato **senza** opendata, con attribution sintetica e teardown verificato. |
-| `create_download_env` | helper locale | [opendata/support.py](projects/mistral/backend/tests/integration/opendata/support.py) | Dataset pubblico isolato + **3** file opendata reali (01/01@00:00, 01/01@12:00, 02/01@00:00); nessuna precondizione di skip. |
-| `zip_filenames` | helper locale | [opendata/support.py](projects/mistral/backend/tests/integration/opendata/support.py) | Estrae/ordina i nomi nello zip di risposta. |
+| `cleanup_registry` | fixture | `projects/mistral/backend/tests/conftest.py` | Teardown **LIFO** (righe DB + file su disco); nei quattro happy path viene eseguito esplicitamente prima della fine del test. |
+| `create_test_dataset` | helper condiviso | `projects/mistral/backend/tests/helpers/datasets.py` | Dataset pubblico isolato **senza** opendata, con attribution sintetica e teardown verificato. |
+| `create_download_env` | helper locale | `projects/mistral/backend/tests/integration/opendata/support.py` | Dataset pubblico isolato + **3** file opendata reali (01/01@00:00, 01/01@12:00, 02/01@00:00); nessuna precondizione di skip. |
+| `zip_filenames` | helper locale | `projects/mistral/backend/tests/integration/opendata/support.py` | Estrae/ordina i nomi nello zip di risposta. |
 | `_run_teardown_and_assert_seeded_files_removed` | helper locale | `test_download.py` | Deriva i path da `OPENDATA_DIR`, verifica che tutti i seed esistano, esegue `cleanup_registry.run()` e asserisce che nessun path sopravviva. |
 | `sqlalchemy.get_instance()` | connettore | `restapi.connectors` | Istanza DB usata solo dal test del dataset esistente senza opendata. |
 | `BaseTests().get_content` | helper | `restapi.tests` | Decodifica body JSON (rami `400`/`404`). |
 | `uuid4` | stdlib | — | Id dataset/file inesistenti. |
 
-> Infrastruttura condivisa (non ridocumentata): `cleanup_registry` da [tests/conftest.py](projects/mistral/backend/tests/conftest.py); seeding da [opendata/support.py](projects/mistral/backend/tests/integration/opendata/support.py) e [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py). Cartella `runtime_sensitive`.
+> Infrastruttura condivisa (non ridocumentata): `cleanup_registry` da `projects/mistral/backend/tests/conftest.py`; seeding da `projects/mistral/backend/tests/integration/opendata/support.py` e `projects/mistral/backend/tests/helpers/auth.py`. Cartella `runtime_sensitive`.
 
 ## 4. Analisi dettagliata di ogni test
 
@@ -46,6 +47,8 @@
 - **Setup**: nessuno. **Non usa `cleanup_registry`**.
 - **Assert**: `status_code == 404`.
 - **Casi coperti**: error path. **Mai skippato**.
+- **Cosa non dimostra**: non copre il dataset esistente senza file (coperto da `test_dataset_download_returns_404_when_no_opendata_exist`).
+- **Se fallisce, guarda**: la guardia di lookup del dataset in `OpendataDownload.get` (`projects/mistral/backend/endpoints/opendata.py`).
 
 ### `test_dataset_download_rejects_invalid_reftime`
 - **Obiettivo**: `reftime` non valida → `400` con chiave `reftime`.
@@ -54,6 +57,8 @@
 - **Setup**: nessun record DB e nessun `cleanup_registry`.
 - **Assert**: `400`; `content["reftime"]` truthy.
 - **Casi coperti**: validation path su reftime, sempre eseguito.
+- **Cosa non dimostra**: non esercita il parser dei reftime testuali usato dal listing (`q=reftime:...`).
+- **Se fallisce, guarda**: il deserializer `Reftime` di `OpenDataDownloadQuery`; l'id inesistente serve a distinguere il 400 di input dal 404 del controller.
 
 ### `test_dataset_download_rejects_invalid_run`
 - **Obiettivo**: `run` non valida → `400` con messaggio sotto `_schema`.
@@ -62,6 +67,8 @@
 - **Setup**: nessun record DB e nessun `cleanup_registry`.
 - **Assert**: `400`; `"run format not supported" in content["_schema"][0]`.
 - **Casi coperti**: validation path su run, sempre eseguito.
+- **Cosa non dimostra**: prova un solo formato non valido, non tutti i limiti orari.
+- **Se fallisce, guarda**: `validate_run` nello schema e la forma degli errori del framework (chiave `_schema`).
 
 ### `test_dataset_download_returns_404_when_no_opendata_exist`
 - **Obiettivo**: dataset pubblico **senza** opendata → `404` (non un archivio vuoto).
@@ -70,6 +77,8 @@
 - **Setup**: `cleanup_registry`.
 - **Assert**: `404`; `"No opendata found" in content`.
 - **Casi coperti**: edge case "dataset esiste ma nessun file"; nessuno skip.
+- **Cosa non dimostra**: non copre il file fisico mancante per una `Request` esistente (nel ramo singolo darebbe 404 "Requested opendata file not found", nel ramo ZIP il file verrebbe saltato con un warning).
+- **Se fallisce, guarda**: la selezione delle `Request` opendata e il ramo a zero risultati.
 
 ### `test_dataset_download_returns_404_for_unmatched_reftime`
 - **Obiettivo**: filtro reftime senza match → `404`.
@@ -78,6 +87,8 @@
 - **Setup**: `cleanup_registry`; 3 file reali.
 - **Assert**: `404`.
 - **Casi coperti**: error path reftime non corrispondente.
+- **Cosa non dimostra**: i seed sono righe SQL e file di testo reali, nessuna estrazione meteorologica.
+- **Se fallisce, guarda**: il parsing del formato compatto `YYYYMMDD` e il confronto delle date dei reftime.
 
 ### `test_dataset_download_returns_404_for_unmatched_run`
 - **Obiettivo**: filtro run senza match → `404`.
@@ -86,6 +97,8 @@
 - **Setup**: `cleanup_registry`; 3 file reali.
 - **Assert**: `404`.
 - **Casi coperti**: error path run non corrispondente.
+- **Cosa non dimostra**: non riguarda autorizzazioni né il decoder di altre notazioni del run.
+- **Se fallisce, guarda**: la forma `MINUTE`/`desc` nel seed (`_build_run_filter`) e la query applicativa.
 
 ### `test_dataset_download_returns_404_for_unmatched_reftime_and_run`
 - **Obiettivo**: filtri **combinati** senza match → `404`.
@@ -94,6 +107,8 @@
 - **Setup**: `cleanup_registry`; 3 file reali.
 - **Assert**: `404`.
 - **Casi coperti**: edge case combinato (run match + reftime no-match → vuoto → 404).
+- **Cosa non dimostra**: non prova altre combinazioni temporali.
+- **Se fallisce, guarda**: l'applicazione congiunta dei due filtri (intersezione, non unione).
 
 ### `test_dataset_download_zips_all_results`
 - **Obiettivo**: nessun filtro → **tutti** i file in uno zip.
@@ -102,6 +117,8 @@
 - **Setup**: `cleanup_registry`; 3 file reali; `response.close` registrata dopo la GET e quindi eseguita prima della rimozione LIFO dei file.
 - **Assert**: `200`; `mimetype == "application/zip"`; nome `opendata_<id>.zip`; `zip_filenames(response)` == ordinati dei 3 filename seminati; tutti i path esistono prima del teardown e nessuno esiste dopo.
 - **Casi coperti**: happy path zip completo + nome archivio + cancellazione esplicita dei tre file.
+- **Cosa non dimostra**: verifica i nomi dei membri dello ZIP, non i loro contenuti né la compressione.
+- **Se fallisce, guarda**: il ramo a più risultati e il `Content-Disposition`; se restano file residui, il cleanup.
 
 ### `test_dataset_download_zips_results_filtered_by_reftime`
 - **Obiettivo**: filtro reftime → zip ristretto ai soli match.
@@ -110,6 +127,8 @@
 - **Setup**: `cleanup_registry`; 3 file reali; chiusura response anteposta al cleanup dei file.
 - **Assert**: `200`; `application/zip`; nome `opendata_<id>_reftime_2020-01-01.zip`; contenuto == ordinati di `seeded_results[:2]`; tutti e tre i file seedati vengono verificati assenti dopo il teardown.
 - **Casi coperti**: happy path zip filtrato per reftime + nome con suffisso + cancellazione esplicita di file inclusi e non inclusi nello zip.
+- **Cosa non dimostra**: non copre reftime che attraversano più giorni.
+- **Se fallisce, guarda**: l'uguaglianza delle due date (`reftime_from`/`reftime_to`) e il naming dell'archivio.
 
 ### `test_dataset_download_zips_results_filtered_by_run`
 - **Obiettivo**: filtro run → zip ristretto ai soli match.
@@ -118,6 +137,8 @@
 - **Setup**: `cleanup_registry`; 3 file reali; chiusura response anteposta al cleanup dei file.
 - **Assert**: `200`; `application/zip`; nome `opendata_<id>_run_00:00.zip`; contenuto == ordinati di `(seeded_results[0], seeded_results[2])`; tutti e tre i file seedati vengono verificati assenti dopo il teardown.
 - **Casi coperti**: happy path zip filtrato per run + cancellazione esplicita di file inclusi e non inclusi nello zip.
+- **Cosa non dimostra**: nessun contenuto meteorologico (i file sono testo).
+- **Se fallisce, guarda**: il filtro run e il nome dello ZIP; il cleanup deve rimuovere solo i file seminati, mai la root `OPENDATA_DIR`.
 
 ### `test_dataset_download_returns_single_file_when_query_matches_one_result`
 - **Obiettivo**: un solo match → file **streamato diretto**, non zip.
@@ -126,6 +147,8 @@
 - **Setup**: `cleanup_registry`; 3 file reali; chiusura dello stream registrata prima del teardown dei file.
 - **Assert**: `200`; `mimetype == "application/octet-stream"`; body == `seeded_results[1].content`; tutti e tre i file seedati vengono verificati assenti dopo il teardown.
 - **Casi coperti**: branch a singolo file (octet-stream) vs zip; rilettura del file selezionato e cancellazione esplicita dell'intero seed.
+- **Cosa non dimostra**: non la validità GRIB del file, malgrado il suffisso `.grib`.
+- **Se fallisce, guarda**: il ramo a singolo file, il percorso su filesystem e la chiusura della response prima del cleanup.
 
 ### `test_file_download_unknown_file_returns_404`
 - **Obiettivo**: download diretto di un filename inesistente → `404`.
@@ -134,6 +157,8 @@
 - **Setup**: nessuno. **Non usa `cleanup_registry`**.
 - **Assert**: `status_code == 404`.
 - **Casi coperti**: error path. **Mai skippato**.
+- **Cosa non dimostra**: non il caso di riga `FileOutput` esistente con file fisico sparito (anch'esso 404, ma su un altro ramo).
+- **Se fallisce, guarda**: il lookup iniziale di `OpendataDownloadFile.get`; non dichiarare copertura di tutti i casi di file mancante.
 
 ## 5. Call chain
 

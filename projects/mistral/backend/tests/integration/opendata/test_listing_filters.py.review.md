@@ -1,37 +1,38 @@
 # Review — `test_listing_filters.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 > Dominio **opendata** marcato `runtime_sensitive`: tutti i 4 test vengono eseguiti senza skip dipendenti dal catalogo runtime.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/opendata/test_listing_filters.py](projects/mistral/backend/tests/integration/opendata/test_listing_filters.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/opendata/test_listing_filters.py`
 - **Scopo**: verificare l'endpoint di **listing** opendata per dataset pubblici e il parsing del parametro `q` (`run:MINUTE,HH:MM` e finestra `reftime:>=...,<=...`), incluso il caso di **lista vuota legittima** con filtri combinati.
 - **Tipologia**: integrazione HTTP reale (controller + DB SQLAlchemy + parsing `q` hand-rolled + `arkimet.decode_run`). Marker: `integration`, `deterministic`, `runtime_sensitive`. Nessun mock.
 - **Endpoint coperto**: `OpendataFileList.get` (`GET /datasets/<id>/opendata`).
+- **Percorso comune del dominio** (tre endpoint, rami 404/file singolo/ZIP, proprietà della request ≠ grant): vedi [support.py.review.md](support.py.review.md).
 
 ## 2. Backend realmente testato
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `OpendataFileList.get` | [endpoints/opendata.py](projects/mistral/backend/endpoints/opendata.py#L36) | Dataset inesistente → `self.response(..., code=404)`; pubblico → salta l'auth; parsing `q`; query `Request.args.contains(query)` + `opendata.is_(True)`; filtro reftime **in Python**; ordinamento; check coerenza `vars`. |
-| Parsing `q` (run) | [endpoints/opendata.py](projects/mistral/backend/endpoints/opendata.py#L36) | `run:MINUTE,00:00` → `query["filters"] = {"run":[{"desc":"MINUTE(00:00)"}]}` (containment JSONB). |
-| Parsing `q` (reftime) | [endpoints/opendata.py](projects/mistral/backend/endpoints/opendata.py#L36) | `>=`/`<=` → `reftime["from"]`/`["to"]` (`%Y-%m-%d %H:%M`); filtro **inclusivo della finestra** (`reftime_from < from or reftime_to > to → continue`). |
-| `arki.decode_run` | [services/arkimet.py](projects/mistral/backend/services/arkimet.py#L621) | Decodifica reale del `run` seminato (`MINUTE`, `value` intero) per `el["run"]`. |
-| `db.Request` (JSONB `args`) | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L36) | Righe opendata sintetiche; `args.contains(...)` fa il match. |
-| `GroupLicense.is_public` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L101) | Dataset pubblico → nessun controllo di autorizzazione. |
+| `OpendataFileList.get` | `projects/mistral/backend/endpoints/opendata.py` | Dataset inesistente → `self.response(..., code=404)`; pubblico → salta l'auth; parsing `q`; query `Request.args.contains(query)` + `opendata.is_(True)`; filtro reftime **in Python**; ordinamento; check coerenza `vars`. |
+| Parsing `q` (run) | `projects/mistral/backend/endpoints/opendata.py` | `run:MINUTE,00:00` → `query["filters"] = {"run":[{"desc":"MINUTE(00:00)"}]}` (containment JSONB). |
+| Parsing `q` (reftime) | `projects/mistral/backend/endpoints/opendata.py` | `>=`/`<=` → `reftime["from"]`/`["to"]` (`%Y-%m-%d %H:%M`); filtro **inclusivo della finestra** (`reftime_from < from or reftime_to > to → continue`). |
+| `arki.decode_run` | `projects/mistral/backend/services/arkimet.py` | Decodifica reale del `run` seminato (`MINUTE`, `value` intero) per `el["run"]`. |
+| `db.Request` (JSONB `args`) | `projects/mistral/backend/models/sqlalchemy.py` | Righe opendata sintetiche; `args.contains(...)` fa il match. |
+| `GroupLicense.is_public` | `projects/mistral/backend/models/sqlalchemy.py` | Dataset pubblico → nessun controllo di autorizzazione. |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test; chiamate **anonime** (dataset pubblico). |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py) | Teardown **LIFO**. |
-| `create_listing_env` | helper locale | [opendata/support.py](projects/mistral/backend/tests/integration/opendata/support.py) | Crea dataset **pubblico** isolato + 2 risultati (01/01@00:00, 02/01@12:00); attribution e licenze sono sintetiche, senza precondizioni di skip. |
+| `cleanup_registry` | fixture | `projects/mistral/backend/tests/conftest.py` | Teardown **LIFO**. |
+| `create_listing_env` | helper locale | `projects/mistral/backend/tests/integration/opendata/support.py` | Crea dataset **pubblico** isolato + 2 risultati (reftime 2020-01-01 00:00 con run 00:00; reftime 2020-01-02 00:00 con run 12:00); attribution e licenze sono sintetiche, senza precondizioni di skip. |
 | `BaseTests().get_content` | helper | `restapi.tests` | Decodifica il body JSON della lista. |
 | `timedelta`, `uuid4` | stdlib | — | Costruzione finestre reftime e id dataset inesistente. |
 
-> Infrastruttura condivisa (non ridocumentata): `cleanup_registry` da [tests/conftest.py](projects/mistral/backend/tests/conftest.py); seeding utente/file da [opendata/support.py](projects/mistral/backend/tests/integration/opendata/support.py) e [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py). Cartella `runtime_sensitive`.
+> Infrastruttura condivisa (non ridocumentata): `cleanup_registry` da `projects/mistral/backend/tests/conftest.py`; seeding utente/file da `projects/mistral/backend/tests/integration/opendata/support.py` e `projects/mistral/backend/tests/helpers/auth.py`. Cartella `runtime_sensitive`.
 
 ## 4. Analisi dettagliata di ogni test
 
@@ -42,6 +43,8 @@
 - **Setup**: nessuno (nessun seeding). **Non usa `cleanup_registry`**.
 - **Assert**: `status_code == 404`.
 - **Casi coperti**: error path su dataset inesistente. **Mai skippato** (non crea dataset).
+- **Cosa non dimostra**: è un caso diverso dal listing vuoto di un dataset valido (che risponde `200` con lista vuota).
+- **Se fallisce, guarda**: il ramo "dataset assente" di `OpendataFileList.get` (`projects/mistral/backend/endpoints/opendata.py`).
 
 ### `test_listing_filters_by_run_returns_matching_package`
 - **Obiettivo**: il filtro `run` ritorna **solo** il pacchetto di quel run.
@@ -50,6 +53,8 @@
 - **Setup**: `cleanup_registry`; dataset pubblico + 2 risultati reali.
 - **Assert**: `200`; `len(content) == 1`; `content[0]["filename"] == seeded_results[0].filename` (il run 00:00).
 - **Casi coperti**: happy path filtro run; aggancio JSONB run; **dipendenza reale da `decode_run`**.
+- **Cosa non dimostra**: confronta solo il `filename`, non tutti i metadati dell'item.
+- **Se fallisce, guarda**: il parsing di `q` e la forma `desc` `MINUTE(...)`, il decoder `BeArkimet.decode_run` e il builder del seed (`_build_run_filter`).
 
 ### `test_listing_filters_by_reftime_returns_matching_package`
 - **Obiettivo**: la **finestra reftime** ritorna solo il pacchetto interno alla finestra.
@@ -58,6 +63,8 @@
 - **Setup**: `cleanup_registry`; dataset pubblico + 2 risultati.
 - **Assert**: `200`; `len(content) == 1`; `content[0]["filename"] == seeded_results[1].filename`.
 - **Casi coperti**: happy path finestra reftime; il confine inferiore esclude il pacchetto a `00:00` perché `reftime_from < from`.
+- **Cosa non dimostra**: non copre tutti i casi limite di inclusività degli estremi.
+- **Se fallisce, guarda**: il parsing e i confronti delle date nel listing, non il formato query del download (che usa un altro schema).
 
 ### `test_listing_filters_by_reftime_and_run_can_exclude_results`
 - **Obiettivo**: filtri **combinati** reftime+run possono produrre una lista **vuota legittima** (non un errore).
@@ -66,6 +73,8 @@
 - **Setup**: `cleanup_registry`; dataset pubblico + 2 risultati.
 - **Assert**: `200`; `content == []`.
 - **Casi coperti**: edge case "match vuoto ma `200`": la combinazione di un filtro JSONB (run) e di un filtro Python (reftime) può azzerare il risultato senza errore.
+- **Cosa non dimostra**: riguarda solo il contratto del listing, diverso dal download, dove l'assenza di match produce `404`.
+- **Se fallisce, guarda**: mantenere distinti i due endpoint: il listing vuoto deve restare `200`.
 
 ## 5. Call chain
 

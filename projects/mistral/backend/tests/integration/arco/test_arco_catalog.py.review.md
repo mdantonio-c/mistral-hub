@@ -1,10 +1,10 @@
 # Review — `test_arco_catalog.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/arco/test_arco_catalog.py](projects/mistral/backend/tests/integration/arco/test_arco_catalog.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/arco/test_arco_catalog.py`
 - **Scopo**: verificare che la *catalog view* ARCO (`GET /api/arco/datasets`) resti raggiungibile e che fonda i metadati letti da **S3** (`.zmetadata`/`.zattrs`) con i metadati relazionali letti dal **DB** (attribution, license, group-license) producendo un singolo item dataset nel contratto atteso dai client API.
 - **Tipologia**: test di **integrazione HTTP** (controller reale esercitato via `FlaskClient`) ma con **tutte le dipendenze esterne mockate** (S3 e SQLAlchemy via `monkeypatch`). In pratica è un *controller test* travestito da integrazione. Marker: `pytestmark = [pytest.mark.integration, pytest.mark.deterministic]`.
 - **Numero di test**: 1 funzione (`test_arco_catalog_returns_dataset_metadata`).
@@ -13,10 +13,10 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `ArcoDatasetsResource.get` | [endpoints/arco.py](projects/mistral/backend/endpoints/arco.py) | `GET /api/arco/datasets` — **endpoint pubblico** (nessun decoratore auth): legge i prefissi `.zarr/` da S3, per ognuno legge `.zmetadata`, costruisce il `bounding` WKT e arricchisce con attribution/license/group dal DB. |
-| `_round_coord` | [endpoints/arco.py](projects/mistral/backend/endpoints/arco.py) | Arrotonda le coordinate (qui `45`→`45.0`, ecc.) usate nel POLYGON WKT. |
-| `DatasetSchema` | [endpoints/schemas.py](projects/mistral/backend/endpoints/schemas.py) (re-export via [endpoints/arco.py](projects/mistral/backend/endpoints/arco.py)) | Schema marshmallow del payload (output `marshal_with(many=True)`); nel test viene anche usato in `load()` per validare la risposta. |
-| `s3.get_instance` | [connectors/s3/__init__.py](projects/mistral/backend/connectors/s3/__init__.py) | Connettore S3 — **mockato**: nessun contatto reale con il bucket. |
+| `ArcoDatasetsResource.get` | `projects/mistral/backend/endpoints/arco.py` | `GET /api/arco/datasets` — **endpoint pubblico** (nessun decoratore auth): legge i prefissi `.zarr/` da S3, per ognuno legge `.zmetadata`, costruisce il `bounding` WKT e arricchisce con attribution/license/group dal DB. |
+| `_round_coord` | `projects/mistral/backend/endpoints/arco.py` | Arrotonda le coordinate (qui `45`→`45.0`, ecc.) usate nel POLYGON WKT. |
+| `DatasetSchema` | `projects/mistral/backend/endpoints/schemas.py` (re-export via `projects/mistral/backend/endpoints/arco.py`) | Schema marshmallow del payload (output `marshal_with(many=True)`); nel test viene anche usato in `load()` per validare la risposta. |
+| `s3.get_instance` | `projects/mistral/backend/connectors/s3/__init__.py` | Connettore S3 — **mockato**: nessun contatto reale con il bucket. |
 | `sqlalchemy.get_instance` | `restapi.connectors` (riferito come `mistral.endpoints.arco.sqlalchemy`) | Accesso DB — **mockato**: `Attribution.query.all()` e `License.query.all()` ritornano righe fake. |
 
 ## 3. Mappa delle dipendenze
@@ -27,7 +27,7 @@
 | `monkeypatch` | fixture | `pytest` | Sostituisce `s3.get_instance` e `sqlalchemy.get_instance`; teardown automatico. |
 | `MockAttribution` / `MockLicense` / `MockGroupLicense` | classi locali | nel file di test | Stub minimi con i soli attributi letti dal controller (`name`, `descr`, `url`, `group_license`). |
 | `mock_s3` (`MagicMock`) | mock locale | nel file di test | `client.list_objects_v2` → 1 pagina con `CommonPrefixes` `ww3.zarr/` + `logs/`; `client.get_object` → body `.zmetadata` fisso. |
-| `DatasetSchema().load(...)` | schema | [endpoints/schemas.py](projects/mistral/backend/endpoints/schemas.py) | Round-trip di validazione del payload di risposta. |
+| `DatasetSchema().load(...)` | schema | `projects/mistral/backend/endpoints/schemas.py` | Round-trip di validazione del payload di risposta. |
 
 ## 4. Analisi dettagliata di ogni test
 
@@ -50,6 +50,8 @@
   - `group_license == "Open Licenses"`, `group_license_description == "Open data license group"` → enrichment del gruppo licenza annidato.
   - `DatasetSchema().load(dataset)` e `result["id"] == dataset["id"]` → il payload prodotto è **ricaricabile** dallo schema (campi `required` presenti); l'assert verifica però **solo** `id`.
 - **Casi coperti**: happy path completo del catalogo con `.zmetadata` presente, S3 e DB pieni, singolo dataset, filtro prefissi non-zarr.
+- **Cosa non dimostra**: l'integrazione con ORM o S3 reali (le patch sono su `mistral.connectors.s3.get_instance` e `mistral.endpoints.arco.sqlalchemy.get_instance`); nessuna access key né BasicAuth è coinvolta.
+- **Se fallisce, guarda**: `ArcoDatasetsResource.get`, `DatasetSchema` e la forma dei fake (`list_objects_v2`, `get_object`, `query.all`); se cambia il modo in cui il controller legge S3 o il DB, vanno aggiornati i fake prima di sospettare il contratto.
 
 ## 5. Call chain
 
@@ -74,20 +76,20 @@ GET /api/arco/datasets
 - **`MagicMock` per S3 e `client.exceptions.NoSuchKey`**: `mock_s3.client.exceptions.NoSuchKey` è un attributo auto-generato (non una classe eccezione reale). Qui non è un problema perché `get_object` non solleva mai (il body `.zmetadata` è sempre presente), ma sarebbe inadatto a simulare il ramo "metadata mancante" (coperto invece in `test_arco_edge_cases.py` con un fake dedicato).
 - **`get_object` con `return_value` fisso**: il mock ritorna lo **stesso** body per qualunque `Key`. Funziona perché c'è un solo prefisso `.zarr/`.
 - **`monkeypatch` globale del connettore**: `mistral.endpoints.arco.sqlalchemy.get_instance` è la funzione del modulo `restapi.connectors.sqlalchemy`, quindi il DB finto vale per tutto il processo durante il test. pytest-flask ripristina il patch dopo `cleanup_registry`: un cleanup via API (es. `access_key_owner`) riceverebbe `401`.
-- **`DatasetSchema` importata da `mistral.endpoints.arco`**: è un re-export dello schema definito in [endpoints/schemas.py](projects/mistral/backend/endpoints/schemas.py).
+- **`DatasetSchema` importata da `mistral.endpoints.arco`**: è un re-export dello schema definito in `projects/mistral/backend/endpoints/schemas.py`.
 - **`_round_coord` è esercitato indirettamente** tramite il valore atteso di `bounding` (es. `45`→`45.0`).
 
 ## 7. Checklist di revisione
 
 - [ ] Confermare che il catalogo **debba** essere pubblico (il test ora lo chiama senza credenziali): se no, è un buco di sicurezza da correggere nel backend.
-- [ ] Valutare se aggiungere un assert esplicito sul fatto che il catalogo risponde **anche senza** header (oggi lo dimostrano solo i test in `test_arco_edge_cases.py`).
+- [ ] Valutare se un'eventuale regressione che introduca un gate auth sul catalogo debba essere rilevata anche qui: il test chiama già senza header, quindi oggi la coglierebbe con un 401.
 - [ ] Verificare che il test sia consapevolmente un *controller test* (S3+DB mockati) e non venga scambiato per copertura dell'integrazione S3/DB reale.
 - [ ] Rafforzare l'assert finale di `DatasetSchema().load(...)`: oggi confronta solo `id`, pur essendo una valida verifica di conformità schema.
 - [ ] Confermare che il filtro `endswith(".zarr/")` (scarto di `logs/`) sia il contratto desiderato.
 
 ## 8. Possibili criticità
 
-- **Setup di autenticazione fuorviante / inefficace**: l'endpoint è pubblico ma il test fornisce comunque BasicAuth valida. Conseguenza: un'eventuale **regressione che introduce un gate auth sul catalogo non verrebbe rilevata** da questo test (la chiamata ha credenziali valide), mentre verrebbe colta dai test in `test_arco_edge_cases.py` che chiamano senza header. Falso senso di copertura sull'accesso.
+- **Accesso anonimo verificato solo implicitamente**: il test chiama il catalogo senza header e attende `200`, quindi un gate auth introdotto per errore produrrebbe un fallimento; manca però un assert esplicito sul fatto che nessuna credenziale sia richiesta (es. confronto con una chiamata autenticata).
 - **Over-mocking**: S3 e DB sono completamente sostituiti; il test non prova alcuna integrazione reale (paginazione, errori S3, query DB). La copertura "vera" degli edge è demandata al modulo `test_arco_edge_cases.py`.
 - **Assert di schema debole**: `DatasetSchema().load(dataset)` validerebbe i `required`, ma l'unico assert è su `id`; un drift su altri campi serializzati potrebbe non emergere dal `load`.
 - **Fragilità del WKT stringa**: `bounding` è confrontato come stringa esatta (formattazione/decimali). Un cambio di formato (es. numero di decimali, spazi) romperebbe il test pur restando un poligono valido.

@@ -1,10 +1,10 @@
 # Review — `test_schedule_api_contracts.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/schedules/test_schedule_api_contracts.py](projects/mistral/backend/tests/integration/schedules/test_schedule_api_contracts.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/schedules/test_schedule_api_contracts.py`
 - **Scopo**: verificare i **contratti CRUD di lettura** dell'area schedule: listing (`GET /schedules`), conteggio totale paginato (`get_total` → 206), get-by-id (`GET /schedules/<id>`) e diniego per owner mismatch (403).
 - **Tipologia**: test di **integrazione HTTP** (controller reale + `SqlApiDbManager` + DB SQLAlchemy). **Nessun** fake Celery, **nessun** `monkeypatch`. Marker di modulo: `pytestmark = [pytest.mark.integration, pytest.mark.deterministic]`. 4 test (2 classi).
 - **Nota chiave**: gli scenari **non passano dall'endpoint `POST /schedules`**; le righe schedule sono **seminate direttamente nel DB** (`seed_schedule_row`) per isolare il contratto di lettura da RedBeat/Celery e dalla validazione di creazione.
@@ -13,16 +13,16 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `Schedules.get` | [endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py#L365) | `GET /api/schedules` — se `get_total` → `pagination_total` (206); altrimenti lista via `get_user_schedules`. |
-| `SingleSchedule.get` | [endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py#L791) | `GET /api/schedules/<id>` — `request_and_owner_check` poi `get_schedule_by_id`. |
-| `SingleSchedule.request_and_owner_check` | [endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py#L970) | `NotFound` (404) se assente; `Forbidden` (403) se l'utente non è owner. |
-| `SqlApiDbManager.get_user_schedules` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L381) | Paginazione delle schedule dell'utente + mapping via `_get_schedule_response`. |
-| `SqlApiDbManager.count_user_schedules` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L101) | `count()` per `get_total`. |
-| `SqlApiDbManager.get_schedule_by_id` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L223) | Dettaglio singola schedule. |
-| `SqlApiDbManager._get_schedule_response` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L455) | Forma del payload: `id, name, args, enabled, on_data_ready, period, every, …`; aggiunge `periodic`/`crontab` derivati. |
-| `SqlApiDbManager.check_request` / `check_owner` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L69) | Esistenza + ownership della schedule. |
-| Modello `Schedule` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L78) | Riga seminata direttamente (`args` JSONB, `period`, `every`, `is_enabled`, `on_data_ready`, `opendata`). |
-| `PeriodEnum` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L70) | `seed_schedule_row` fissa `period=PeriodEnum.days, every=1`. |
+| `Schedules.get` | `projects/mistral/backend/endpoints/schedules.py` | `GET /api/schedules` — se `get_total` → `pagination_total` (206); altrimenti lista via `get_user_schedules`. |
+| `SingleSchedule.get` | `projects/mistral/backend/endpoints/schedules.py` | `GET /api/schedules/<id>` — `request_and_owner_check` poi `get_schedule_by_id`. |
+| `SingleSchedule.request_and_owner_check` | `projects/mistral/backend/endpoints/schedules.py` | `NotFound` (404) se assente; `Forbidden` (403) se l'utente non è owner. |
+| `SqlApiDbManager.get_user_schedules` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Paginazione delle schedule dell'utente + mapping via `_get_schedule_response`. |
+| `SqlApiDbManager.count_user_schedules` | `projects/mistral/backend/services/sqlapi_db_manager.py` | `count()` per `get_total`. |
+| `SqlApiDbManager.get_schedule_by_id` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Dettaglio singola schedule. |
+| `SqlApiDbManager._get_schedule_response` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Forma del payload: `id, name, args, enabled, on_data_ready, period, every, …`; aggiunge `periodic`/`crontab` derivati. |
+| `SqlApiDbManager.check_request` / `check_owner` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Esistenza + ownership della schedule. |
+| Modello `Schedule` | `projects/mistral/backend/models/sqlalchemy.py` | Riga seminata direttamente (`args` JSONB, `period`, `every`, `is_enabled`, `on_data_ready`, `opendata`). |
+| `PeriodEnum` | `projects/mistral/backend/models/sqlalchemy.py` | `seed_schedule_row` fissa `period=PeriodEnum.days, every=1`. |
 
 ## 3. Mappa delle dipendenze
 
@@ -30,9 +30,9 @@
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
 | `faker` | fixture | plugin `pytest-faker` | `faker.pystr()` per il `name` della schedule seminata. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO**; non ingoia eccezioni. |
+| `cleanup_registry` | fixture | `projects/mistral/backend/tests/conftest.py` | Teardown **LIFO**; non ingoia eccezioni. |
 | `schedules_user` | fixture **locale** | questo file | Crea un utente autenticato `allowed_schedule=True` via `create_authenticated_test_user`; **shadowa** la `schedules_user` del conftest locale (vedi §6). |
-| `create_authenticated_test_user`, `register_test_user_cleanup`, `AuthenticatedTestUser` | helper | [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) | Creazione utente + login reali; cleanup utente + cartella output. |
+| `create_authenticated_test_user`, `register_test_user_cleanup`, `AuthenticatedTestUser` | helper | `projects/mistral/backend/tests/helpers/auth.py` | Creazione utente + login reali; cleanup utente + cartella output. |
 | `seed_schedule_row` | helper **locale** | questo file | Inserisce una `Schedule` direttamente nel DB (bypassa `POST`); ritorna l'id. |
 | `delete_schedule_row` | helper **locale** | questo file | Rimuove la riga seminata se ancora presente. |
 | `sqlalchemy.get_instance()` | connettore | `restapi.connectors` | Handle DB per seeding e verifica. |

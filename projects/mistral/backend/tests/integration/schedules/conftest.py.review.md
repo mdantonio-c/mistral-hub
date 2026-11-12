@@ -4,21 +4,21 @@
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/schedules/conftest.py](projects/mistral/backend/tests/integration/schedules/conftest.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/schedules/conftest.py`
 - **Scopo**: fornire le fixture che abilitano lo scenario *ponte data-ready → opendata*: abilitazione dei dataset on-data-ready, header admin per `POST /data/ready`, e un utente schedule-capable per il dataset forecast del bridge.
 - **Tipologia**: `conftest.py` di dominio (fixture locali, visibili a `integration/schedules/**`).
-- **Nota cruciale**: la fixture `schedules_user` definita qui è **consumata di fatto solo da** [test_schedule_opendata_bridge.py](projects/mistral/backend/tests/integration/schedules/test_schedule_opendata_bridge.py) e [test_schedule_on_data_ready_real_worker.py](projects/mistral/backend/tests/integration/schedules/test_schedule_on_data_ready_real_worker.py). Gli altri tre moduli del dominio (`test_schedule_api_contracts.py`, `test_schedule_validation.py`, `test_scheduled_requests.py`) **ridefiniscono** una propria `schedules_user` a livello di modulo, che **shadowa** questa (vedi §4).
+- **Nota cruciale**: la fixture `schedules_user` definita qui è **consumata di fatto solo da** `projects/mistral/backend/tests/integration/schedules/test_schedule_opendata_bridge.py` e `projects/mistral/backend/tests/integration/schedules/test_schedule_on_data_ready_real_worker.py`. Gli altri tre moduli del dominio (`test_schedule_api_contracts.py`, `test_schedule_validation.py`, `test_scheduled_requests.py`) **ridefiniscono** una propria `schedules_user` a livello di modulo, che **shadowa** questa (vedi §4).
 
 ## 2. Backend realmente esercitato
 
-- `SingleSchedule.ON_DATA_READY_DATASETS` ([endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py#L392)) — attributo di classe **sovrascritto temporaneamente** per abilitare il ramo on-data-ready del `post`.
+- `SingleSchedule.ON_DATA_READY_DATASETS` (`projects/mistral/backend/endpoints/schedules.py`) — attributo di classe **sovrascritto temporaneamente** per abilitare il ramo on-data-ready del `post`.
 - `BaseTests.do_login` (`restapi.tests`) — login admin di default per `schedules_admin_headers`.
-- `create_data_ready_user` ([tests/helpers/data_ready.py](projects/mistral/backend/tests/helpers/data_ready.py)) — crea il super-utente (`admin_root`, quota, permessi schedule/postprocessing/open_dataset) usato dal bridge.
+- `create_data_ready_user` (`projects/mistral/backend/tests/helpers/data_ready.py`) — crea il super-utente (`admin_root`, quota, permessi schedule/postprocessing/open_dataset) usato dal bridge.
 
 ## 3. Elementi definiti
 
 ### Fixture `schedules_base`
-- **Dipende da**: `test_runtime` ([tests/conftest.py](projects/mistral/backend/tests/conftest.py)).
+- **Dipende da**: `test_runtime` (`projects/mistral/backend/tests/conftest.py`).
 - **Cosa fa**: istanzia `BaseTests()` e, dentro `test_runtime.override_attr(SingleSchedule, "ON_DATA_READY_DATASETS", DATA_READY_DATASETS)`, fa `yield base`; a fine test l'attributo originale è **ripristinato** dal context manager.
 - **Effetto chiave**: senza questo override, una schedule on-data-ready su `lm5` verrebbe respinta con `400` ("Data-ready service is not available"). È la precondizione che rende eseguibile il bridge on-data-ready.
 
@@ -31,7 +31,7 @@
 - **Dipende da**: `client`, `cleanup_registry`, `schedules_base`, `test_runtime`.
 - **Cosa fa**: `create_data_ready_user(schedules_base, client, test_runtime, [DATA_READY_DATASET_NAME])`; in caso di `LookupError` (dataset `lm5` assente) → **`pytest.skip`**; registra il cleanup (`register_data_ready_user_cleanup`) e ritorna l'utente.
 - **Caratteristica**: l'utente è un **super-utente `admin_root`** (vedi review di `data_ready.py`); è **necessario** per creare schedule `opendata=True` nel bridge.
-- **Usata da**: **solo** `test_schedule_opendata_bridge.py` (gli altri moduli la shadowano).
+- **Usata da**: `test_schedule_opendata_bridge.py` e `test_schedule_on_data_ready_real_worker.py` (gli altri moduli la shadowano).
 
 ## 4. Comportamenti nascosti
 
@@ -39,7 +39,8 @@
   - `test_schedule_opendata_bridge.py` e `test_schedule_on_data_ready_real_worker.py` → usano **questa** `schedules_user` (super-utente `admin_root`, nessuna email reale, con `pytest.skip` su `lm5` mancante);
   - `test_schedule_api_contracts.py`, `test_schedule_validation.py`, `test_scheduled_requests.py` → usano la **propria** `schedules_user` locale (utente semplice via `create_authenticated_test_user`), e **non** vedono questa.
   Una lettura superficiale del conftest può far credere che tutti i test del dominio condividano lo stesso utente: **non è così**.
-- **Override di attributo di classe a runtime**: `schedules_base` modifica `SingleSchedule.ON_DATA_READY_DATASETS` (stato di classe condiviso). Il ripristino è garantito dal `with` di `override_attr` (thread-safe, `finally`); un uso non-context-manager non ripristinerebbe.
+- **Override di attributo di classe a runtime**: `schedules_base` modifica `SingleSchedule.ON_DATA_READY_DATASETS` (stato di classe condiviso). Il ripristino è garantito dal `with` di `override_attr` (`finally`); un uso non-context-manager non ripristinerebbe.
+- **Tutte function, nessuna autouse**: a differenza di `data_ready/conftest.py`, qui non c'è un fake autouse sul Celery dell'endpoint `/schedules`; ogni test decide da sé cosa sostituire.
 - **Skip silenzioso ereditato**: chi usa `schedules_user` (il bridge) viene **saltato** se `lm5` non è disponibile, senza eseguire assert.
 - **Login admin "di default"**: `schedules_admin_headers` usa l'admin condiviso dell'ambiente (`do_login(None, None)`), introducendo accoppiamento allo stato dell'utente di default.
 - **Dipendenza a catena**: `schedules_admin_headers` e `schedules_user` dipendono entrambe da `schedules_base`, quindi attivano l'override `ON_DATA_READY_DATASETS` ogni volta.

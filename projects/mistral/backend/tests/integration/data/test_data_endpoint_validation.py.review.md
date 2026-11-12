@@ -1,11 +1,11 @@
 # Review — `test_data_endpoint_validation.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 > Modulo: copertura delle validazioni HTTP di `POST /data`.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/data/test_data_endpoint_validation.py](projects/mistral/backend/tests/integration/data/test_data_endpoint_validation.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/data/test_data_endpoint_validation.py`
 - **Scopo**: verificare i **rami di rifiuto** di `POST /data` prima della submission: dataset inesistente (`404`), formati misti (`400`), gruppi licenza differenti (`400`), `output_format` invalido a livello schema (`400`), `output_format` valido ma incompatibile con grib (`400`), postprocessor non autorizzato (`401`), `only_reliable` non supportato (`400`).
 - **Tipologia**: test di **integrazione HTTP** (controller + schema + DB reali) con `monkeypatch` di Arkimet **solo dove il ramo lo richiede**. Marker: `integration`, `deterministic`. 7 test.
 - **Invariante**: ogni ramo deve **fallire prima** di `create_request_record` → tutti gli assert includono `latest_request_for_user(...) is None`. Nessun `pytest.skip`.
@@ -14,29 +14,29 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `Data.post` | [endpoints/data.py](projects/mistral/backend/endpoints/data.py) | Sequenza di guardie di validazione (vedi call chain). |
-| `DataExtraction` (+ `@pre_load check_output_format`) | [endpoints/data.py](projects/mistral/backend/endpoints/data.py) | Schema Marshmallow: `output_format ∉ {json,bufr}` → `400` **a livello schema** (prima del corpo endpoint). |
-| `AVProcessor` | [endpoints/data.py](projects/mistral/backend/endpoints/data.py) | Schema del postprocessor `derived_variables`; valida `processor_type` + `variables` (OneOf `DERIVED_VARIABLES`). |
-| `repo.get_datasets` | [services/sqlapi_db_manager.py#L482](projects/mistral/backend/services/sqlapi_db_manager.py#L482) | Catalogo autorizzato: dataset assente → `NotFound 404`. |
-| `arki.get_datasets_format` | [services/arkimet.py#L197](projects/mistral/backend/services/arkimet.py#L197) | Formato comune; `None` → `BadRequest 400` (qui **fakeato**). |
-| `repo.get_license_group` | [services/sqlapi_db_manager.py#L546](projects/mistral/backend/services/sqlapi_db_manager.py#L546) | Gruppo licenza comune (reale); gruppi diversi → `None` → `400`. |
-| `repo.get_user_permissions` | [services/sqlapi_db_manager.py#L665](projects/mistral/backend/services/sqlapi_db_manager.py#L665) | `allowed_postprocessing`; falsy → `Unauthorized 401`. |
-| `arki.get_datasets_category` | [services/arkimet.py#L218](projects/mistral/backend/services/arkimet.py#L218) | Categoria (`OBS`/`FOR`/…); usata dal ramo `only_reliable` (qui **fakeata**). |
+| `Data.post` | `projects/mistral/backend/endpoints/data.py` | Sequenza di guardie di validazione (vedi call chain). |
+| `DataExtraction` (+ `@pre_load check_output_format`) | `projects/mistral/backend/endpoints/data.py` | Schema Marshmallow: `output_format ∉ {json,bufr}` → `400` **a livello schema** (prima del corpo endpoint). |
+| `AVProcessor` | `projects/mistral/backend/endpoints/data.py` | Schema del postprocessor `derived_variables`; valida `processor_type` + `variables` (OneOf `DERIVED_VARIABLES`). |
+| `repo.get_datasets` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Catalogo autorizzato: dataset assente → `NotFound 404`. |
+| `arki.get_datasets_format` | `projects/mistral/backend/services/arkimet.py` | Formato comune; `None` → `BadRequest 400` (qui **fakeato**). |
+| `repo.get_license_group` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Gruppo licenza comune (reale); gruppi diversi → `None` → `400`. |
+| `repo.get_user_permissions` | `projects/mistral/backend/services/sqlapi_db_manager.py` | `allowed_postprocessing`; falsy → `Unauthorized 401`. |
+| `arki.get_datasets_category` | `projects/mistral/backend/services/arkimet.py` | Categoria (`OBS`/`FOR`/…); usata dal ramo `only_reliable` (qui **fakeata**). |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `cleanup_registry` | fixture | [tests/conftest.py#L59](projects/mistral/backend/tests/conftest.py#L59) | Teardown LIFO di utenti e dataset. |
+| `cleanup_registry` | fixture | `projects/mistral/backend/tests/conftest.py` | Teardown LIFO di utenti e dataset. |
 | `monkeypatch` | fixture | `pytest` | Presente **solo** nei test che fakeano Arkimet (assente nei test 1 e 4). |
-| `create_synthetic_dataset` | helper | [data/support.py](projects/mistral/backend/tests/integration/data/support.py) | Dataset/licenza/gruppo/attribution sintetici. |
-| `create_data_endpoint_user` | helper | [data/support.py](projects/mistral/backend/tests/integration/data/support.py) | Utente temporaneo (senza `allowed_postprocessing` di default). |
-| `build_data_payload` | helper | [data/support.py](projects/mistral/backend/tests/integration/data/support.py) | Body con `overrides` per il campo dello scenario. |
-| `patch_data_endpoint_runtime` | helper | [data/support.py](projects/mistral/backend/tests/integration/data/support.py) | `monkeypatch` Arkimet (formato/categoria). |
-| `latest_request_for_user` | helper | [data/support.py](projects/mistral/backend/tests/integration/data/support.py) | Asserisce assenza di request persistite. |
+| `create_synthetic_dataset` | helper | `projects/mistral/backend/tests/integration/data/support.py` | Dataset/licenza/gruppo/attribution sintetici. |
+| `create_data_endpoint_user` | helper | `projects/mistral/backend/tests/integration/data/support.py` | Utente temporaneo (senza `allowed_postprocessing` di default). |
+| `build_data_payload` | helper | `projects/mistral/backend/tests/integration/data/support.py` | Body con `overrides` per il campo dello scenario. |
+| `patch_data_endpoint_runtime` | helper | `projects/mistral/backend/tests/integration/data/support.py` | `monkeypatch` Arkimet (formato/categoria). |
+| `latest_request_for_user` | helper | `projects/mistral/backend/tests/integration/data/support.py` | Asserisce assenza di request persistite. |
 | `BaseTests().get_content` | util | `restapi.tests` | Decodifica body (solo test 4, per cercare `output_format`). |
-| `DatasetCategories` | enum | [models/sqlalchemy.py#L132](projects/mistral/backend/models/sqlalchemy.py#L132) | Categoria del dataset sintetico (`FOR`). |
+| `DatasetCategories` | enum | `projects/mistral/backend/models/sqlalchemy.py` | Categoria del dataset sintetico (`FOR`). |
 
 ## 4. Analisi dettagliata di ogni test
 

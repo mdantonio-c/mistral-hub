@@ -1,10 +1,10 @@
 # Review — `test_scheduled_requests.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/schedules/test_scheduled_requests.py](projects/mistral/backend/tests/integration/schedules/test_scheduled_requests.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/schedules/test_scheduled_requests.py`
 - **Scopo**: coprire l'endpoint `GET /schedules/<id>/requests` (last/list/get_total) e le operazioni di **stato** `PATCH /schedules/<id>` (enable/disable, conflitti) e `DELETE /schedules/<id>`.
 - **Tipologia**: test di **integrazione HTTP** (controller reale + `SqlApiDbManager` + DB SQLAlchemy) con **seeding diretto** di righe `Schedule`/`Request` e **fake Celery** (`MagicMock`) per lo strato RedBeat/periodic-task. Marker di modulo: `pytestmark = [pytest.mark.integration, pytest.mark.deterministic]`. 8 test (2 classi).
 - **Nota chiave**: le decisioni di `PATCH` (enable/disable già attivo → 409) sono **pilotate dal valore restituito dal fake** `get_periodic_task`, non dalla colonna DB `is_enabled` (vedi §6).
@@ -13,15 +13,15 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `ScheduledRequests.get` | [endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py#L998) | `GET /schedules/<id>/requests` — `last=true` → ultimo `SUCCESS` (404 se assente); `get_total` → conteggio; altrimenti lista. |
-| `SingleSchedule.patch` | [endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py#L830) | enable/disable; `Conflict` (409) se task già nello stato; ricrea il periodic task su enable. |
-| `SingleSchedule.delete` | [endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py#L951) | `delete_periodic_task` (Celery) + `delete_schedule` (DB). |
-| `SingleSchedule.request_and_owner_check` | [endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py#L970) | Esistenza + ownership prima di patch/delete/get. |
-| `create_periodic_task_with_routing` | [endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py) (import da `mistral.tasks`) | Ricreazione del task su enable; **monkeypatchata** a `MagicMock` nel test enable. |
-| `SqlApiDbManager.get_last_scheduled_request` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L208) | Ultimo `Request` con `status="SUCCESS"`. |
-| `SqlApiDbManager.get_schedule_requests` / `count_schedule_requests` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L233) | Lista e conteggio richieste della schedule. |
-| `SqlApiDbManager.get_schedule_by_id` / `update_schedule_status` / `delete_schedule` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L223) | Ricostruzione schedule, aggiornamento `is_enabled`, cancellazione. |
-| Modelli `Schedule` / `Request` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L36) | Righe seminate direttamente (`Request.schedule_id` FK, `status`). |
+| `ScheduledRequests.get` | `projects/mistral/backend/endpoints/schedules.py` | `GET /schedules/<id>/requests` — `last=true` → ultimo `SUCCESS` (404 se assente); `get_total` → conteggio; altrimenti lista. |
+| `SingleSchedule.patch` | `projects/mistral/backend/endpoints/schedules.py` | enable/disable; `Conflict` (409) se task già nello stato; ricrea il periodic task su enable. |
+| `SingleSchedule.delete` | `projects/mistral/backend/endpoints/schedules.py` | `delete_periodic_task` (Celery) + `delete_schedule` (DB). |
+| `SingleSchedule.request_and_owner_check` | `projects/mistral/backend/endpoints/schedules.py` | Esistenza + ownership prima di patch/delete/get. |
+| `create_periodic_task_with_routing` | `projects/mistral/backend/endpoints/schedules.py` (import da `mistral.tasks`) | Ricreazione del task su enable; **monkeypatchata** a `MagicMock` nel test enable. |
+| `SqlApiDbManager.get_last_scheduled_request` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Ultimo `Request` con `status="SUCCESS"`. |
+| `SqlApiDbManager.get_schedule_requests` / `count_schedule_requests` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Lista e conteggio richieste della schedule. |
+| `SqlApiDbManager.get_schedule_by_id` / `update_schedule_status` / `delete_schedule` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Ricostruzione schedule, aggiornamento `is_enabled`, cancellazione. |
+| Modelli `Schedule` / `Request` | `projects/mistral/backend/models/sqlalchemy.py` | Righe seminate direttamente (`Request.schedule_id` FK, `status`). |
 | `celery.get_instance` | `restapi.connectors` | **Sostituito** da `MagicMock` (`get_periodic_task`/`delete_periodic_task`). |
 
 ## 3. Mappa delle dipendenze
@@ -30,7 +30,7 @@
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
 | `faker` | fixture | `pytest-faker` | `name` per righe seminate. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO**. |
+| `cleanup_registry` | fixture | `projects/mistral/backend/tests/conftest.py` | Teardown **LIFO**. |
 | `monkeypatch` | fixture | `pytest` | Patcha `celery.get_instance` e `create_periodic_task_with_routing`. |
 | `schedules_user` | fixture **locale** | questo file | Utente `allowed_schedule=True` (`create_authenticated_test_user`). **Shadowa** la fixture del conftest. |
 | `seed_schedule_row` | helper **locale** | questo file | Inserisce una `Schedule` (parametrizza `enabled`, `on_data_ready`, `period`, `every`). |

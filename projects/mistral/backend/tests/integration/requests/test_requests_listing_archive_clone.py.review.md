@@ -1,11 +1,11 @@
 # Review — `test_requests_listing_archive_clone.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Modulo: [test_delete_pending_request.py](projects/mistral/backend/tests/integration/requests/test_delete_pending_request.py) copre già `DELETE /requests/<id>`; questo modulo copre listing, archiviazione e clone.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
+> Modulo: `projects/mistral/backend/tests/integration/requests/test_delete_pending_request.py` copre già `DELETE /requests/<id>`; questo modulo copre listing, archiviazione e clone.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/requests/test_requests_listing_archive_clone.py](projects/mistral/backend/tests/integration/requests/test_requests_listing_archive_clone.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/requests/test_requests_listing_archive_clone.py`
 - **Scopo**: verificare le superfici di gestione delle richieste rimaste fuori da `test_delete_pending_request.py` — forma e filtri di `GET /requests` (paginazione, `get_total`, `archived`), `PUT /requests/<id>` (archiviazione, request pendente vietata, owner mismatch) e `GET /requests/<id>/clone` (clone con espansione dataset, request mancante, request altrui).
 - **Tipologia**: test di **integrazione HTTP** (controller reale + DB SQLAlchemy), con **seeding diretto delle righe `Request`** per evitare la dipendenza dai worker di estrazione. Marker: `integration`, `deterministic`.
 - **Numero di test**: 10, in tre classi: `TestRequestsListing` (4), `TestRequestsArchive` (3), `TestRequestsClone` (3).
@@ -15,16 +15,16 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `UserRequests.get` | [endpoints/requests.py](projects/mistral/backend/endpoints/requests.py) | `GET /api/requests` — `get_total` → `count_user_requests` + `pagination_total` (**206**); altrimenti `filter_by(user_id, archived)` + `joinedload(fileoutput)` + `paginate` + rename `datasets`→`dataset_names` → `200`. |
-| `UserRequests.put` | [endpoints/requests.py](projects/mistral/backend/endpoints/requests.py) | `PUT /api/requests/<id>` — `check_request`/`check_owner`/`check_request_is_pending_within_grace_period`, poi `delete_request_record` + `archived = True`. |
-| `CloneUserRequests.get` | [endpoints/requests.py](projects/mistral/backend/endpoints/requests.py) | `GET /api/requests/<id>/clone` — `check_request`/`check_owner`, `get_user_request_by_id`, sostituisce `args["datasets"]` con le spec complete via `get_datasets`. |
-| `repo.count_user_requests` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L96) | `count()` filtrato per `user_id` + `archived`. |
-| `repo.check_request` / `check_owner` / `check_request_is_pending_within_grace_period` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L69) | Guardie `404` / `401` / `403`. |
-| `repo.delete_request_record` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L172) | Chiamata da `put` **prima** di archiviare (rimuove l'eventuale fileoutput). |
-| `repo.get_user_request_by_id` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L377) | `db.Request.query.get(request_id)` per il clone. |
-| `repo.get_datasets` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L482) | Lista dataset visibili all'utente (`licenceSpecs=True`); espone `id = arkimet_id`. |
-| Modello `Request` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L36) | `user_id`, `name`, `args` (JSONB), `submission_date`, `status`, `archived`. |
-| Modello `Datasets` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L146) | `arkimet_id` (lookup in `dataset_ids_for_user` e match nel clone). |
+| `UserRequests.get` | `projects/mistral/backend/endpoints/requests.py` | `GET /api/requests` — `get_total` → `count_user_requests` + `pagination_total` (**206**); altrimenti `filter_by(user_id, archived)` + `joinedload(fileoutput)` + `paginate` + rename `datasets`→`dataset_names` → `200`. |
+| `UserRequests.put` | `projects/mistral/backend/endpoints/requests.py` | `PUT /api/requests/<id>` — `check_request`/`check_owner`/`check_request_is_pending_within_grace_period`, poi `delete_request_record` + `archived = True`. |
+| `CloneUserRequests.get` | `projects/mistral/backend/endpoints/requests.py` | `GET /api/requests/<id>/clone` — `check_request`/`check_owner`, `get_user_request_by_id`, sostituisce `args["datasets"]` con le spec complete via `get_datasets`. |
+| `repo.count_user_requests` | `projects/mistral/backend/services/sqlapi_db_manager.py` | `count()` filtrato per `user_id` + `archived`. |
+| `repo.check_request` / `check_owner` / `check_request_is_pending_within_grace_period` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Guardie `404` / `401` / `403`. |
+| `repo.delete_request_record` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Chiamata da `put` **prima** di archiviare (rimuove l'eventuale fileoutput). |
+| `repo.get_user_request_by_id` | `projects/mistral/backend/services/sqlapi_db_manager.py` | `db.Request.query.get(request_id)` per il clone. |
+| `repo.get_datasets` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Lista dataset visibili all'utente (`licenceSpecs=True`); espone `id = arkimet_id`. |
+| Modello `Request` | `projects/mistral/backend/models/sqlalchemy.py` | `user_id`, `name`, `args` (JSONB), `submission_date`, `status`, `archived`. |
+| Modello `Datasets` | `projects/mistral/backend/models/sqlalchemy.py` | `arkimet_id` (lookup in `dataset_ids_for_user` e match nel clone). |
 
 ## 3. Mappa delle dipendenze
 
@@ -32,12 +32,12 @@
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
 | `faker` | fixture | plugin `faker` | `faker.pystr()` per i nomi delle richieste. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO**; ogni riga seed registra la propria delete. |
-| `requests_user` | fixture **locale al modulo** | [questo file](projects/mistral/backend/tests/integration/requests/test_requests_listing_archive_clone.py) | Utente temporaneo con `open_dataset=True` e accesso esplicito al dataset `agrmet`; cleanup utente/cartelle. |
-| `seed_request_row` | helper **locale** | [questo file](projects/mistral/backend/tests/integration/requests/test_requests_listing_archive_clone.py) | Inserisce una `Request` con età/stato/archived controllati; `args = {"datasets": [...]}`. |
-| `dataset_ids_for_user` | helper **locale** | [questo file](projects/mistral/backend/tests/integration/requests/test_requests_listing_archive_clone.py) | Traduce `arkimet_id`→`Datasets.id` (JSON) per i permessi utente; **asserisce** che il dataset esista. |
-| `delete_request_row` | helper **locale** | [questo file](projects/mistral/backend/tests/integration/requests/test_requests_listing_archive_clone.py) | Cancella una riga seed se ancora presente. |
-| `create_authenticated_test_user` / `register_test_user_cleanup` / `AuthenticatedTestUser` | helper | [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) | Creazione/login/teardown utenti (anche del secondo utente "altrui"). |
+| `cleanup_registry` | fixture | `projects/mistral/backend/tests/conftest.py` | Teardown **LIFO**; ogni riga seed registra la propria delete. |
+| `requests_user` | fixture **locale al modulo** | questo file (`projects/mistral/backend/tests/integration/requests/test_requests_listing_archive_clone.py`) | Utente temporaneo con `open_dataset=True` e accesso esplicito al dataset `agrmet`; cleanup utente/cartelle. |
+| `seed_request_row` | helper **locale** | questo file (`projects/mistral/backend/tests/integration/requests/test_requests_listing_archive_clone.py`) | Inserisce una `Request` con età/stato/archived controllati; `args = {"datasets": [...]}`. |
+| `dataset_ids_for_user` | helper **locale** | questo file (`projects/mistral/backend/tests/integration/requests/test_requests_listing_archive_clone.py`) | Traduce `arkimet_id`→`Datasets.id` (JSON) per i permessi utente; **asserisce** che il dataset esista. |
+| `delete_request_row` | helper **locale** | questo file (`projects/mistral/backend/tests/integration/requests/test_requests_listing_archive_clone.py`) | Cancella una riga seed se ancora presente. |
+| `create_authenticated_test_user` / `register_test_user_cleanup` / `AuthenticatedTestUser` | helper | `projects/mistral/backend/tests/helpers/auth.py` | Creazione/login/teardown utenti (anche del secondo utente "altrui"). |
 | `Env.get_int("GRACE_PERIOD", 2)` | config | `restapi.env` | `grace_period_days`/`GRACE_PERIOD` per l'età delle richieste negli scenari di archiviazione. |
 | `sqlalchemy.get_instance()` | connettore | `restapi.connectors` | Seeding e verifica diretti sul DB. |
 

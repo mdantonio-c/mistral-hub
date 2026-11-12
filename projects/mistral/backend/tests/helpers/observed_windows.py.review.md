@@ -6,19 +6,19 @@
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/helpers/observed_windows.py](projects/mistral/backend/tests/helpers/observed_windows.py)
+- **Percorso**: `projects/mistral/backend/tests/helpers/observed_windows.py`
 - **Scopo**: fissare in un solo punto le slice reali di agrmet usate dai test osservati (DBALLE 2020-04-06 00:00-01:00, Arkimet 2020-03-31/2020-04-01), l'override di `BeDballe.LASTDAYS` che fa apparire "recente" la slice DBALLE storica, e gli helper di URL, parsing e prerequisiti runtime.
 - **Consumatori attuali**:
   - `integration/fields/support.py` e `integration/fields/test_fields_api.py`;
   - `integration/observed/test_observations_download.py` e `integration/observed/test_observations_edge_cases.py`;
   - `integration/observed/support.py`, solo per `lastdays_for_dballe_window` (sostituisce la funzione privata `_lastdays_override_for_dballe_window`).
 - **Dipendenze runtime**: connettore SQLAlchemy inizializzato, fixture `cleanup_registry` e `test_runtime`, dataset `agrmet` presente nel catalogo e dati reali DBALLE/Arkimet nelle finestre fissate.
-- **Dipendenze tra helper**: `create_dataset_test_user` da [helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py), `require_dataset` da [helpers/datasets.py](projects/mistral/backend/tests/helpers/datasets.py).
+- **Dipendenze tra helper**: `create_dataset_test_user` da `projects/mistral/backend/tests/helpers/auth.py`, `require_dataset` da `projects/mistral/backend/tests/helpers/datasets.py`.
 
 ## 2. Backend realmente esercitato
 
-- `GET /api/fields` ([endpoints/fields.py](projects/mistral/backend/endpoints/fields.py)), solo da `require_dballe_product`, per scoprire un prodotto reale nella finestra DBALLE.
-- `BeDballe.get_db_type` ([services/dballe.py](projects/mistral/backend/services/dballe.py)) in modo indiretto: legge `BeDballe.LASTDAYS`, che `dballe_window_override` sostituisce temporaneamente.
+- `GET /api/fields` (`projects/mistral/backend/endpoints/fields.py`), solo da `require_dballe_product`, per scoprire un prodotto reale nella finestra DBALLE.
+- `BeDballe.get_db_type` (`projects/mistral/backend/services/dballe.py`) in modo indiretto: legge `BeDballe.LASTDAYS`, che `dballe_window_override` sostituisce temporaneamente.
 - Creazione e cancellazione di utenti temporanei con le API admin, tramite `create_dataset_test_user`.
 
 ## 3. Elementi definiti

@@ -1,22 +1,23 @@
 # Review — `test_tool_helpers.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/tools/test_tool_helpers.py](projects/mistral/backend/tests/integration/tools/test_tool_helpers.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/tools/test_tool_helpers.py`
 - **Scopo**: verificare gli **helper puri** dei tool di post-processing spaziale — mapping dei `sub_type` in `trans_type` per interpolazione griglia (`grid_interpolation.get_trans_type`) e spare-point (`spare_point_interpol.get_trans_type`), normalizzazione `bbox→coordbb` (`grid_cropping.format_sub_type`), e le validazioni di path/template (`grid_interpolation.check_template_filepath`, `spare_point_interpol.check_coord_filepath`) compreso il bundle shapefile e il cleanup della cartella corrotta.
 - **Tipologia**: **unit puri**. Nessun binario meteo viene lanciato (`vg6d_transform`, `vg6d_getpoint`, `v7d_transform`): le funzioni mutano l'input o sollevano `BadRequest` **prima** di qualsiasi `subprocess.Popen`. **Nessun monkeypatch**; le sole fixture sono la built-in `tmp_path` e `pytest.mark.parametrize`. Marker dichiarati: `integration`, `deterministic` (vedi §6 per la discrepanza marker↔natura reale).
+- **Chiamanti in produzione**: `get_trans_type`, `check_template_filepath` e `check_coord_filepath` sono invocati in preflight da `projects/mistral/backend/endpoints/data.py` e `projects/mistral/backend/endpoints/schedules.py`; `format_sub_type` è usato internamente da `projects/mistral/backend/tools/grid_cropping.py`.
 
 ## 2. Backend realmente testato
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `grid_interpolation.get_trans_type` | [tools/grid_interpolation.py](projects/mistral/backend/tools/grid_interpolation.py#L14) | `near/bilin → "inter"`; `average/min/max → "boxinter"`; muta `params["trans_type"]` (due `if` **non** esclusivi). |
-| `grid_interpolation.check_template_filepath` | [tools/grid_interpolation.py](projects/mistral/backend/tools/grid_interpolation.py#L9) | `BadRequest` se il `Path` template non esiste; altrimenti ritorno implicito `None`. |
-| `spare_point_interpol.get_trans_type` | [tools/spare_point_interpol.py](projects/mistral/backend/tools/spare_point_interpol.py#L10) | `near/bilin → "inter"`; `average/min/max → "polyinter"`. |
-| `spare_point_interpol.check_coord_filepath` | [tools/spare_point_interpol.py](projects/mistral/backend/tools/spare_point_interpol.py#L20) | Valida esistenza file; `suffix.strip(".") == file_format`; per `shp` richiede `.shx` e `.dbf` siblings, altrimenti `shutil.rmtree(parent)` + `BadRequest`. |
-| `grid_cropping.format_sub_type` | [tools/grid_cropping.py](projects/mistral/backend/tools/grid_cropping.py#L8) | `bbox → "coordbb"`; ogni altro valore **passthrough**. |
+| `grid_interpolation.get_trans_type` | `projects/mistral/backend/tools/grid_interpolation.py` | `near/bilin → "inter"`; `average/min/max → "boxinter"`; muta `params["trans_type"]` (due `if` **non** esclusivi). |
+| `grid_interpolation.check_template_filepath` | `projects/mistral/backend/tools/grid_interpolation.py` | `BadRequest` se il `Path` template non esiste; altrimenti ritorno implicito `None`. |
+| `spare_point_interpol.get_trans_type` | `projects/mistral/backend/tools/spare_point_interpol.py` | `near/bilin → "inter"`; `average/min/max → "polyinter"`. |
+| `spare_point_interpol.check_coord_filepath` | `projects/mistral/backend/tools/spare_point_interpol.py` | Valida esistenza file; `suffix.strip(".") == file_format`; per `shp` richiede `.shx` e `.dbf` siblings, altrimenti `shutil.rmtree(parent)` + `BadRequest`. |
+| `grid_cropping.format_sub_type` | `projects/mistral/backend/tools/grid_cropping.py` | `bbox → "coordbb"`; ogni altro valore **passthrough**. |
 | `BadRequest` | `restapi.exceptions` | Sollevata da tutte le validazioni in errore. |
 
 ## 3. Mappa delle dipendenze
@@ -27,10 +28,10 @@
 | `pytest.mark.parametrize` | marker | `pytest` | Casi table-driven per i `sub_type` e i formati. |
 | `BadRequest` | eccezione | `restapi.exceptions` | Target di `pytest.raises`. |
 | `shutil.rmtree` | stdlib | (in `spare_point_interpol.check_coord_filepath`) | Cancella la cartella del bundle shapefile corrotto (effetto collaterale su filesystem). |
-| `mistral.tools.{grid_cropping, grid_interpolation, spare_point_interpol}` | moduli | [tools/](projects/mistral/backend/tools) | Espongono gli helper sotto test; importati a livello di modulo. |
-| `pytest.mark.integration` / `deterministic` | marker | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L13) | Solo classificazione. |
+| `mistral.tools.{grid_cropping, grid_interpolation, spare_point_interpol}` | moduli | `projects/mistral/backend/tools/` | Espongono gli helper sotto test; importati a livello di modulo. |
+| `pytest.mark.integration` / `deterministic` | marker | `projects/mistral/backend/tests/conftest.py` | Solo classificazione. |
 
-> **Nota infra**: nessun `conftest.py`/`support` locale in `integration/tools/`. Nessuna fixture condivisa: solo `tmp_path` built-in. Le fixture suite ([`test_runtime`/`cleanup_registry`](projects/mistral/backend/tests/conftest.py#L49)) non sono richieste.
+> **Nota infra**: nessun `conftest.py`/`support` locale in `integration/tools/`. Nessuna fixture condivisa: solo `tmp_path` built-in. Le fixture suite (`test_runtime`/`cleanup_registry` (`projects/mistral/backend/tests/conftest.py`)) non sono richieste.
 
 ## 4. Analisi dettagliata di ogni test
 
@@ -43,6 +44,8 @@
 - **Setup**: dict locale (nessun GRIB, nessun subprocess).
 - **Assert**: `near/bilin → "inter"`; `average/min/max → "boxinter"`.
 - **Casi coperti**: mapping completo dei sub_type noti. Non copre un sub_type **ignoto** (vedi §6).
+- **Cosa non dimostra**: sottotipi sconosciuti né coordinate o template.
+- **Se fallisce, guarda**: il mapping di `grid_interpolation.get_trans_type`; oggi un valore sconosciuto non viene rifiutato esplicitamente.
 
 ### `test_spare_point_get_trans_type_maps_known_subtypes` (parametrize ×5)
 - **Obiettivo**: i `sub_type` spare-point scelgono la modalità di interpolazione punto.
@@ -51,6 +54,8 @@
 - **Setup**: dict locale.
 - **Assert**: `near/bilin → "inter"`; `average/min/max → "polyinter"` (differenza chiave vs `boxinter`).
 - **Casi coperti**: mapping completo; documenta `polyinter` vs `boxinter`.
+- **Cosa non dimostra**: l'interpolazione vera (nessun `vg6d_getpoint` eseguito).
+- **Se fallisce, guarda**: il mapping di `spare_point_interpol.get_trans_type`; non copiare per errore il `boxinter` del mapping griglia.
 
 ### `test_grid_cropping_format_sub_type_normalizes_bbox_only` (parametrize ×2)
 - **Obiettivo**: il `sub_type` UI `bbox` è tradotto nel `coordbb` di vg6d.
@@ -59,6 +64,8 @@
 - **Setup**: stringhe pure (nessun input GRIB).
 - **Assert**: `"bbox" → "coordbb"`; `"coord" → "coord"` (passthrough).
 - **Casi coperti**: normalizzazione `bbox`. Non copre valori ignoti (passthrough non validato, §6).
+- **Cosa non dimostra**: la validazione del bbox né l'elenco completo dei valori ammessi.
+- **Se fallisce, guarda**: l'adattamento UI → tool in `format_sub_type`; gli altri valori devono passare invariati.
 
 ### `test_check_template_filepath_existing_file_returns_none`
 - **Obiettivo**: un template esistente è accettato senza toolchain.
@@ -67,6 +74,8 @@
 - **Setup**: `tmp_path`.
 - **Assert**: `result is None` (ritorno implicito).
 - **Casi coperti**: happy path esistenza file.
+- **Cosa non dimostra**: che il file sia un GRIB valido, un file regolare leggibile o una geometria adatta: l'helper verifica solo l'esistenza del path.
+- **Se fallisce, guarda**: la guardia di esistenza di `check_template_filepath`; per il contenuto del template servono i test di postprocessing.
 
 ### `test_check_template_filepath_missing_file_raises_bad_request`
 - **Obiettivo**: un template mancante è respinto prima del subprocess.
@@ -75,6 +84,8 @@
 - **Setup**: `tmp_path`.
 - **Assert**: `pytest.raises(BadRequest)`.
 - **Casi coperti**: error path validazione template.
+- **Cosa non dimostra**: il testo preciso dell'errore né il subprocess.
+- **Se fallisce, guarda**: l'errore di preflight in `check_template_filepath`, non l'installazione dei tool meteo.
 
 ### `test_check_coord_filepath_missing_file_raises_bad_request`
 - **Obiettivo**: file coordinate mancante respinto subito.
@@ -83,6 +94,8 @@
 - **Setup**: `tmp_path`.
 - **Assert**: `pytest.raises(BadRequest)`.
 - **Casi coperti**: error path esistenza. Il file non esiste → la guardia scatta prima del ramo shapefile (nessun `rmtree`).
+- **Cosa non dimostra**: i controlli su formato e sidecar, che vengono dopo questa guardia.
+- **Se fallisce, guarda**: la costruzione del `Path` da `params["coord_filepath"]` e la guardia iniziale di `check_coord_filepath`.
 
 ### `test_check_coord_filepath_wrong_format_raises_bad_request`
 - **Obiettivo**: suffisso reale incoerente con `file_format` dichiarato → respinto.
@@ -91,6 +104,8 @@
 - **Setup**: `tmp_path` + file CSV reale.
 - **Assert**: `pytest.raises(BadRequest)`.
 - **Casi coperti**: secondo guard (coerenza formato), raggiunto perché il file esiste. Il controllo `csv != shp` precede il ramo shp → nessun `rmtree`.
+- **Cosa non dimostra**: la lettura del CSV né la verifica di uno shapefile.
+- **Se fallisce, guarda**: il confronto tra suffisso e `file_format` in `check_coord_filepath`.
 
 ### `test_check_coord_filepath_valid_shapefile_bundle_returns_none`
 - **Obiettivo**: un bundle shapefile completo (placeholder) supera la preflight.
@@ -99,6 +114,8 @@
 - **Setup**: `tmp_path/valid-bundle`.
 - **Assert**: `result is None`.
 - **Casi coperti**: happy path bundle. L'helper **non** interpreta il contenuto: verifica solo la presenza dei siblings (§6).
+- **Cosa non dimostra**: la validità dello shapefile, la presenza della proiezione `.prj` né i contenuti.
+- **Se fallisce, guarda**: i requisiti del bundle in `check_coord_filepath`; i tool reali possono comunque rifiutare un bundle che supera questo preflight.
 
 ### `test_check_coord_filepath_corrupt_shapefile_bundle_removes_folder`
 - **Obiettivo**: un bundle incompleto è respinto e la sua cartella **eliminata**.
@@ -107,6 +124,8 @@
 - **Setup**: `tmp_path/corrupt-bundle`.
 - **Assert**: `pytest.raises(BadRequest)` **e** `not bundle_dir.exists()`.
 - **Casi coperti**: error path + side effect distruttivo (cancellazione cartella). La `.shp` è in una sottocartella dedicata, quindi `rmtree` colpisce solo il bundle, non `tmp_path` (§6).
+- **Cosa non dimostra**: che la cartella cancellata appartenga davvero all'upload: il test protegge il comportamento distruttivo attuale e l'helper non fa alcun controllo di ownership.
+- **Se fallisce, guarda**: ogni modifica al cleanup richiede di rivedere sia l'aspettativa del test sia i chiamanti in `projects/mistral/backend/endpoints/data.py` e `projects/mistral/backend/endpoints/schedules.py`; durante le prove non cancellare directory estranee.
 
 ## 5. Call chain
 

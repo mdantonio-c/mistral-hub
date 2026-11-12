@@ -1,34 +1,35 @@
 # Review — `test_error_handling.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/postprocessing/test_error_handling.py](projects/mistral/backend/tests/integration/postprocessing/test_error_handling.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/postprocessing/test_error_handling.py`
 - **Scopo**: verificare i **percorsi di fallimento** del postprocessing forecast e observed: postprocessore sconosciuto; derived/statistic forecast con input mancanti; derived/statistic observed con input incompleti. In tutti i casi la request deve restare in stato `FAILURE` e l'errore emergere come `Ignore`.
 - **Tipologia**: integrazione **end-to-end reale** con **monkeypatch manuale** degli hook di fallimento Celery (vedi §6). `data_extract` è eseguito sincrono via `send_task`. Marker (modulo): `integration`, `deterministic`, **`runtime_sensitive`**.
 - **RUNTIME-SENSITIVE — skip silenziosi**: i 3 test forecast usano `pp_forecast_env` (skip su `lm5` assente); i 2 test observed usano `pp_observed_env` (skip su `agrmet`/`ALCHEMY_*`/dati assenti).
+- **Percorso comune del dominio** (task diretto, ordine fisso dei processor, tool reali): vedi [conftest.py.review.md](conftest.py.review.md).
 
 ## 2. Backend realmente testato
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| Task `data_extract` (gestione eccezioni) | [tasks/data_extraction.py](projects/mistral/backend/tasks/data_extraction.py#L42) | Due `except`: il primo cattura `PostProcessingException` (→ `error_message=str(exc)`, `raise Ignore`); il secondo cattura `Exception` generica (→ `error_message="Failed to extract data"`, `raise exc`). Il `finally` fa `commit` e (status≠SUCCESS) chiamerebbe `notify_by_email`. |
-| Controllo postprocessore abilitato | [tasks/data_extraction.py](projects/mistral/backend/tasks/data_extraction.py#L265) | `if pp_type not in enabled_postprocessors: raise ValueError("Unknown post-processor", pp_type)` ([L279](projects/mistral/backend/tasks/data_extraction.py#L279)). |
-| `pp1.pp_derived_variables` | [tools/derived_variables.py](projects/mistral/backend/tools/derived_variables.py#L10) | Con input mancanti, `vg6d_transform`/`v7d_transform` fallisce → `PostProcessingException("Error in post-processing: no results")`. |
-| `pp2.pp_statistic_elaboration` | [tools/statistic_elaboration.py](projects/mistral/backend/tools/statistic_elaboration.py#L15) | Timerange non trovato → `PostProcessingException("Error in post-processing: Timeranges … not found …")`. |
+| Task `data_extract` (gestione eccezioni) | `projects/mistral/backend/tasks/data_extraction.py` | Due `except`: il primo cattura `PostProcessingException` (→ `error_message=str(exc)`, `raise Ignore`); il secondo cattura `Exception` generica (→ `error_message="Failed to extract data"`, `raise exc`). Il `finally` fa `commit` e (status≠SUCCESS) chiamerebbe `notify_by_email`. |
+| Controllo postprocessore abilitato | `projects/mistral/backend/tasks/data_extraction.py` | `if pp_type not in enabled_postprocessors: raise ValueError("Unknown post-processor", pp_type)`. |
+| `pp1.pp_derived_variables` | `projects/mistral/backend/tools/derived_variables.py` | Con input mancanti, `vg6d_transform`/`v7d_transform` fallisce → `PostProcessingException("Error in post-processing: no results")`. |
+| `pp2.pp_statistic_elaboration` | `projects/mistral/backend/tools/statistic_elaboration.py` | Timerange non trovato → `PostProcessingException("Error in post-processing: Timeranges … not found …")`. |
 | Wrapper `@CeleryExt.task` | `restapi.connectors.celery` | `except Ignore → mark_task_as_failed_ignore`; `except Exception → mark_task_as_failed`. **Entrambi gli hook sono patchati dal test** (vedi §6). |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
-| `pp_forecast_env` / `pp_observed_env` | fixture | [postprocessing/conftest.py](projects/mistral/backend/tests/integration/postprocessing/conftest.py) | Ambienti `lm5`/`agrmet`; skip silenziosi. |
-| `PostprocessingEnv.execute(..., expect_failure=True)` | helper | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | **Monkeypatcha** `mark_task_as_failed`, `mark_task_as_failed_ignore`, `notify_by_email`; invia il task; ripristina nel `finally`. |
-| `PostprocessingEnv.assert_failure` | helper | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | Asserisce `status=="FAILURE"` e (se messaggio non `None`) substring in `error_message`. |
+| `pp_forecast_env` / `pp_observed_env` | fixture | `projects/mistral/backend/tests/integration/postprocessing/conftest.py` | Ambienti `lm5`/`agrmet`; skip silenziosi. |
+| `PostprocessingEnv.execute(..., expect_failure=True)` | helper | `projects/mistral/backend/tests/integration/postprocessing/support.py` | **Monkeypatcha** `mark_task_as_failed`, `mark_task_as_failed_ignore`, `notify_by_email`; invia il task; ripristina nel `finally`. |
+| `PostprocessingEnv.assert_failure` | helper | `projects/mistral/backend/tests/integration/postprocessing/support.py` | Asserisce `status=="FAILURE"` e (se messaggio non `None`) substring in `error_message`. |
 | `Ignore` | eccezione | `restapi.connectors.celery` (re-export di `celery.exceptions.Ignore`) | Atteso da `pytest.raises`. |
-| `forecast_derived_variable_missing_filters` / `forecast_statistic_elaboration_missing_filters` | builder | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | Filtri volutamente incompleti/invalidi. |
-| `observed_derived_variable_missing_filters` | builder | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | Solo B12101 (temperatura): insufficiente per derived **e** per statistic. |
+| `forecast_derived_variable_missing_filters` / `forecast_statistic_elaboration_missing_filters` | builder | `projects/mistral/backend/tests/integration/postprocessing/support.py` | Filtri volutamente incompleti/invalidi. |
+| `observed_derived_variable_missing_filters` | builder | `projects/mistral/backend/tests/integration/postprocessing/support.py` | Solo B12101 (temperatura): insufficiente per derived **e** per statistic. |
 | `faker.pystr()` | dato | `faker` | Genera il `processor_type` ignoto del primo test. |
 
 ## 4. Analisi dettagliata di ogni test
@@ -40,6 +41,8 @@
 - **Assert**: l'eccezione è `Ignore` con messaggio contenente `"Unknown post-processor"`; la request è `FAILURE`.
 - **Dettaglio cruciale**: `expected_message=None` è **intenzionale**: il `error_message` **persistito** è `"Failed to extract data"` (ramo generico), mentre la stringa `"Unknown post-processor"` vive solo nell'eccezione `Ignore`. Il test verifica il messaggio sull'eccezione (`match=`) e **salta** il controllo sul DB.
 - **Casi coperti**: validazione del tipo postprocessore + ramo `mark_task_as_failed` (Exception generica).
+- **Cosa non dimostra**: non prova un rifiuto HTTP precoce del tipo ignoto: la request non passa da `POST /data` e il task esegue comunque l'estrazione Arkimet reale prima del controllo `enabled_postprocessors`.
+- **Se fallisce, guarda**: prima il dispatcher dei postprocessori in `projects/mistral/backend/tasks/data_extraction.py` (lista `enabled_postprocessors` e ramo `except Exception`), poi le patch degli hook in `projects/mistral/backend/tests/integration/postprocessing/support.py`; non attribuire la prova alla validazione di `Data.post`.
 
 ### `test_forecast_derived_variables_require_all_inputs`
 - **Obiettivo**: derived forecast fallisce se mancano i campi sorgente.
@@ -47,6 +50,8 @@
 - **Flusso**: `create_request()` → `with pytest.raises(Ignore): execute(filters=forecast_derived_variable_missing_filters(), postprocessors=[forecast_derived_variable_postprocessor()], expect_failure=True)` → `assert_failure(request_id)`.
 - **Assert**: `Ignore` sollevata; `status=FAILURE`; `error_message` contiene `"Error in post-processing"` (default).
 - **Casi coperti**: ramo `PostProcessingException` + `mark_task_as_failed_ignore`.
+- **Cosa non dimostra**: non identifica quale campo sorgente manca; un errore ambientale del tool (binario assente, dati non estraibili) produce lo stesso prefisso `"Error in post-processing"` e farebbe passare il test.
+- **Se fallisce, guarda**: prima dati di `lm5` e disponibilità di `vg6d_transform`, poi il builder `forecast_derived_variable_missing_filters` e `projects/mistral/backend/tools/derived_variables.py`.
 
 ### `test_forecast_statistic_elaboration_requires_valid_timerange`
 - **Obiettivo**: statistic forecast fallisce con selezione di timerange invalida.
@@ -54,6 +59,8 @@
 - **Flusso**: `create_request()` → `with pytest.raises(Ignore): execute(filters=forecast_statistic_elaboration_missing_filters(), postprocessors=[forecast_statistic_elaboration_postprocessor()], expect_failure=True)` → `assert_failure(request_id)`.
 - **Assert**: `Ignore`; `FAILURE`; `error_message` contiene `"Error in post-processing"`.
 - **Casi coperti**: ramo timerange-non-trovato.
+- **Cosa non dimostra**: non asserisce il messaggio specifico `"Timeranges for statistic elaboration not found in the requested data"`: basta il prefisso comune, quindi anche un errore del tool in `run_statistic_elaboration` farebbe passare il test.
+- **Se fallisce, guarda**: il builder `forecast_statistic_elaboration_missing_filters` (TP con timerange GRIB1 p1=p2=0, trange_type 0) e `match_timerange` in `projects/mistral/backend/tools/statistic_elaboration.py`, distinguendo un'estrazione vuota da un errore del tool.
 
 ### `test_observed_derived_variables_require_all_inputs`
 - **Obiettivo**: derived observed fallisce con input mancanti.
@@ -61,6 +68,8 @@
 - **Flusso**: `create_request()` → `with pytest.raises(Ignore): execute(filters=observed_derived_variable_missing_filters(), postprocessors=[observed_derived_variable_postprocessor()], expect_failure=True)` → `assert_failure(request_id)`.
 - **Assert**: `Ignore`; `FAILURE`; `"Error in post-processing"`.
 - **Casi coperti**: ramo derived observed fallito.
+- **Cosa non dimostra**: non isola il backend observed usato (con `reftime=None` l'estrazione è sempre `mixed`) né la causa esatta del fallimento di `v7d_transform`.
+- **Se fallisce, guarda**: dati `agrmet` reali e archivio Arkimet usati da `observed_extraction`, poi `projects/mistral/backend/tools/derived_variables.py`.
 
 ### `test_observed_statistic_elaboration_requires_all_inputs`
 - **Obiettivo**: statistic observed fallisce con input incompleti.
@@ -68,6 +77,8 @@
 - **Flusso**: `create_request()` → `with pytest.raises(Ignore): execute(filters=observed_derived_variable_missing_filters(), postprocessors=[observed_statistic_elaboration_postprocessor()], expect_failure=True)` → `assert_failure(request_id)`.
 - **Assert**: `Ignore`; `FAILURE`; `"Error in post-processing"`.
 - **Casi coperti**: ramo statistic observed fallito. **Nota**: riusa volutamente `observed_derived_variable_missing_filters` (solo B12101) per non fornire il timerange/var necessari alla statistica.
+- **Cosa non dimostra**: non copre tutte le combinazioni di input incompleti né il messaggio preciso (solo il prefisso comune).
+- **Se fallisce, guarda**: il builder condiviso con il negativo derived (una sua modifica cambia due test) e il ramo BUFR di `pp_statistic_elaboration` in `projects/mistral/backend/tools/statistic_elaboration.py`.
 
 ## 5. Call chain
 

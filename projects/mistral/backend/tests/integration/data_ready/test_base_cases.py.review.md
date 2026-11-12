@@ -1,22 +1,23 @@
 # Review — `test_base_cases.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/data_ready/test_base_cases.py](projects/mistral/backend/tests/integration/data_ready/test_base_cases.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/data_ready/test_base_cases.py`
 - **Scopo**: coprire i comportamenti di base del flusso data-ready: ramo di *early-return* per piattaforma non esportata, rifiuto di una schedule su dataset non abilitato, e "non-attivazione" di schedule inattive o senza flag `on-data-ready`.
 - **Tipologia**: test di **integrazione HTTP** (endpoint reale + DB SQLAlchemy). Marker: `integration`, `deterministic`, `runtime_sensitive`.
+- **Percorso comune del dominio** (guardie del launcher, confine dei fake): vedi [conftest.py.review.md](conftest.py.review.md).
 
 ## 2. Backend realmente testato
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `DataReady.post` | [endpoints/data_ready.py](projects/mistral/backend/endpoints/data_ready.py) | `POST /api/data/ready` — *early-return* `"1"`/202 se la piattaforma del cluster ≠ `Env.PLATFORM`; altrimenti sottomette il task `launch_all_on_data_ready_extractions` e ritorna `"1"`/202. |
-| `SingleSchedule.post` (ramo data-ready) | [endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py#L474) | `POST /api/schedules` — con `data_ready=True` rifiuta (`BadRequest` 400) se i dataset non sono tutti in `ON_DATA_READY_DATASETS`. |
-| `SingleSchedule.patch` | [endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py) | `PATCH /api/schedules/<id>` — attiva/disattiva la schedule (usato per renderla inattiva). |
-| `launch_all_on_data_ready_extractions` | [tasks/on_data_ready_extractions.py](projects/mistral/backend/tasks/on_data_ready_extractions.py) | Logica di gating reale — eseguita inline nei test su schedule inattiva e senza flag. |
-| Modelli `Schedule`, `Request` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L36) | Tabelle ispezionate indirettamente via `GET /schedules/<id>/requests`. |
+| `DataReady.post` | `projects/mistral/backend/endpoints/data_ready.py` | `POST /api/data/ready` — *early-return* `"1"`/202 se la piattaforma del cluster ≠ `Env.PLATFORM`; altrimenti sottomette il task `launch_all_on_data_ready_extractions` e ritorna `"1"`/202. |
+| `SingleSchedule.post` (ramo data-ready) | `projects/mistral/backend/endpoints/schedules.py` | `POST /api/schedules` — con `data_ready=True` rifiuta (`BadRequest` 400) se i dataset non sono tutti in `ON_DATA_READY_DATASETS`. |
+| `SingleSchedule.patch` | `projects/mistral/backend/endpoints/schedules.py` | `PATCH /api/schedules/<id>` — attiva/disattiva la schedule (usato per renderla inattiva). |
+| `launch_all_on_data_ready_extractions` | `projects/mistral/backend/tasks/on_data_ready_extractions.py` | Logica di gating reale — eseguita inline nei test su schedule inattiva e senza flag. |
+| Modelli `Schedule`, `Request` | `projects/mistral/backend/models/sqlalchemy.py` | Tabelle ispezionate indirettamente via `GET /schedules/<id>/requests`. |
 
 ## 3. Mappa delle dipendenze
 
@@ -24,16 +25,16 @@
 |---|---|---|---|
 | `monkeypatch` | fixture | `pytest` | Sostituisce il trasporto Celery dell'endpoint e del launcher. |
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py) | Teardown **LIFO**. |
-| `data_ready_base` | fixture | [data_ready/conftest.py](projects/mistral/backend/tests/integration/data_ready/conftest.py) | `BaseTests` + **override** `SingleSchedule.ON_DATA_READY_DATASETS` = `["lm5","lm2.2"]`. |
-| `data_ready_admin_headers` | fixture | [data_ready/conftest.py](projects/mistral/backend/tests/integration/data_ready/conftest.py) | Header admin di default (trigger `POST /data/ready`). |
-| `data_ready_db` | fixture | [data_ready/conftest.py](projects/mistral/backend/tests/integration/data_ready/conftest.py) | Connettore SQLAlchemy passato al fake annidato. |
-| `data_ready_user` | fixture | [data_ready/conftest.py](projects/mistral/backend/tests/integration/data_ready/conftest.py) | Utente `admin_root` su `lm5`; **skip** se dataset assente. |
-| `build_on_data_ready_schedule`, `build_crontab_schedule` | helper | [tests/helpers/schedules.py](projects/mistral/backend/tests/helpers/schedules.py) | Builder dei body schedule. |
-| `post_data_ready` | helper | [tests/helpers/data_ready.py](projects/mistral/backend/tests/helpers/data_ready.py) | `POST /data/ready` singola; ritorna `(response, content)`. |
-| `trigger_data_ready_inline` | helper | [tests/helpers/data_ready.py](projects/mistral/backend/tests/helpers/data_ready.py) | Assorbe e verifica la submit dell'endpoint, esegue il launcher reale inline e intercetta l'eventuale `data_extract`. |
-| `create_schedule`, `set_schedule_active`, `list_schedule_requests`, `register_schedule_cleanup` | helper | [tests/helpers/data_ready.py](projects/mistral/backend/tests/helpers/data_ready.py) | CRUD schedule + listing richieste (assert di status interni). |
-| `fetch_dataset_window` | helper | [tests/helpers/dataset_window.py](projects/mistral/backend/tests/helpers/dataset_window.py) | Finestra temporale del dataset via `/api/fields`; **skip** se 404. |
+| `cleanup_registry` | fixture | `projects/mistral/backend/tests/conftest.py` | Teardown **LIFO**. |
+| `data_ready_base` | fixture | `projects/mistral/backend/tests/integration/data_ready/conftest.py` | `BaseTests` + **override** `SingleSchedule.ON_DATA_READY_DATASETS` = `["lm5","lm2.2"]`. |
+| `data_ready_admin_headers` | fixture | `projects/mistral/backend/tests/integration/data_ready/conftest.py` | Header admin di default (trigger `POST /data/ready`). |
+| `data_ready_db` | fixture | `projects/mistral/backend/tests/integration/data_ready/conftest.py` | Connettore SQLAlchemy passato al fake annidato. |
+| `data_ready_user` | fixture | `projects/mistral/backend/tests/integration/data_ready/conftest.py` | Utente `admin_root` su `lm5`; **skip** se dataset assente. |
+| `build_on_data_ready_schedule`, `build_crontab_schedule` | helper | `projects/mistral/backend/tests/helpers/schedules.py` | Builder dei body schedule. |
+| `post_data_ready` | helper | `projects/mistral/backend/tests/helpers/data_ready.py` | `POST /data/ready` singola; ritorna `(response, content)`. |
+| `trigger_data_ready_inline` | helper | `projects/mistral/backend/tests/helpers/data_ready.py` | Assorbe e verifica la submit dell'endpoint, esegue il launcher reale inline e intercetta l'eventuale `data_extract`. |
+| `create_schedule`, `set_schedule_active`, `list_schedule_requests`, `register_schedule_cleanup` | helper | `projects/mistral/backend/tests/helpers/data_ready.py` | CRUD schedule + listing richieste (assert di status interni). |
+| `fetch_dataset_window` | helper | `projects/mistral/backend/tests/helpers/dataset_window.py` | Finestra temporale del dataset via `/api/fields`; **skip** se 404. |
 | `pytest.skip` | meccanismo | `pytest` | Skip indiretto via `data_ready_user`/`fetch_dataset_window` se il dataset manca. |
 
 ## 4. Analisi dettagliata di ogni test
@@ -45,6 +46,8 @@
 - **Setup**: solo header admin; nessuna schedule, nessun cleanup.
 - **Assert**: `status_code in {200,202}` e `content == "1"`.
 - **Casi coperti**: happy path del ramo di guardia piattaforma. **Verifica logica reale del backend** (nessuna schedulazione, nessun Celery, nessun fake). È l'unico test "pulito" del file.
+- **Cosa non dimostra**: l'assenza di submit, nonostante il nome. Il test non patcha Celery: se l'ambiente avesse `PLATFORM=meucci`, l'endpoint invierebbe un `launch_all_on_data_ready_extractions` reale.
+- **Se fallisce, guarda**: la variabile `PLATFORM` dell'ambiente e la guardia cluster di `DataReady.post`, non lo scheduling interno.
 
 ### `test_data_ready_schedule_rejects_dataset_not_enabled`
 - **Obiettivo**: rifiutare una schedule `on-data-ready` su un dataset **fuori** dall'insieme abilitato.
@@ -53,6 +56,8 @@
 - **Setup**: header admin; nessuna schedule creata (la POST deve fallire).
 - **Assert**: `status_code == 400` e messaggio contiene `"Data-ready service is not available"`.
 - **Casi coperti**: error path. **Verifica logica reale del backend**, ma su input filtrato dalla lista **forzata** in `conftest` (vedi §6/§8).
+- **Cosa non dimostra**: niente se il catalogo non offre un dataset fuori da `lm5`/`lm2.2`; il `next(...)` non ha fallback né skip.
+- **Se fallisce, guarda**: la validazione data-ready di `SingleSchedule.post`; uno `StopIteration` indica un catalogo di setup senza candidati, non una regressione dell'endpoint.
 
 ### `test_data_ready_skips_inactive_schedule`
 - **Obiettivo**: una schedule `on-data-ready` **inattiva** non deve generare richieste.
@@ -61,6 +66,8 @@
 - **Setup**: `data_ready_user`, `cleanup_registry`, `data_ready_db`, `monkeypatch`.
 - **Assert**: `status_code in {200,202}`, `content == "1"`, **`list_schedule_requests(...)` vuoto**.
 - **Casi coperti**: gating reale "schedule inattiva". Se il ramo di skip fosse rotto, il fake annidato materializzerebbe una richiesta e l'assert finale fallirebbe.
+- **Cosa non dimostra**: il contenuto scientifico di un'estrazione; prova solo un'assenza.
+- **Se fallisce, guarda**: lo status della `PATCH` (`is_active`) e la guardia `enabled` del launcher; distinguere eventuali request create durante il setup da quelle del trigger.
 
 ### `test_data_ready_skips_schedule_without_on_data_ready_flag`
 - **Obiettivo**: una schedule ordinaria (`on-data-ready=False`) ignora gli eventi data-ready.
@@ -69,6 +76,8 @@
 - **Setup**: `data_ready_user`, `cleanup_registry`, `data_ready_db`, `monkeypatch`.
 - **Assert**: `status_code in {200,202}`, `content == "1"`, `list_schedule_requests(...)` vuoto.
 - **Casi coperti**: gating reale "flag assente"; una regressione produrrebbe una riga osservabile tramite il fake.
+- **Cosa non dimostra**: che Beat non esegua il crontab ordinario. La registrazione RedBeat è resa vuota dalla fixture autouse del conftest, quindi il task periodico non viene creato né esercitato.
+- **Se fallisce, guarda**: la guardia `on_data_ready` del launcher e la distinzione fra trigger data-ready e scheduling Beat.
 
 ## 5. Call chain
 

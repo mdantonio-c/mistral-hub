@@ -1,10 +1,10 @@
 # Review — `test_arco_proxy.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/arco/test_arco_proxy.py](projects/mistral/backend/tests/integration/arco/test_arco_proxy.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/arco/test_arco_proxy.py`
 - **Scopo**: verificare il comportamento del **proxy ARCO autenticato** (`GET /api/arco/<path:object_path>`) dal punto di vista del client: (1) l'accesso è negato senza credenziali valide; (2) un utente autenticato con access key può leggere il contenuto Zarr proxato da S3.
 - **Tipologia**: test di **integrazione HTTP** (controller reale via `FlaskClient`); il backend S3 è **mockato** nel solo caso autorizzato. Marker: `pytestmark = [pytest.mark.integration, pytest.mark.deterministic]`.
 - **Numero di test**: 2 funzioni.
@@ -13,23 +13,23 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `ArcoResource.get` | [endpoints/arco.py](projects/mistral/backend/endpoints/arco.py) | `GET /api/arco/<path:object_path>` — valida l'access key (BasicAuth), scarica l'oggetto da S3, lo restituisce come `Response` con mimetype indovinato. |
-| `validate_access_key_from_request` | [services/access_key_service.py](projects/mistral/backend/services/access_key_service.py#L51) | Legge `request.authorization`, recupera/valida la chiave, solleva `Unauthorized` (→ `401`) se mancante/errata/scaduta. |
-| `access_key_get_by_user` | [services/access_key_service.py](projects/mistral/backend/services/access_key_service.py#L30) | Recupera la `AccessKey` dall'email BasicAuth. |
-| `is_access_key_valid` | [services/access_key_service.py](projects/mistral/backend/services/access_key_service.py#L10) | Confronta chiave fornita/memorizzata e verifica la scadenza. |
-| `guess_mime_type` | [endpoints/arco.py](projects/mistral/backend/endpoints/arco.py) | Deriva il mimetype dal nome file (non asserito qui; coperto in `test_arco_edge_cases.py`). |
-| `AccessKey` (scope `read:arco`) | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L167) | Record chiave usato dalla validazione. |
-| `s3.get_instance` | [connectors/s3/__init__.py](projects/mistral/backend/connectors/s3/__init__.py) | Connettore S3 — **mockato** nel test autorizzato. |
+| `ArcoResource.get` | `projects/mistral/backend/endpoints/arco.py` | `GET /api/arco/<path:object_path>` — valida l'access key (BasicAuth), scarica l'oggetto da S3, lo restituisce come `Response` con mimetype indovinato. |
+| `validate_access_key_from_request` | `projects/mistral/backend/services/access_key_service.py` | Legge `request.authorization`, recupera/valida la chiave, solleva `Unauthorized` (→ `401`) se mancante/errata/scaduta. |
+| `access_key_get_by_user` | `projects/mistral/backend/services/access_key_service.py` | Recupera la `AccessKey` dall'email BasicAuth. |
+| `is_access_key_valid` | `projects/mistral/backend/services/access_key_service.py` | Confronta chiave fornita/memorizzata e verifica la scadenza. |
+| `guess_mime_type` | `projects/mistral/backend/endpoints/arco.py` | Deriva il mimetype dal nome file (non asserito qui; coperto in `test_arco_edge_cases.py`). |
+| `AccessKey` (scope `read:arco`) | `projects/mistral/backend/models/sqlalchemy.py` | Record chiave usato dalla validazione. |
+| `s3.get_instance` | `projects/mistral/backend/connectors/s3/__init__.py` | Connettore S3 — **mockato** nel test autorizzato. |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `access_key_owner` | fixture | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | Utente temporaneo proprietario della chiave; fornisce l'email per la BasicAuth e revoca chiave + utente in teardown. |
-| `fresh_access_key` | fixture | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | `POST /access-key` per `access_key_owner`, asserisce `200` + `key`; ritorna `(headers, key)`. |
+| `access_key_owner` | fixture | `projects/mistral/backend/tests/integration/conftest.py` | Utente temporaneo proprietario della chiave; fornisce l'email per la BasicAuth e revoca chiave + utente in teardown. |
+| `fresh_access_key` | fixture | `projects/mistral/backend/tests/integration/conftest.py` | `POST /access-key` per `access_key_owner`, asserisce `200` + `key`; ritorna `(headers, key)`. |
 | `monkeypatch` | fixture | `pytest` | Sostituisce `mistral.connectors.s3.get_instance` con un `MagicMock`; teardown automatico. |
-| `make_basic_auth` | helper | [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py#L130) | Codifica `email:access_key` in header `Authorization: Basic ...` (formato richiesto dal proxy). |
+| `make_basic_auth` | helper | `projects/mistral/backend/tests/helpers/auth.py` | Codifica `email:access_key` in header `Authorization: Basic ...` (formato richiesto dal proxy). |
 | `mock_s3` (`MagicMock`) | mock locale | nel file di test | `client.get_object` → body con `read()` = `b'{"zarr_format": 2}'`. |
 
 ## 4. Analisi dettagliata di ogni test
@@ -41,6 +41,8 @@
 - **Setup**: solo `client`; **nessun mock S3** (non serve: la validazione fallisce prima).
 - **Assert**: `status_code == 401` → conferma che il gate di autenticazione precede ogni accesso a S3.
 - **Casi coperti**: error path / autorizzazione (credenziali assenti).
+- **Cosa non dimostra**: con uno spy, che S3 non venga chiamato; l'ordine "auth prima di S3" è reso esplicito solo da `test_proxy_missing_basic_auth_is_rejected_before_s3` in [test_arco_edge_cases.py.review.md](test_arco_edge_cases.py.review.md).
+- **Se fallisce, guarda**: la chiamata a `validate_access_key_from_request` in `ArcoResource.get` e la guardia del service.
 
 ### `test_arco_proxy_returns_zgroup_for_authorized_user`
 - **Obiettivo**: un utente autenticato con access key valida legge i metadati Zarr proxati.
@@ -53,6 +55,8 @@
 - **Setup**: `access_key_owner`, `fresh_access_key`, `monkeypatch`; mock rimosso da pytest, chiave e utente temporaneo rimossi dal teardown della fixture.
 - **Assert**: `status_code == 200`; `b"zarr_format" in response.data` → la validazione passa e il body S3 è propagato **invariato** al client.
 - **Casi coperti**: happy path autenticato del proxy.
+- **Cosa non dimostra**: il parsing completo del contenuto Zarr, l'accesso al bucket reale o lo streaming; autenticazione e DB sono reali, S3 è finto.
+- **Se fallisce, guarda**: separare un errore di autenticazione (401: chiave, fixture `fresh_access_key`, service) da uno del fake S3 o di `ArcoResource.get` (500/404).
 
 ## 5. Call chain
 

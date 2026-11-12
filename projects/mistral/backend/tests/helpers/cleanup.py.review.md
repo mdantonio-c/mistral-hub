@@ -4,7 +4,7 @@
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/helpers/cleanup.py](projects/mistral/backend/tests/helpers/cleanup.py)
+- **Percorso**: `projects/mistral/backend/tests/helpers/cleanup.py`
 - **Scopo**: registro deterministico di azioni di teardown eseguite in ordine LIFO.
 - **Tipologia**: infrastruttura di suite (usata dalla fixture `cleanup_registry`).
 
@@ -22,7 +22,9 @@
 - **LIFO deliberato**: risorse dipendenti (file → directory, request → utente) vengono rimosse nell'ordine corretto.
 - **`add_path` è best-effort** (`ignore_errors=True`) ma valuta `p.exists()` al momento della `run()`, non della registrazione.
 - **`run()` propaga le eccezioni**: un teardown rotto fa fallire il test (scelta di igiene).
-- **La fixture `cleanup_registry`** ([tests/conftest.py](projects/mistral/backend/tests/conftest.py)) chiama `run()` dopo lo `yield`: il collegamento test→teardown è automatico.
+- **Svuotamento solo a ciclo completato**: `_actions.clear()` gira dopo l'ultima callback. Dopo una `run()` riuscita una seconda chiamata non fa nulla: i test di `integration/opendata/test_download.py` che verificano il teardown nel corpo chiamano `run()` esplicitamente e la fixture poi non ripete le azioni. Se invece una callback solleva, la lista non viene svuotata.
+- **Nessuna conoscenza del dominio**: il registro non sa nulla di utenti, FK o proprietà dei path; non registrare con `add_path` root condivise (es. `DOWNLOAD_DIR` o `OPENDATA_DIR` intere).
+- **La fixture `cleanup_registry`** (`projects/mistral/backend/tests/conftest.py`) chiama `run()` dopo lo `yield`: il collegamento test→teardown è automatico.
 
 ## 4. Checklist di revisione
 

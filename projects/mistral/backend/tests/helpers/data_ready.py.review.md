@@ -4,7 +4,7 @@
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/helpers/data_ready.py](projects/mistral/backend/tests/helpers/data_ready.py)
+- **Percorso**: `projects/mistral/backend/tests/helpers/data_ready.py`
 - **Scopo**: building block per gli scenari `data_ready` e `schedules`: costruzione payload `/data/ready`, creazione utenti con permessi adatti, gestione schedule/request, polling degli effetti asincroni.
 - **Tipologia**: helper di dominio condiviso (usato da `data_ready` e `schedules`).
 
@@ -12,27 +12,27 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `POST /api/data/ready` | [endpoints/data_ready.py](projects/mistral/backend/endpoints/data_ready.py) | Trigger evento data-ready (atteso `202`). |
-| `launch_all_on_data_ready_extractions.run(...)` | [tasks/on_data_ready_extractions.py](projects/mistral/backend/tasks/on_data_ready_extractions.py) | Esecuzione inline della logica reale di gating tramite `trigger_data_ready_inline`. |
-| `POST/PATCH/DELETE /api/schedules` | [endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py) | Creazione (`202`), attivazione (`200`), cancellazione (`200`). |
-| `GET /api/requests`, `GET /api/schedules`, `GET /api/schedules/<id>/requests` | [endpoints/requests.py](projects/mistral/backend/endpoints/requests.py), [endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py) | Listing per asserzioni di cardinalità. |
-| `SqlApiDbManager.create_request_record` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py) | Seeding diretto di righe `Request` sintetiche. |
-| `DOWNLOAD_DIR` | [endpoints/__init__.py](projects/mistral/backend/endpoints/__init__.py) | Path output utente. |
+| `POST /api/data/ready` | `projects/mistral/backend/endpoints/data_ready.py` | Trigger evento data-ready (atteso `202`). |
+| `launch_all_on_data_ready_extractions.run(...)` | `projects/mistral/backend/tasks/on_data_ready_extractions.py` | Esecuzione inline della logica reale di gating tramite `trigger_data_ready_inline`. |
+| `POST/PATCH/DELETE /api/schedules` | `projects/mistral/backend/endpoints/schedules.py` | Creazione (`202`), attivazione (`200`), cancellazione (`200`). |
+| `GET /api/requests`, `GET /api/schedules`, `GET /api/schedules/<id>/requests` | `projects/mistral/backend/endpoints/requests.py`, `projects/mistral/backend/endpoints/schedules.py` | Listing per asserzioni di cardinalità. |
+| `SqlApiDbManager.create_request_record` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Seeding diretto di righe `Request` sintetiche. |
+| `DOWNLOAD_DIR` | `projects/mistral/backend/endpoints/__init__.py` | Path output utente. |
 
 ## 3. Elementi definiti (selezione)
 
 | Simbolo | Tipo | Cosa fa |
 |---|---|---|
 | `DATA_READY_DATASET_NAME` (`lm5`), `SECOND_..._NAME` (`lm2.2`), `DATA_READY_DATASETS` | costanti | Dataset usati negli scenari data-ready. |
-| `build_data_ready_payload(model, cluster, rundate)` | builder | JSON body per `/data/ready`. |
+| `build_data_ready_payload(model, cluster, rundate)` | builder | JSON body per `/data/ready` con chiavi esattamente `Model`, `Cluster` (default `g100`) e `rundate`. |
 | `create_data_ready_user(...)` | factory | Crea utente con quota/permessi (schedule, postprocessing, open_dataset) e ruolo `admin_root`, senza email di successo e con indirizzo `@example.invalid`. Il parametro `max_output_size` (default 1 GiB) permette di far rifiutare l'estrazione dal worker per quota. |
 | `create_schedule`, `set_schedule_active`, `delete_request`, `delete_schedule` | wrapper API | CRUD su schedule/request con assert di status. |
 | `list_user_requests`, `list_user_schedules`, `list_schedule_requests` | wrapper API | Listing normalizzati a lista. |
 | `wait_for_schedule_requests(...)` | polling | Attende che la schedule esponga `expected_count` richieste (via `wait_until`). |
 | `post_data_ready`, `trigger_data_ready_and_wait_accepted` | wrapper/polling | Submit data-ready (con retry fino a `202` nella variante polling). |
-| `trigger_data_ready_inline(..., schedule_ids)` | orchestrazione locale | Assorbe e conta la submit del launcher, confina il launcher alle `schedule_ids` del test ([helpers/task_perimeter.py](projects/mistral/backend/tests/helpers/task_perimeter.py)), esegue `.run(...)` e intercetta l'eventuale `data_extract` con i fake Celery. |
+| `trigger_data_ready_inline(..., schedule_ids)` | orchestrazione locale | Assorbe e conta la submit del launcher, confina il launcher alle `schedule_ids` del test (`projects/mistral/backend/tests/helpers/task_perimeter.py`), esegue `.run(...)` e intercetta l'eventuale `data_extract` con i fake Celery. |
 | `create_schedule_request_record(...)` | seeding DB | Inserisce una `Request` storica con reftime/status/submission_date controllati. |
-| `delete_all_user_requests/schedules`, `register_data_ready_user_cleanup`, `register_schedule_cleanup` | cleanup | Teardown best-effort di richieste/schedule/utente. |
+| `delete_all_user_requests/schedules`, `register_data_ready_user_cleanup`, `register_schedule_cleanup` | cleanup | Teardown via API di richieste/schedule/utente; ogni `DELETE` deve rispondere `200`, altrimenti il cleanup si interrompe (non è best-effort). |
 
 ## 4. Comportamenti nascosti
 
@@ -42,8 +42,14 @@
 - **`trigger_data_ready_and_wait_accepted` ripete la `POST`** a ogni retry: side effect multipli possibili (vedi review di `polling.py`).
 - **`trigger_data_ready_inline` separa decisione e trasporto**: endpoint e launcher sono reali; `AcceptTasksWithoutRunningCelery` assorbe la submit iniziale e `InlineDataReadyExtractionCelery` materializza una riga se il launcher tenta `data_extract`. L'assert su una sola submit rende una regressione del gating osservabile senza worker esterni.
 - **Argomenti ricostruiti**: `.run(...)` riceve `model` e `rundate` dagli input passati al helper, non dal payload registrato dalla submit Celery; nome e cardinalità della submit sono verificati, i suoi argomenti serializzati no.
-- **`register_data_ready_user_cleanup` registra teardown in ordine** (utente, schedule, request) sfruttando il LIFO del registry.
-- **`list_schedule_requests` filtra solo i `dict`**: l'endpoint può restituire elementi non-richiesta che vengono scartati silenziosamente.
+- **`register_data_ready_user_cleanup` registra teardown in ordine** (utente, schedule, request) sfruttando il LIFO del registry: l'esecuzione è request → schedule → utente → directory.
+- **`list_schedule_requests` filtra solo i `dict`**: l'endpoint può restituire elementi non-richiesta che vengono scartati silenziosamente. Interroga `GET /schedules/<id>/requests?last=False`.
+- **`create_schedule` può già accodare un'estrazione**: con `on-data-ready` l'endpoint invia subito `data_extract` per la prima request. Ritorna lo `schedule_id` come stringa ed esige `202`.
+- **Wrapper non idempotenti**: `delete_request`, `delete_schedule` e `set_schedule_active` esigono `200`; un `404` (riga già rimossa) fa fallire il teardown.
+- **`wait_for_schedule_requests` attende un conteggio esatto**: `len == expected_count`, non `>=`, e non verifica il contenuto delle request. Default 60 s / 5 s. `trigger_data_ready_and_wait_accepted` usa invece 30 s / 3 s.
+- **`post_data_ready` è un singolo `POST`** che ritorna `(response, contenuto decodificato)`: non sostituisce Celery, quindi l'endpoint accoda il launcher sul trasporto in uso.
+- **`delete_all_user_*` enumerano ciò che l'utente vede** e lo cancellano via API (`delete_all_user_schedules` salta le voci senza id): usarli solo con utenti dedicati, mai con account condivisi.
+- **Le patch Celery agiscono sul modulo connettore**: `trigger_data_ready_inline` sostituisce `get_instance` su `data_ready_endpoint.celery` e `on_data_ready_task.celery`, cioè sul modulo `restapi.connectors.celery` condiviso da tutti i moduli che lo importano. Non è un override del solo endpoint e non raggiunge worker in processi separati.
 
 ## 5. Checklist di revisione
 

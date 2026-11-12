@@ -1,11 +1,11 @@
 # Review — `test_data_extraction_quota_and_notifications.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 > Modulo: copertura dei rami ad alto rischio di `tasks.data_extraction` non esercitati dagli happy path postprocessing.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/tasks/test_data_extraction_quota_and_notifications.py](projects/mistral/backend/tests/integration/tasks/test_data_extraction_quota_and_notifications.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/tasks/test_data_extraction_quota_and_notifications.py`
 - **Scopo**: proteggere i rami di quota utente (`MaxOutputSizeExceeded`/`DiskQuotaException`), la disabilitazione schedule su quota, il **duplicate data-ready**, le notifiche **email** (con retry) e **AMQP**, e il package license, **senza** rieseguire estrazioni meteo reali.
 - **Tipologia**: mista — **integrazione task** per quota/data-ready (DB reale: User/Schedule/Request/FileOutput) ed email (utente DB e rendering reali, SMTP simulato); AMQP con fake e package su filesystem temporaneo reale. Le request delle notifiche restano `SimpleNamespace`. Marker: `integration`, `deterministic`.
 - **Conteggio**: 8 test in 4 classi (`TestCheckUserQuotaEXT`×4, `TestDataExtractDataReadyEXT`×1, `TestDataExtractionNotificationsEXT`×2, `TestPackageDataLicenseEXT`×1). Nessun `pytest.skip`.
@@ -14,28 +14,28 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `check_user_quota(...)` | [tasks/data_extraction.py](projects/mistral/backend/tasks/data_extraction.py#L494) | Stima dimensione (Arkimet) → confronta con `max_output_size` e disk quota; disabilita schedule periodica su quota; bypass per `opendata`. |
-| `data_extract` (ramo duplicate data-ready) | [tasks/data_extraction.py](projects/mistral/backend/tasks/data_extraction.py#L44) | Early-return se l'ultima request SUCCESS ha la stessa `reftime` (no nuovo output). |
-| `notify_by_email(db, user_id, request, extra_msg)` | [tasks/data_extraction.py](projects/mistral/backend/tasks/data_extraction.py#L694) | Costruisce body via template, invia via SMTP con **retry** (`MAX_RETRIES`/`SLEEP_TIME`). |
-| `notify_by_amqp_queue(amqp_queue, request)` | [tasks/data_extraction.py](projects/mistral/backend/tasks/data_extraction.py#L725) | Pubblica JSON (status/reftime/filename/download_url) sulla routing key e `disconnect`. |
-| `package_data_license(...)` | [tasks/data_extraction.py](projects/mistral/backend/tasks/data_extraction.py#L860) | tar.gz output+LICENSE + unlink sorgente. |
-| `SqlApiDbManager.get_user_permissions` / `update_schedule_status` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L665) / [#L427](projects/mistral/backend/services/sqlapi_db_manager.py#L427) | `max_output_size`; disabilitazione schedule. |
+| `check_user_quota(...)` | `projects/mistral/backend/tasks/data_extraction.py` | Stima dimensione (Arkimet) → confronta con `max_output_size` e disk quota; disabilita schedule periodica su quota; bypass per `opendata`. |
+| `data_extract` (ramo duplicate data-ready) | `projects/mistral/backend/tasks/data_extraction.py` | Early-return se l'ultima request SUCCESS ha la stessa `reftime` (no nuovo output). |
+| `notify_by_email(db, user_id, request, extra_msg)` | `projects/mistral/backend/tasks/data_extraction.py` | Costruisce body via template, invia via SMTP con **retry** (`MAX_RETRIES`/`SLEEP_TIME`). |
+| `notify_by_amqp_queue(amqp_queue, request)` | `projects/mistral/backend/tasks/data_extraction.py` | Pubblica JSON (status/reftime/filename/download_url) sulla routing key e `disconnect`. |
+| `package_data_license(...)` | `projects/mistral/backend/tasks/data_extraction.py` | tar.gz output+LICENSE + unlink sorgente. |
+| `SqlApiDbManager.get_user_permissions` / `update_schedule_status` | `projects/mistral/backend/services/sqlapi_db_manager.py` | `max_output_size`; disabilitazione schedule. |
 | `CeleryExt.delete_periodic_task` | `restapi.connectors.celery` | Rimozione periodic task (qui **fake**). |
-| Template `data_extraction_result.html` | [models/emails/data_extraction_result.html](projects/mistral/backend/models/emails/data_extraction_result.html) | Renderizzato dal `get_html_template` **reale**, con header/footer versionati e conversione HTML → plain text. |
+| Template `data_extraction_result.html` | `projects/mistral/backend/models/emails/data_extraction_result.html` | Renderizzato dal `get_html_template` **reale**, con header/footer versionati e conversione HTML → plain text. |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
-| `create_task_test_user` | helper | [tasks/support.py](projects/mistral/backend/tests/integration/tasks/support.py) | Utente reale con quota/limiti forzati in DB. |
-| `seed_schedule` / `delete_schedule` | helper | [tasks/support.py](projects/mistral/backend/tests/integration/tasks/support.py) | Schedule DB (no RedBeat) + cleanup idempotente. |
-| `seed_request` / `delete_requests_for_user` | helper | [tasks/support.py](projects/mistral/backend/tests/integration/tasks/support.py) | Request precedente per duplicate check + cleanup. |
-| `RetryThenSuccessSmtpFactoryEXT` | fake | [tasks/support.py](projects/mistral/backend/tests/integration/tasks/support.py) | Fake SMTP: fallisce 1 volta poi invia; registra invii/kwargs. |
-| `RecordingRabbitFactoryEXT` | fake | [tasks/support.py](projects/mistral/backend/tests/integration/tasks/support.py) | Fake RabbitMQ: registra payload+routing_key e `disconnect`. |
-| `RecordingPeriodicTaskDeletionEXT` | fake | [tasks/support.py](projects/mistral/backend/tests/integration/tasks/support.py) | Fake `delete_periodic_task`: registra `calls`, ritorna True. |
+| `create_task_test_user` | helper | `projects/mistral/backend/tests/integration/tasks/support.py` | Utente reale con quota/limiti forzati in DB. |
+| `seed_schedule` / `delete_schedule` | helper | `projects/mistral/backend/tests/integration/tasks/support.py` | Schedule DB (no RedBeat) + cleanup idempotente. |
+| `seed_request` / `delete_requests_for_user` | helper | `projects/mistral/backend/tests/integration/tasks/support.py` | Request precedente per duplicate check + cleanup. |
+| `RetryThenSuccessSmtpFactoryEXT` | fake | `projects/mistral/backend/tests/integration/tasks/support.py` | Fake SMTP: fallisce 1 volta poi invia; registra invii/kwargs. |
+| `RecordingRabbitFactoryEXT` | fake | `projects/mistral/backend/tests/integration/tasks/support.py` | Fake RabbitMQ: registra payload+routing_key e `disconnect`. |
+| `RecordingPeriodicTaskDeletionEXT` | fake | `projects/mistral/backend/tests/integration/tasks/support.py` | Fake `delete_periodic_task`: registra `calls`, ritorna True. |
 | `monkeypatch` | fixture | `pytest` | Patcha `arki.estimate_data_size`, `subprocess.check_output`, `CeleryExt.delete_periodic_task`, `smtp.get_instance`, `time.sleep`, `rabbitmq.get_instance`, `get_backend_url`. Il rendering non è patchato. |
-| `client`, `cleanup_registry`, `tmp_path` | fixture | `restapi.tests` / [tests/conftest.py](projects/mistral/backend/tests/conftest.py) / `pytest` | Client, teardown LIFO, dir temporanea. |
-| `DiskQuotaException`, `MaxOutputSizeExceeded` | eccezioni | [mistral/exceptions.py](projects/mistral/backend/exceptions.py) | Effetto osservabile dei rami quota. |
+| `client`, `cleanup_registry`, `tmp_path` | fixture | `restapi.tests` / `projects/mistral/backend/tests/conftest.py` / `pytest` | Client, teardown LIFO, dir temporanea. |
+| `DiskQuotaException`, `MaxOutputSizeExceeded` | eccezioni | `projects/mistral/backend/exceptions.py` | Effetto osservabile dei rami quota. |
 | `states` (celery) | costanti | `celery` | `SUCCESS`/`FAILURE` per request sintetiche. |
 
 ## 4. Analisi dettagliata di ogni test
@@ -47,6 +47,8 @@
 - **Setup**: utente reale, `output_dir` creata, `estimate_data_size` monkeypatchato.
 - **Assert**: `pytest.raises(MaxOutputSizeExceeded, match="single request")`.
 - **Casi coperti**: ramo limite per singola request. **Arkimet completamente bypassato** (la stima è sintetica).
+- **Cosa non dimostra**: la query Arkimet reale né una misura del disco (il ramo `du` non viene raggiunto).
+- **Se fallisce, guarda**: il confronto con `max_output_size` e i permessi letti da `get_user_permissions`; non diagnosticare il dataset, che qui è sintetico.
 
 ### `test_check_user_quota_raises_when_disk_quota_is_insufficient`
 - **Obiettivo**: `used + stima > disk_quota` → `DiskQuotaException`.
@@ -55,6 +57,8 @@
 - **Setup**: utente reale; `estimate_data_size` e `subprocess.check_output` monkeypatchati.
 - **Assert**: `pytest.raises(DiskQuotaException, match="Disk quota exceeded")`.
 - **Casi coperti**: ramo disk quota; calcolo free space come in produzione (ma `du` e Arkimet finti).
+- **Cosa non dimostra**: l'esecuzione reale di `du` né l'accuratezza dello spazio misurato su disco.
+- **Se fallisce, guarda**: il parsing dell'output di `du -sb`, il calcolo della quota e il bypass del primo limite con `max_output_size=None`.
 
 ### `test_check_user_quota_disables_periodic_schedule_on_quota_failure`
 - **Obiettivo**: su quota error, schedule periodica disabilitata e periodic task rimosso.
@@ -63,6 +67,8 @@
 - **Setup**: utente+schedule reali, fake periodic deletion, cleanup schedule.
 - **Assert**: `MaxOutputSizeExceeded` sollevata; `schedule.is_enabled is False`; `fake_delete_periodic.calls == [{"args":(),"kwargs":{"name":str(schedule_id)}}]`; messaggio contiene `"temporary disabled"`.
 - **Casi coperti**: ramo side-effect heavy (DB + Celery fake) sul limite per singola request.
+- **Cosa non dimostra**: la cancellazione reale della voce RedBeat né il comportamento con una schedule data-ready.
+- **Se fallisce, guarda**: il ramo quota/schedule di `check_user_quota` e il nome del periodic task (`str(schedule_id)`); se `delete_periodic_task` ritornasse `False` il codice solleverebbe `DeleteScheduleException`. Il cleanup rimuove la schedule seedata.
 
 ### `test_check_user_quota_skips_user_limits_for_opendata`
 - **Obiettivo**: con `opendata=True` i limiti personali non si applicano.
@@ -71,6 +77,8 @@
 - **Setup**: `fail_if_du_is_used` (AssertionError) come guardia del ramo filesystem.
 - **Assert**: `estimated_size == 4096` (nessuna eccezione, `du` mai chiamato).
 - **Casi coperti**: bypass opendata di entrambi i controlli quota; prova **negativa** che `du` non viene consultato.
+- **Cosa non dimostra**: lo spazio disponibile della piattaforma per l'opendata né un output reale.
+- **Se fallisce, guarda**: la guardia `if not opendata` e l'ordine delle operazioni: la stima viene calcolata comunque, prima dei controlli.
 
 ### `test_data_extract_duplicate_data_ready_returns_without_new_output`
 - **Obiettivo**: se l'ultima request SUCCESS ha la stessa reftime, il task ritorna senza creare output.
@@ -79,6 +87,8 @@
 - **Setup**: utente+schedule+request reali; cleanup schedule e request.
 - **Assert**: nessuna **nuova** Request per la schedule (`after == before == {previous_id}`); `FileOutput.count()==0`; `output_dir` vuota se esiste.
 - **Casi coperti**: idempotenza data-ready. Poiché `data_ready=True`, `adapt_reftime` **non** è invocata (la reftime resta quella passata, confrontata tale e quale).
+- **Cosa non dimostra**: richieste concorrenti, retry del task o match parziale della reftime (il confronto è sull'intero dict). Il corpo del task non è sostituito da fake.
+- **Se fallisce, guarda**: l'early `return`, che avviene dentro il `try`: il `finally` salta la pulizia solo grazie a `double_request=True`, altrimenti userebbe variabili non ancora definite. Il dataset sintetico non deve essere letto dopo la deduplica.
 
 ### `test_notify_by_email_retries_with_sleep_noop_and_sends_payload`
 - **Obiettivo**: primo errore SMTP → retry senza sleep reale → invio riuscito.
@@ -87,6 +97,8 @@
 - **Setup**: utente DB e rendering reali; solo trasporto SMTP e attesa sono simulati.
 - **Assert**: `send_attempts==2`; 1 messaggio accettato dal fake; subject fisso `"MeteoHub: data extraction completed"`; `recipient==db_user.email`; HTML e plain text non nulli né vuoti, contenenti titolo request, `FAILURE`, errore completo `"synthetic failure after retry"` e contenuti distintivi del template/footer; marker del logo header nell'HTML; nessun delimitatore Jinja irrisolto; tag `<br` presente nell'HTML e assente nel plain text; `sleep_calls==[SLEEP_TIME]`; `get_instance_calls==[{"retries":5,"retry_wait":10}]×2`. Nessuno snapshot integrale né body atteso ricalcolato con il renderer; template mancanti o body nulli/vuoti fanno fallire gli assert senza skip o fallback sintetici.
 - **Casi coperti**: rendering reale HTML/plain text + retry SMTP (1 fallimento simulato). **Non è una prova di consegna email end-to-end**. **Vedi §8**: il ramo “tutti i retry falliscono” (eccezione silenziata) **non** è coperto.
+- **Cosa non dimostra**: la consegna reale dell'email né l'esaurimento di `MAX_RETRIES`.
+- **Se fallisce, guarda**: prima template e renderer (vedi §6), poi il loop di retry e la factory SMTP; non sostituire il rendering per far passare il test.
 
 ### `test_notify_by_amqp_queue_sends_success_payload_with_download_url`
 - **Obiettivo**: notifica AMQP success include status/reftime/filename/download_url.
@@ -95,6 +107,8 @@
 - **Setup**: **nessun** DB; solo fake e `SimpleNamespace`.
 - **Assert**: `sent_messages` con payload esatto (`request_name`, `status`, `reftime`, `filename`, `download_url="https://backend.example.invalid/api/data/synthetic-output.grib"`) su `routing_key="queue.notification.ext"`; `disconnected is True`.
 - **Casi coperti**: payload success completo. **Vedi §8**: ramo `error_message` (non-success) non coperto; solo costruzione dict (broker finto).
+- **Cosa non dimostra**: il broker reale, il formato del messaggio di errore né che l'URL di download sia raggiungibile.
+- **Se fallisce, guarda**: il contratto di payload e routing di `notify_by_amqp_queue` e il percorso `/api/data/<filename>` usato per costruire il link.
 
 ### `test_package_data_license_archives_license_and_removes_original`
 - **Obiettivo**: tar contiene output+LICENSE, file output originale sparisce.
@@ -103,6 +117,8 @@
 - **Setup**: `tmp_path` registrata anche in `cleanup_registry.add_path`.
 - **Assert**: tar esiste; `out_file` assente; `license_file` presente; membri `["LICENSE","task-output.grib"]`; contenuti verificati.
 - **Casi coperti**: duplica volutamente il contratto già visto in `test_data_extraction_helpers.py`, accanto ai side effect di `data_extraction`.
+- **Cosa non dimostra**: dati meteo reali né una licenza ricavata dal catalogo dei dataset.
+- **Se fallisce, guarda**: `package_data_license`, lo stesso helper di [test_data_extraction_helpers.py](test_data_extraction_helpers.py.review.md); se cambia il packaging ricontrolla entrambi i moduli.
 
 ## 5. Call chain
 
@@ -140,6 +156,7 @@ notify_by_amqp_queue(queue, request)
 - **`adapt_reftime` saltata con `data_ready=True`**: nel task, `adapt_reftime` è chiamata solo `if reftime and not data_ready`; il confronto duplicate usa la reftime **non** adattata.
 - **Retry SMTP: condizione sempre vera e nessun re-raise**: nel loop `for i in range(MAX_RETRIES)` la guardia `if i < MAX_RETRIES` è **sempre** vera (i∈{0,1,2}, MAX_RETRIES=3) → l'ultimo tentativo dorme comunque; e se **tutti** i tentativi falliscono l'eccezione viene **silenziata** (nessun `raise`). Il test copre solo 1 fallimento, quindi questi due comportamenti restano scoperti.
 - **`notify_by_email` e rendering reali**: la query `User.email`, il template versionato, header/footer e conversione plain text sono esercitati senza patch del renderer. SMTP e `time.sleep` restano simulati: nessuna prova di consegna email end-to-end.
+- **Come risolve i template il renderer**: `get_html_template` (`submodules/http-api/restapi/connectors/smtp/notifications.py`) cerca ogni file prima in `projects/mistral/backend/models/emails/` e poi nei template core di restapi; concatena header, body e footer e converte il risultato in plain text con html2text. Se uno dei tre template manca ritorna `(None, None)`.
 - **AMQP payload condizionale**: `error_message` è aggiunto solo se valorizzato; `filename`/`download_url` solo se `status==SUCCESS`. Il test copre il ramo SUCCESS senza error_message.
 - **`get_backend_url` importato nel modulo**: pur essendo `from restapi.config import get_backend_url`, è patchabile come `data_extraction.get_backend_url`.
 

@@ -1,35 +1,36 @@
 # Review — `test_access_key_api.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/access_key/test_access_key_api.py](projects/mistral/backend/tests/integration/access_key/test_access_key_api.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/access_key/test_access_key_api.py`
 - **Scopo**: verificare il contratto utente del ciclo di vita delle access key (creazione, lettura, rigenerazione, gestione della scadenza, chiavi senza scadenza).
 - **Tipologia**: test di **integrazione HTTP** (endpoint REST esercitato tramite `FlaskClient`). Marker: `integration`, `deterministic`.
+- **Prerequisiti**: app, autenticazione e DB reali; nessuno storage S3 e nessuna patch.
 
 ## 2. Backend realmente testato
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `AccessKeyResource.post` | [endpoints/access_key.py](projects/mistral/backend/endpoints/access_key.py) | `POST /api/access-key` — crea o rigenera la chiave; se ne esiste già una la revoca (`db.session.delete`) e ne genera una nuova. |
-| `AccessKeyResource.get` | [endpoints/access_key.py](projects/mistral/backend/endpoints/access_key.py) | `GET /api/access-key` — ritorna la chiave dell'utente; `404` se assente. |
-| `AccessKeyValidationResource.get` | [endpoints/access_key.py](projects/mistral/backend/endpoints/access_key.py) | `GET /api/access-key/validate` — valida credenziali via HTTP Basic. |
-| `validate_access_key_from_request` | [services/access_key_service.py](projects/mistral/backend/services/access_key_service.py) | Legge `request.authorization`, recupera la chiave per email, valida e solleva `Unauthorized` (→ `401`). |
-| `is_access_key_valid` | [services/access_key_service.py](projects/mistral/backend/services/access_key_service.py) | Confronta chiave fornita e memorizzata; rifiuta se `expiration` è nel passato. |
-| `AccessKey.generate` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L191) | Genera token `secrets.token_urlsafe(32)`; con `lifetime_seconds=None` → `expiration=None`. |
-| `AccessKeySchema` | [endpoints/schemas.py](projects/mistral/backend/endpoints/schemas.py) | Schema marshmallow che serializza `key` ed `expiration` nella risposta. |
+| `AccessKeyResource.post` | `projects/mistral/backend/endpoints/access_key.py` | `POST /api/access-key` — crea o rigenera la chiave; se ne esiste già una la revoca (`db.session.delete`) e ne genera una nuova. |
+| `AccessKeyResource.get` | `projects/mistral/backend/endpoints/access_key.py` | `GET /api/access-key` — ritorna la chiave dell'utente; `404` se assente. |
+| `AccessKeyValidationResource.get` | `projects/mistral/backend/endpoints/access_key.py` | `GET /api/access-key/validate` — valida credenziali via HTTP Basic. |
+| `validate_access_key_from_request` | `projects/mistral/backend/services/access_key_service.py` | Legge `request.authorization`, recupera la chiave per email, valida e solleva `Unauthorized` (→ `401`). |
+| `is_access_key_valid` | `projects/mistral/backend/services/access_key_service.py` | Confronta chiave fornita e memorizzata; rifiuta se `expiration` è nel passato. |
+| `AccessKey.generate` | `projects/mistral/backend/models/sqlalchemy.py` | Genera token `secrets.token_urlsafe(32)`; con `lifetime_seconds=None` → `expiration=None`. |
+| `AccessKeySchema` | `projects/mistral/backend/endpoints/schemas.py` | Schema marshmallow che serializza `key` ed `expiration` nella risposta. |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` (framework) | `FlaskClient` di test; esegue richieste reali contro l'app Flask. |
-| `access_key_owner` | fixture | [integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | Utente temporaneo proprietario delle chiavi; in teardown revoca la chiave ed elimina l'utente. |
-| `fresh_access_key` | fixture | [integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | `POST /access-key` con gli header di `access_key_owner`, asserisce `200` e presenza di `key`; ritorna `(headers, key)`. |
-| `fresh_access_key_with_expiration` | fixture | [access_key/conftest.py](projects/mistral/backend/tests/integration/access_key/conftest.py) | Crea chiave con `lifetime_seconds=3600`; ritorna `(headers, key)`. |
-| `ACCESS_KEY_ENDPOINT`, `ACCESS_KEY_VALIDATE_ENDPOINT` | costanti | [access_key/support.py](projects/mistral/backend/tests/integration/access_key/support.py) | URL `/api/access-key` e `/api/access-key/validate`. |
-| `make_basic_auth` | helper | [helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) | Codifica `email:key` in header `Authorization: Basic ...`. |
+| `access_key_owner` | fixture | `projects/mistral/backend/tests/integration/conftest.py` | Utente temporaneo proprietario delle chiavi; in teardown revoca la chiave ed elimina l'utente. |
+| `fresh_access_key` | fixture | `projects/mistral/backend/tests/integration/conftest.py` | `POST /access-key` con gli header di `access_key_owner`, asserisce `200` e presenza di `key`; ritorna `(headers, key)`. |
+| `fresh_access_key_with_expiration` | fixture | `projects/mistral/backend/tests/integration/access_key/conftest.py` | Crea chiave con `lifetime_seconds=3600`; ritorna `(headers, key)`. |
+| `ACCESS_KEY_ENDPOINT`, `ACCESS_KEY_VALIDATE_ENDPOINT` | costanti | `projects/mistral/backend/tests/integration/access_key/support.py` | URL `/api/access-key` e `/api/access-key/validate`. |
+| `make_basic_auth` | helper | `projects/mistral/backend/tests/helpers/auth.py` | Codifica `email:key` in header `Authorization: Basic ...`. |
 | `sqlalchemy.get_instance()` | connettore | `restapi.connectors` | Accesso diretto al DB di test per forzare lo stato (manipolazione `expiration`). |
 
 ## 4. Analisi dettagliata di ogni test
@@ -41,6 +42,8 @@
 - **Setup**: nessuno (solo `client`).
 - **Assert**: `status_code == 401` → conferma il gate di autenticazione prima di ogni dettaglio di lifecycle.
 - **Casi coperti**: error path / autorizzazione.
+- **Cosa non dimostra**: nulla sul ciclo di vita della chiave, sul messaggio d'errore o sulla revoca.
+- **Se fallisce, guarda**: decoratore `auth.require()` e registrazione della resource in `projects/mistral/backend/endpoints/access_key.py`; prima distinguere un problema di autenticazione da un'app non disponibile.
 
 ### `test_02_get_existing_access_key`
 - **Obiettivo**: una lettura successiva restituisce **esattamente** la chiave già emessa (non una nuova, non vuota).
@@ -49,14 +52,18 @@
 - **Setup**: `fresh_access_key` (headers + token).
 - **Assert**: `200`; `resp.json["key"] == token` → idempotenza della lettura.
 - **Casi coperti**: happy path.
+- **Cosa non dimostra**: che la chiave sia utilizzabile su ARCO o sul validatore; DB e HTTP sono reali ma l'uso del token non è esercitato.
+- **Se fallisce, guarda**: `AccessKeyResource.get`, `AccessKeySchema` e la relazione `user.access_key`; se manca il token controllare prima la fixture `fresh_access_key`.
 
 ### `test_03_regenerate_access_key`
-- **Obiettivo**: rigenerare invalida il token precedente e la lettura espone il nuovo valore.
+- **Obiettivo**: la rigenerazione cambia il valore esposto e la lettura successiva restituisce il nuovo token.
 - **Backend coinvolto**: `AccessKeyResource.post` (ramo `if existing: db.session.delete`).
 - **Flusso (arrange/act/assert)**: la fixture crea la prima chiave → POST rigenera → confronto `new != old` → GET conferma persistenza.
 - **Setup**: `fresh_access_key`; il test non dipende più da chiavi lasciate da test precedenti.
-- **Assert**: `new_token != old_token` (rigenerazione effettiva); `resp.json["key"] == new_token` (la nuova chiave è quella persistita).
-- **Casi coperti**: happy path + invalidazione implicita della vecchia chiave.
+- **Assert**: `new_token != old_token` (rigenerazione effettiva); `resp.json["key"] == new_token` (la nuova chiave è quella persistita). Gli status di POST e GET non sono asseriti: un errore emerge solo indirettamente, alla lettura di `resp.json["key"]`.
+- **Casi coperti**: happy path della rigenerazione. La revoca del vecchio token **non** è provata: il test non tenta BasicAuth sul validatore con il token precedente.
+- **Cosa non dimostra**: che il vecchio token sia rifiutato dopo la rigenerazione; nonostante il ramo `db.session.delete` del backend, l'invalidazione resta non verificata.
+- **Se fallisce, guarda**: `AccessKeyResource.post` e `AccessKey.generate`; non equiparare il nome del test a una prova diretta di revoca del vecchio token.
 
 ### `test_04_create_access_key_without_expiration`
 - **Obiettivo**: l'API accetta una chiave senza scadenza quando richiesto esplicitamente.
@@ -64,6 +71,8 @@
 - **Flusso**: POST `{"lifetime_seconds": None}` con gli header di `access_key_owner` → 200.
 - **Assert**: `200`; `resp.json["expiration"] is None` → contratto "chiave long-lived".
 - **Casi coperti**: edge case / variante di input.
+- **Cosa non dimostra**: l'uso futuro della chiave senza scadenza; prova solo la risposta della creazione.
+- **Se fallisce, guarda**: `use_kwargs` di `AccessKeyResource.post` (`lifetime_seconds` con `allow_none=True`) e il default di `AccessKey.generate`; ricontrollare insieme `test_05_validate_access_key_without_expiration` in [test_access_key_validation.py.review.md](test_access_key_validation.py.review.md).
 
 ### `test_06_validate_expired_access_key`
 - **Obiettivo**: una chiave valida diventa inutilizzabile dopo la scadenza.
@@ -72,6 +81,8 @@
 - **Setup**: `fresh_access_key_with_expiration`; rilettura diretta dal DB dell'utente `access_key_owner`; `make_basic_auth`.
 - **Assert**: `status_code == 401` → la scadenza è realmente enforced lato validazione.
 - **Casi coperti**: edge case temporale / error path.
+- **Cosa non dimostra**: lo scorrere reale del tempo (il clock non è congelato e il test non attende un'ora) né il caso limite di scadenza esattamente uguale a `now` (il service usa `expiration < now`). Sottraendo 3600 s la scadenza torna circa all'istante di creazione: è nel passato di pochi istanti.
+- **Se fallisce, guarda**: `is_access_key_valid` in `projects/mistral/backend/services/access_key_service.py` e il tipo timezone-aware di `AccessKey.expiration`; in teardown la revoca della chiave deve girare prima della cancellazione dell'utente.
 
 > **Nota**: la numerazione salta da `test_04` a `test_06`: `test_05` (chiave senza scadenza valida) vive in `test_access_key_validation.py`. La numerazione è quindi **cross-file** e non un buco accidentale nello stesso modulo.
 
@@ -87,7 +98,7 @@ GET /api/access-key/validate   → AccessKeyValidationResource.get → validate_
 ## 6. Comportamenti nascosti
 
 - **Chiavi su utente temporaneo**: ogni test usa un proprio `access_key_owner`; creazione, rigenerazione e scadenza forzata non toccano la chiave dell'account predefinito e non dipendono dall'ordine dei test.
-- **`fresh_access_key_with_expiration` è in un `conftest.py` locale**: non è visibile leggendo solo il modulo di test; vive in [access_key/conftest.py](projects/mistral/backend/tests/integration/access_key/conftest.py).
+- **`fresh_access_key_with_expiration` è in un `conftest.py` locale**: non è visibile leggendo solo il modulo di test; vive in `projects/mistral/backend/tests/integration/access_key/conftest.py`.
 - **Mutazione diretta del DB** in `test_06`: bypassa l'API e scrive `expiration` nel passato. Il test non verifica come si arriva alla scadenza, ma solo l'effetto sulla validazione.
 - **Cleanup nella fixture**: `access_key_owner` revoca la chiave (`DELETE /access-key`) prima di eliminare l'utente, necessario perché la FK della chiave non ammette `NULL`.
 - **`POST` revoca + ricrea**: la rigenerazione non è un update in-place ma `delete` + `generate` (nuovo record, nuovo `creation`).

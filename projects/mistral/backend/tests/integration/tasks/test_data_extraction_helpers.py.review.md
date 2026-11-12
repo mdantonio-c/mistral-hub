@@ -1,10 +1,10 @@
 # Review — `test_data_extraction_helpers.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/tasks/test_data_extraction_helpers.py](projects/mistral/backend/tests/integration/tasks/test_data_extraction_helpers.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/tasks/test_data_extraction_helpers.py`
 - **Scopo**: documentare e proteggere il contratto degli **helper puri** del task di data extraction: `human_size` (formattazione byte), `package_data_license` (tar.gz output+LICENSE con cancellazione del sorgente) e `adapt_reftime` (avanzamento della finestra reftime per schedule periodiche/crontab).
 - **Tipologia**: prevalentemente **unità** (helper a contratto locale). Marker dichiarati: `integration`, `deterministic`; in pratica niente DB/Celery/broker, solo `tmp_path` per il filesystem e un orologio congelato (vedi §8).
 - **Conteggio**: 5 metodi di test (di cui 1 parametrizzato ×4 su `human_size`), **8 casi** complessivi. Nessun `pytest.skip`.
@@ -13,9 +13,9 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `human_size(bytes, units=[...])` | [tasks/data_extraction.py](projects/mistral/backend/tasks/data_extraction.py#L751) | Formattatore **ricorsivo** byte→stringa; usa shift `>> 10` (intero, nessun decimale). |
-| `package_data_license(user_dir, out_file, license_file)` | [tasks/data_extraction.py](projects/mistral/backend/tasks/data_extraction.py#L860) | Crea `data-<utc>.tar.gz` con output (`arcname=out_file.name`) + `LICENSE`; **cancella** `out_file`. |
-| `adapt_reftime(schedule, reftime)` | [tasks/data_extraction.py](projects/mistral/backend/tasks/data_extraction.py#L758) | Avanza la finestra reftime in base a periodo/crontab, submission e `utcnow`; restituisce `{"from","to"}`. |
+| `human_size(bytes, units=[...])` | `projects/mistral/backend/tasks/data_extraction.py` | Formattatore **ricorsivo** byte→stringa; usa shift `>> 10` (intero, nessun decimale). |
+| `package_data_license(user_dir, out_file, license_file)` | `projects/mistral/backend/tasks/data_extraction.py` | Crea `data-<utc>.tar.gz` con output (`arcname=out_file.name`) + `LICENSE`; **cancella** `out_file`. |
+| `adapt_reftime(schedule, reftime)` | `projects/mistral/backend/tasks/data_extraction.py` | Avanza la finestra reftime in base a periodo/crontab, submission e `utcnow`; restituisce `{"from","to"}`. |
 
 - Backend **realmente eseguito**: i tre helper per intero (tar reale su disco, ricorsione, aritmetica delle date).
 - Backend **non** coinvolto: estrazione Arkimet/DB-All.e, DB, scheduler RedBeat (la `schedule` è un `SimpleNamespace`).
@@ -29,7 +29,7 @@
 | `SimpleNamespace` | builder | `types` | Costruisce la `schedule` fake (period/every/time_delta/args/submission_date) e il **namespace datetime** sostitutivo. |
 | `tmp_path` | fixture | `pytest` | Isola i file del test tar; pytest rimuove la directory a fine test. |
 | `tarfile` | stdlib | — | Verifica del contenuto reale dell'archivio prodotto. |
-| `data_extraction` | modulo | [tasks/data_extraction.py](projects/mistral/backend/tasks/data_extraction.py) | Modulo sotto test; il patch sostituisce il suo simbolo `datetime`. |
+| `data_extraction` | modulo | `projects/mistral/backend/tasks/data_extraction.py` | Modulo sotto test; il patch sostituisce il suo simbolo `datetime`. |
 
 ## 4. Analisi dettagliata di ogni test
 
@@ -40,6 +40,8 @@
 - **Setup**: nessuna fixture; input puramente sintetici.
 - **Assert**: `0→"0 bytes"`, `1023→"1023 bytes"`, `1024→"1KB"`, `1048576→"1MB"`.
 - **Casi coperti**: soglia di unità senza decimali. **Non** copre valori intermedi (es. 1500 → `1KB` per troncamento `>>10`).
+- **Cosa non dimostra**: valori negativi né unità superiori al MB.
+- **Se fallisce, guarda**: la soglia 1024 e lo shift `>> 10` di `human_size`; il contratto è quello storico, non quello di librerie di formattazione alternative.
 
 ### `test_package_data_license_archives_license_and_removes_source_file`
 - **Obiettivo**: verificare archiviazione di output+LICENSE e il **side effect** di cancellazione del file dati originale.
@@ -48,6 +50,8 @@
 - **Setup**: `tmp_path`; contenuti sintetici (nessun dato meteo reale).
 - **Assert**: nome `data-...tar.gz`; tar esiste; `out_file` **non** esiste più; membri `["LICENSE","forecast.grib"]`; il contenuto di `LICENSE` è quello del sorgente.
 - **Casi coperti**: happy path filesystem/tar + cancellazione sorgente. Nome verificato per prefisso/suffisso, **non** per timestamp.
+- **Cosa non dimostra**: la validità GRIB né il contenuto del membro dati (il test legge solo il testo di `LICENSE`).
+- **Se fallisce, guarda**: packaging, naming e cancellazione in `package_data_license`. `TestPackageDataLicenseEXT` in [test_data_extraction_quota_and_notifications.py](test_data_extraction_quota_and_notifications.py.review.md) copre lo stesso helper leggendo entrambi i membri: se cambia il packaging ricontrolla entrambi i test.
 
 ### `test_adapt_reftime_daily_periodic_schedule_moves_window_forward`
 - **Obiettivo**: schedule **giornaliera** periodica preserva l'offset originale della richiesta.
@@ -56,6 +60,8 @@
 - **Setup**: `frozen_data_extraction_clock` (usata **solo** per il side effect: `del` del valore di ritorno).
 - **Assert**: `{"from":"2026-05-27T06:30:00.000000Z","to":"2026-05-27T12:30:00.000000Z"}` (finestra di 6h, `to` un giorno prima del fake now).
 - **Casi coperti**: ramo `days`.
+- **Cosa non dimostra**: lo scheduler reale né i confini di giorno e di mese.
+- **Se fallisce, guarda**: l'aritmetica e la normalizzazione della submission in `adapt_reftime`, poi la fixture `frozen_data_extraction_clock`.
 
 ### `test_adapt_reftime_hourly_periodic_schedule_moves_window_forward`
 - **Obiettivo**: schedule **oraria** periodica avanza per intervalli orari trascorsi.
@@ -64,6 +70,8 @@
 - **Setup**: `frozen_data_extraction_clock` (solo side effect).
 - **Assert**: `{"from":"2026-05-28T10:30:00.000000Z","to":"2026-05-28T11:30:00.000000Z"}`.
 - **Casi coperti**: ramo `hours`.
+- **Cosa non dimostra**: submission con minuti non allineati a quelli della reftime (qui sono entrambi `:30`), quindi nessun arrotondamento.
+- **Se fallisce, guarda**: il ramo `hours` di `adapt_reftime` e la normalizzazione di minuti e secondi della submission.
 
 ### `test_adapt_reftime_base_crontab_schedule_uses_daily_interval`
 - **Obiettivo**: un crontab “semplice” (senza chiavi week/month) si comporta come schedule **giornaliera**.
@@ -72,6 +80,8 @@
 - **Setup**: `frozen_data_extraction_clock` (solo side effect); JSON crontab valido.
 - **Assert**: `{"from":"2026-05-27T00:30:00.000000Z","to":"2026-05-27T12:30:00.000000Z"}`.
 - **Casi coperti**: ramo crontab base. **Non** coperti i rami `day_of_week`/`day_of_month`/`month of year`.
+- **Cosa non dimostra**: RedBeat né il caso `reftime=None` (in quel caso `adapt_reftime` ritorna `None`).
+- **Se fallisce, guarda**: la scelta dell'intervallo e il parsing di `crontab_settings` in `adapt_reftime`.
 
 ## 5. Call chain
 

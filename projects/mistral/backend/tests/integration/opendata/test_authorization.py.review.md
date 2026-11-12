@@ -1,39 +1,40 @@
 # Review — `test_authorization.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 > Dominio **opendata** marcato `runtime_sensitive`: entrambi i test vengono eseguiti senza skip dipendenti dal catalogo runtime.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/opendata/test_authorization.py](projects/mistral/backend/tests/integration/opendata/test_authorization.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/opendata/test_authorization.py`
 - **Scopo**: verificare le regole di **autorizzazione** sui tre endpoint opendata quando il dataset è **privato** (`group_license.is_public == False`): rifiuto di anonimi **e** di utenti autenticati ma non autorizzati (`401`); accesso consentito all'utente esplicitamente collegato al dataset.
 - **Tipologia**: test di **integrazione HTTP reale** (controller + DB SQLAlchemy + filesystem `/opendata`). Marker: `integration`, `deterministic`, `runtime_sensitive`. Nessun mock.
 - **Endpoint coperti**: listing (`/datasets/<id>/opendata`), download dataset (`/opendata/<id>/download`), download file diretto (`/opendata/<filename>`).
+- **Percorso comune del dominio** (tre endpoint, rami 404/file singolo/ZIP, proprietà della request ≠ grant): vedi [support.py.review.md](support.py.review.md).
 
 ## 2. Backend realmente testato
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `OpendataFileList.get` | [endpoints/opendata.py](projects/mistral/backend/endpoints/opendata.py#L36) | `GET /datasets/<id>/opendata` — `auth.optional`; se dataset privato e non autorizzato → `self.response(..., code=401)`. |
-| `OpendataDownload.get` | [endpoints/opendata.py](projects/mistral/backend/endpoints/opendata.py#L282) | `GET /opendata/<id>/download` — privato e non autorizzato → `raise Unauthorized` (401). |
-| `OpendataDownloadFile.get` | [endpoints/opendata.py](projects/mistral/backend/endpoints/opendata.py#L203) | `GET /opendata/<filename>` — risale alla `Request`, itera i `datasets` e per ognuno verifica l'autorizzazione → non autorizzato → `Unauthorized` (401). |
-| `check_dataset_authorization` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L562) | Cuore della regola: `is_public → True`; anonimo+privato → `False`; autenticato+privato → `True` solo se `arkimet_id ∈ [d.arkimet_id for d in user.datasets]`. |
-| m2m `user.datasets` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L139) | Tabella `auth_association`; popolata da `authorize_user_for_dataset` nel secondo test. |
-| `OPENDATA_DIR` (`/opendata`) | [endpoints/__init__.py](projects/mistral/backend/endpoints/__init__.py#L5) | File reale letto/streamato in caso di accesso autorizzato. |
+| `OpendataFileList.get` | `projects/mistral/backend/endpoints/opendata.py` | `GET /datasets/<id>/opendata` — `auth.optional`; se dataset privato e non autorizzato → `self.response(..., code=401)`. |
+| `OpendataDownload.get` | `projects/mistral/backend/endpoints/opendata.py` | `GET /opendata/<id>/download` — privato e non autorizzato → `raise Unauthorized` (401). |
+| `OpendataDownloadFile.get` | `projects/mistral/backend/endpoints/opendata.py` | `GET /opendata/<filename>` — risale alla `Request`, itera i `datasets` e per ognuno verifica l'autorizzazione → non autorizzato → `Unauthorized` (401). |
+| `check_dataset_authorization` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Cuore della regola: `is_public → True`; anonimo+privato → `False`; autenticato+privato → `True` solo se `arkimet_id ∈ [d.arkimet_id for d in user.datasets]`. |
+| m2m `user.datasets` | `projects/mistral/backend/models/sqlalchemy.py` | Tabella `auth_association`; popolata da `authorize_user_for_dataset` nel secondo test. |
+| `OPENDATA_DIR` (`/opendata`) | `projects/mistral/backend/endpoints/__init__.py` | File reale letto/streamato in caso di accesso autorizzato. |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test; chiamate HTTP reali. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py) | Teardown **LIFO**; non ingoia eccezioni. |
-| `create_private_opendata_env` | helper locale | [opendata/support.py](projects/mistral/backend/tests/integration/opendata/support.py) | Crea dataset **privato** isolato + utente (non autorizzato) + 1 file opendata reale; l'attribution è sintetica e non esistono precondizioni di skip. |
-| `authorize_user_for_dataset` | helper locale | [opendata/support.py](projects/mistral/backend/tests/integration/opendata/support.py) | Collega (m2m) l'utente al dataset (solo 2° test). |
-| `create_opendata_user` (indiretto) | helper locale | [opendata/support.py](projects/mistral/backend/tests/integration/opendata/support.py) | Utente con `open_dataset=True` ma **senza** dataset collegati. |
+| `cleanup_registry` | fixture | `projects/mistral/backend/tests/conftest.py` | Teardown **LIFO**; non ingoia eccezioni. |
+| `create_private_opendata_env` | helper locale | `projects/mistral/backend/tests/integration/opendata/support.py` | Crea dataset **privato** isolato + utente (non autorizzato) + 1 file opendata reale; l'attribution è sintetica e non esistono precondizioni di skip. |
+| `authorize_user_for_dataset` | helper locale | `projects/mistral/backend/tests/integration/opendata/support.py` | Collega (m2m) l'utente al dataset (solo 2° test). |
+| `create_opendata_user` (indiretto) | helper locale | `projects/mistral/backend/tests/integration/opendata/support.py` | Utente con `open_dataset=True` ma **senza** dataset collegati. |
 | `BaseTests().get_content` | helper | `restapi.tests` | Decodifica il body JSON (listing autorizzato). |
 | `sqlalchemy.get_instance()` (indiretto) | connettore | `restapi.connectors` | Istanza DB usata dagli helper di seeding. |
 
-> Infrastruttura condivisa (non ridocumentata): `cleanup_registry` da [tests/conftest.py](projects/mistral/backend/tests/conftest.py); helper utente da [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py). La cartella è marcata `runtime_sensitive`.
+> Infrastruttura condivisa (non ridocumentata): `cleanup_registry` da `projects/mistral/backend/tests/conftest.py`; helper utente da `projects/mistral/backend/tests/helpers/auth.py`. La cartella è marcata `runtime_sensitive`.
 
 ## 4. Analisi dettagliata di ogni test
 
@@ -41,9 +42,11 @@
 - **Obiettivo**: tutti e tre gli endpoint, su dataset **privato**, devono rispondere `401` sia all'**anonimo** sia all'utente **autenticato ma non autorizzato**.
 - **Backend coinvolto**: `OpendataFileList.get` (ramo `code=401`), `OpendataDownload.get` (`Unauthorized`), `OpendataDownloadFile.get` (loop datasets → `Unauthorized`), tutti via `check_dataset_authorization`.
 - **Flusso**: `create_private_opendata_env` → costruisce i 3 URL (listing per `arkimet_id`, download per `arkimet_id`, file per `result.filename`) → esegue **6** GET (anon/loggato × 3 endpoint).
-- **Setup**: `cleanup_registry`; dataset privato, utente con `user.datasets` **vuoto** (autenticato ma non collegato), 1 risultato opendata reale.
+- **Setup**: `cleanup_registry`; dataset privato, utente con `user.datasets` **vuoto** (autenticato ma non collegato) che è anche il **proprietario** della `Request` opendata seminata, 1 risultato opendata reale (file di testo con suffisso `.grib`).
 - **Assert**: i sei status sono tutti `401`.
 - **Casi coperti**: error path/authorization su **tutti** gli endpoint privati; dimostra la distinzione **autenticato ≠ autorizzato** (il login da solo non basta: serve l'aggancio m2m).
+- **Cosa non dimostra**: non copre altri ruoli, token scaduti o credenziali non valide; mostra inoltre che essere proprietario della `Request` non concede accesso, ma non verifica altri percorsi di grant.
+- **Se fallisce, guarda**: i tre endpoint in `projects/mistral/backend/endpoints/opendata.py` e `SqlApiDbManager.check_dataset_authorization` (`projects/mistral/backend/services/sqlapi_db_manager.py`); una modifica alla regola va applicata a tutti e tre i percorsi, non a uno solo.
 
 ### `test_private_dataset_endpoints_allow_authorized_user`
 - **Obiettivo**: l'utente **esplicitamente autorizzato** sul dataset privato può elencare e scaricare i contenuti.
@@ -55,6 +58,8 @@
   - download dataset: `200`, body `== result.content` (singolo file servito diretto, non zip);
   - download file: `200`, body `== result.content`.
 - **Casi coperti**: happy path autorizzato end-to-end su tutti e tre gli endpoint, inclusa la **rilettura del file reale** da `/opendata`.
+- **Cosa non dimostra**: il grant è creato direttamente in ORM (`authorize_user_for_dataset`), quindi non prova l'API di assegnazione dei dataset all'utente; il file è testo, non un GRIB valido.
+- **Se fallisce, guarda**: autorizzazioni (m2m `user.datasets`) e lookup di file/`Request`; il cleanup chiude gli stream prima di cancellare i file, quindi un errore di teardown può nascere da una response non chiusa.
 
 ## 5. Call chain
 

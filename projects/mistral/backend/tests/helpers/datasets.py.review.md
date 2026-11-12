@@ -1,16 +1,22 @@
 # Review - `helpers/datasets.py`
 
-> Modulo di supporto condiviso. Non contiene test e non decide piu di saltare
-> scenari in base al catalogo disponibile nel runtime.
+> Modulo di supporto condiviso. Non contiene test. L'unico punto che salta uno
+> scenario in base al catalogo del runtime è `require_dataset`.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/helpers/datasets.py](projects/mistral/backend/tests/helpers/datasets.py)
+- **Percorso**: `projects/mistral/backend/tests/helpers/datasets.py`
 - **Scopo**: creare un dataset sintetico completo, pubblico o privato, per i test di integrazione, ed eventualmente una rete sintetica che punta a un dataset privato.
-- **Consumatori attuali**: i test `integration/dataset`, `integration/opendata/test_download.py`, gli environment builder in `integration/opendata/support.py`, e (per la rete privata) `integration/fields/test_fields_api.py` e `integration/observed/test_observations_download.py`.
+- **Consumatori attuali**: i test `integration/dataset`, `integration/opendata/test_download.py`, gli environment builder in `integration/opendata/support.py`, (per la rete privata) `integration/fields/test_fields_api.py` e `integration/observed/test_observations_download.py`, e (per `require_dataset`) `integration/postprocessing/conftest.py` e `helpers/observed_windows.py`.
 - **Dipendenze runtime**: connettore SQLAlchemy gia inizializzato e fixture `cleanup_registry`.
 
 ## 2. Elementi definiti
+
+### `require_dataset(db, dataset_name)`
+
+Cerca nel catalogo reale un `Datasets` per `name` o `arkimet_id` e lo restituisce;
+se manca chiama `pytest.skip`. Non verifica che l'archivio Arkimet/DB-All.e
+contenga dati per quel dataset.
 
 ### `create_test_dataset(db, cleanup_registry, *, is_public, prefix="dataset_test")`
 
@@ -21,8 +27,10 @@ Crea sempre un bundle relazionale nuovo con nomi univoci basati su UUID:
 3. `License` collegata al gruppo;
 4. `Datasets` OBS/BUFR collegato a licenza e attribution.
 
-Il dataset usa lo stesso valore univoco per `name` e `arkimet_id`, viene
-committato prima delle richieste HTTP e viene restituito al test chiamante.
+Il dataset usa lo stesso valore univoco per `name` e `arkimet_id`, ha
+`source="arkimet"`, viene committato prima delle richieste HTTP e viene
+restituito al test chiamante come oggetto ORM `Datasets`: è solo metadata di
+catalogo, senza dati Arkimet o DB-All.e dietro.
 Non legge license, attribution o dataset seedati e non contiene
 `pytest.skip`.
 
@@ -62,6 +70,7 @@ teardown incompleto diventa quindi un errore visibile della suite.
 - Ogni chiamata crea un bundle distinto, quindi i test non dipendono dall'ordine.
 - Pubblico e privato sono governati esclusivamente da `GroupLicense.is_public`, come nel backend reale.
 - Gli ID necessari al teardown vengono acquisiti subito dopo il commit e passati al callback.
+- Il rollback iniziale di `delete_test_dataset_bundle` scarta **tutte** le modifiche pendenti della sessione condivisa, non solo quelle del bundle: non è una transazione isolata. Il teardown non va usato per "chiudere" scritture del test non ancora committate.
 - Il teardown LIFO permette ai test di eliminare prima eventuali utenti che referenziano il dataset.
 - Negli scenari opendata, response streamate, file, request e utenti vengono rimossi prima del bundle dataset.
 - Non vengono alterati `license_id` o metadati di dataset reali.

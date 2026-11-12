@@ -1,10 +1,10 @@
 # Review — `test_s3_connector.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/connectors/test_s3_connector.py](projects/mistral/backend/tests/integration/connectors/test_s3_connector.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/connectors/test_s3_connector.py`
 - **Scopo**: verificare i contratti del connector S3 custom (`S3Ext`) di Meteo-Hub — validazione dei parametri obbligatori, costruzione dell'endpoint da `scheme/host/port`, precedenza dell'endpoint esplicito e del `verify_ssl` letto dalle variabili, gestione del fallimento del probe `list_buckets`, semantica di `is_connected` (client sano / client guasto / `disconnected`) e cleanup di `disconnect`.
 - **Tipologia**: **unit / connector-level**, nonostante il marker. Nessuna connessione reale a MinIO/AWS, nessuna rete, nessun DB, nessun HTTP. `boto3.Session` è **monkeypatchato** con una sessione fake in-memory in tutti i test che chiamano `connect`; i metodi del connector sono invocati direttamente su istanze locali. Marker dichiarati: `integration`, `deterministic` (vedi §6 per la discrepanza marker↔natura reale).
 
@@ -12,11 +12,11 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `S3Ext.__init__` | [connectors/s3/__init__.py](projects/mistral/backend/connectors/s3/__init__.py#L19) | Inizializza `self.client = None`. |
-| `S3Ext.connect` | [connectors/s3/__init__.py](projects/mistral/backend/connectors/s3/__init__.py#L25) | Merge `variables.copy()`+`kwargs`; valida `host/key_id/access_key` (→ `ServiceUnavailable`); costruisce `endpoint` (esplicito **o** `scheme://host:port`); apre `boto3.Session(key_id, access_key)`; crea `session.client("s3", endpoint_url, verify, config)`; probe `list_buckets()` (→ `ServiceUnavailable` su errore); ritorna `self`. |
-| `S3Ext.is_connected` | [connectors/s3/__init__.py](projects/mistral/backend/connectors/s3/__init__.py#L77) | `False` se `disconnected` o manca `client`; altrimenti probe `list_buckets()` → `True`/`False` (except **largo**). |
-| `S3Ext.disconnect` | [connectors/s3/__init__.py](projects/mistral/backend/connectors/s3/__init__.py#L86) | `client = None`, `disconnected = True`. |
-| `S3Ext.get_connection_exception` | [connectors/s3/__init__.py](projects/mistral/backend/connectors/s3/__init__.py#L91) | Ritorna `None` (nessuna lista eccezioni di retry). **Non testato.** |
+| `S3Ext.__init__` | `projects/mistral/backend/connectors/s3/__init__.py` | Inizializza `self.client = None`. |
+| `S3Ext.connect` | `projects/mistral/backend/connectors/s3/__init__.py` | Merge `variables.copy()`+`kwargs`; valida `host/key_id/access_key` (→ `ServiceUnavailable`); costruisce `endpoint` (esplicito **o** `scheme://host:port`); apre `boto3.Session(key_id, access_key)`; crea `session.client("s3", endpoint_url, verify, config)`; probe `list_buckets()` (→ `ServiceUnavailable` su errore); ritorna `self`. |
+| `S3Ext.is_connected` | `projects/mistral/backend/connectors/s3/__init__.py` | `False` se `disconnected` o manca `client`; altrimenti probe `list_buckets()` → `True`/`False` (except **largo**). |
+| `S3Ext.disconnect` | `projects/mistral/backend/connectors/s3/__init__.py` | `client = None`, `disconnected = True`. |
+| `S3Ext.get_connection_exception` | `projects/mistral/backend/connectors/s3/__init__.py` | Ritorna `None` (nessuna lista eccezioni di retry). **Non testato.** |
 | `Env.to_bool` | `restapi.env` | Parsing di `verify_ssl` (default `APP_MODE != "development"`). |
 | `ServiceUnavailable` | `restapi.exceptions` | Sollevata su parametri mancanti **e** su probe fallito. |
 | `Connector.services["s3"]` | `restapi.connectors` | Sorgente di `self.variables`; **monkeypatchata** via `setitem`. |
@@ -33,9 +33,9 @@
 | `s3_connector.boto3` | modulo | `boto3` (importato in `connectors/s3/__init__.py`) | Riferimento patchato direttamente nel modulo del connector. |
 | `Connector` | classe base | `restapi.connectors` | Fornisce `services` e `self.variables`. |
 | `ServiceUnavailable` | eccezione | `restapi.exceptions` | Target di `pytest.raises`. |
-| `pytest.mark.integration` / `deterministic` | marker | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L13) | Solo classificazione. |
+| `pytest.mark.integration` / `deterministic` | marker | `projects/mistral/backend/tests/conftest.py` | Solo classificazione. |
 
-> **Nota infra**: nessun `conftest.py`/`support` locale in `integration/connectors/`. Le sole fixture usate sono la built-in `monkeypatch`; le fixture condivise ([`test_runtime`/`cleanup_registry`](projects/mistral/backend/tests/conftest.py#L49)) non sono autouse e non vengono richieste.
+> **Nota infra**: nessun `conftest.py`/`support` locale in `integration/connectors/`. Le sole fixture usate sono la built-in `monkeypatch`; le fixture condivise (`test_runtime`/`cleanup_registry` (`projects/mistral/backend/tests/conftest.py`)) non sono autouse e non vengono richieste.
 
 ## 4. Analisi dettagliata di ogni test
 
@@ -48,6 +48,8 @@
 - **Setup**: solo `_new_s3_connector` (nessun fake boto3: non serve, il fallimento precede la sessione).
 - **Assert**: `ServiceUnavailable` il cui messaggio contiene `"host"`, `"key_id"`, `"access_key"`.
 - **Casi coperti**: error path / validazione input. Isola la macchina/container da env locali (variabili forzate a `{}`).
+- **Cosa non dimostra**: casi con un solo parametro mancante; l'errore nasce prima di boto3, quindi nessuna rete è coinvolta.
+- **Se fallisce, guarda**: il merge `variables.copy()`+`kwargs` e la lista `required` in `S3Ext.connect`.
 
 ### `test_connect_builds_endpoint_from_host_port_scheme`
 - **Obiettivo**: senza endpoint esplicito, comporre `scheme://host:port` e propagare `verify`.
@@ -56,6 +58,8 @@
 - **Setup**: fake client sano + `_install_fake_boto3_session`; `variables={}`.
 - **Assert**: `returned is connector`; `session_calls == [{aws_access_key_id:"synthetic-id", aws_secret_access_key:"synthetic-secret"}]`; `client_call["service_name"]=="s3"`; `endpoint_url == "http://minio.test:9001"`; `verify is False`; `connector.client is fake_client`; `list_buckets_calls == 1`.
 - **Casi coperti**: happy path completo + costruzione endpoint + parsing `verify_ssl` + probe singolo.
+- **Cosa non dimostra**: connettività o SSL reali; il `config` botocore passato al client non è asserito.
+- **Se fallisce, guarda**: la composizione `f"{scheme}://{host}:{port}"`, `Env.to_bool` su `verify_ssl` e i kwargs passati a `session.client`.
 
 ### `test_connect_respects_explicit_endpoint_and_verify_ssl_variable`
 - **Obiettivo**: l'`endpoint` esplicito e `verify_ssl` dalle **variabili** devono prevalere.
@@ -64,6 +68,8 @@
 - **Setup**: fake client sano + fake session; `host` presente solo per superare il check obbligatorio.
 - **Assert**: `endpoint_url == "https://s3.explicit.test/custom"` (host **ignorato** per l'URL); `verify is True`.
 - **Casi coperti**: precedenza endpoint esplicito + `verify_ssl="true"` da variabili.
+- **Cosa non dimostra**: tutti i conflitti fra kwargs e variabili (es. kwarg che sovrascrive un endpoint presente nelle variabili).
+- **Se fallisce, guarda**: la precedenza `variables.get("endpoint") or None` in `connect`; nessun certificato reale è coinvolto.
 
 ### `test_connect_raises_service_unavailable_when_bucket_probe_fails`
 - **Obiettivo**: un fallimento di `list_buckets` deve bloccare la connessione.
@@ -72,6 +78,8 @@
 - **Setup**: `_FakeS3Client(fail_list_buckets=True)` + fake session; `variables={}`; `connect(host, key_id, access_key)`.
 - **Assert**: messaggio `"Unable to connect to S3"`; `list_buckets_calls == 1` (probe eseguito una volta prima dell'errore).
 - **Casi coperti**: error path sul probe, distinto dalla validazione input.
+- **Cosa non dimostra**: i retry di rete di botocore: il fake fallisce subito con `RuntimeError`.
+- **Se fallisce, guarda**: il `try/except` attorno a `list_buckets()` in `connect`.
 
 ### `test_is_connected_returns_true_or_false_from_bucket_probe`
 - **Obiettivo**: coprire i tre esiti osservabili di `is_connected`.
@@ -80,6 +88,8 @@
 - **Setup**: due fake client (sano / guasto); nessun boto3 patchato (probe diretto sui fake).
 - **Assert**: client sano + `disconnected=False` → `True`; client guasto + `disconnected=False` → `False`; client sano + `disconnected=True` → `False` (cortocircuito **prima** del probe).
 - **Casi coperti**: matrice stato↔probe. Nota: `hasattr(self, "client")` è sempre vero (vedi §6), quindi solo `disconnected` e l'esito del probe determinano il risultato.
+- **Cosa non dimostra**: lo stato di una connessione reale: i client sono assegnati a mano.
+- **Se fallisce, guarda**: la guardia `disconnected` e il probe in `is_connected`; un errore del probe non deve diventare un falso `True`.
 
 ### `test_disconnect_resets_client_and_marks_connector_disconnected`
 - **Obiettivo**: `disconnect` rimuove il client e marca il connector come chiuso.
@@ -88,6 +98,8 @@
 - **Setup**: nessun boto3/variabili; solo cleanup locale.
 - **Assert**: `connector.client is None`; `connector.disconnected is True`.
 - **Casi coperti**: teardown del connector.
+- **Cosa non dimostra**: la chiusura di socket o sessioni reali.
+- **Se fallisce, guarda**: lo stato locale impostato da `disconnect` e il suo effetto sui probe successivi di `is_connected`.
 
 ## 5. Call chain
 

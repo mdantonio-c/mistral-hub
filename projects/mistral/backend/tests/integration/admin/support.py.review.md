@@ -4,22 +4,22 @@
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/admin/support.py](projects/mistral/backend/tests/integration/admin/support.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/admin/support.py`
 - **Scopo**: centralizzare costanti URL, payload builder, helper di creazione via API (con cleanup registrato) e cleanup DB per i quattro moduli `test_admin_*.py`. Evita duplicazione fra i test admin.
-- **Tipologia**: modulo di supporto (costanti + dataclass + helper), importato per nome dai test. La fixture di login e' definita nel [conftest locale](conftest.py), non nel supporto.
+- **Tipologia**: modulo di supporto (costanti + dataclass + helper), importato per nome dai test. La fixture di login e' definita nel conftest locale (`projects/mistral/backend/tests/integration/admin/conftest.py`), non nel supporto.
 
 ## 2. Backend realmente esercitato (indirettamente)
 
 | Via | Endpoint / Modello | Path |
 |---|---|---|
-| `create_attribution_via_api` → POST | `AdminAttributions.post` | [endpoints/admin_attributions.py](projects/mistral/backend/endpoints/admin_attributions.py) |
-| `create_license_group_via_api` → POST | `AdminLicGroups.post` | [endpoints/admin_license_groups.py](projects/mistral/backend/endpoints/admin_license_groups.py) |
-| `create_license_via_api` → POST | `AdminLicenses.post` | [endpoints/admin_licenses.py](projects/mistral/backend/endpoints/admin_licenses.py) |
-| `create_dataset_via_api` → POST | `AdminDatasets.post` | [endpoints/admin_datasets.py](projects/mistral/backend/endpoints/admin_datasets.py) |
-| `admin_headers` → login (fixture esterna al supporto) | `BaseTests().do_login` (admin di default) | [conftest.py](conftest.py) → `restapi.tests` |
-| `create_regular_user` → utente reale | `create_authenticated_test_user` / `register_test_user_cleanup` | [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) |
-| `delete_admin_records` → DB diretto | modelli `Datasets`, `License`, `GroupLicense`, `Attribution` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L101) |
-| `DOWNLOAD_DIR` | directory output utente da pulire | [endpoints/__init__.py](projects/mistral/backend/endpoints/__init__.py) (via `mistral.endpoints`) |
+| `create_attribution_via_api` → POST | `AdminAttributions.post` | `projects/mistral/backend/endpoints/admin_attributions.py` |
+| `create_license_group_via_api` → POST | `AdminLicGroups.post` | `projects/mistral/backend/endpoints/admin_license_groups.py` |
+| `create_license_via_api` → POST | `AdminLicenses.post` | `projects/mistral/backend/endpoints/admin_licenses.py` |
+| `create_dataset_via_api` → POST | `AdminDatasets.post` | `projects/mistral/backend/endpoints/admin_datasets.py` |
+| `admin_headers` → login (fixture esterna al supporto) | `BaseTests().do_login` (admin di default) | `projects/mistral/backend/tests/integration/admin/conftest.py` → `restapi.tests` |
+| `create_regular_user` → utente reale | `create_authenticated_test_user` / `register_test_user_cleanup` | `projects/mistral/backend/tests/helpers/auth.py` |
+| `delete_admin_records` → DB diretto | modelli `Datasets`, `License`, `GroupLicense`, `Attribution` | `projects/mistral/backend/models/sqlalchemy.py` |
+| `DOWNLOAD_DIR` | directory output utente da pulire | `projects/mistral/backend/endpoints/__init__.py` (via `mistral.endpoints`) |
 
 ## 3. Elementi definiti
 
@@ -51,7 +51,9 @@
 - **Helper “che fanno più del nome”**: i `create_*_via_api` **contengono `assert status_code == 200`** e **registrano cleanup**. Quindi (a) un fallimento in fase di arrange si manifesta come assert dell'helper, non del test; (b) attraversano il **vero controller** (non sono mock) e dipendono dalla schema dinamica (la `OneOf` richiede che le dipendenze esistano già).
 - **Ruolo ordinario deterministico**: `BaseTests.create_user` genera prima il payload con `buildData(schema)`, inclusi ruoli casuali, poi applica gli override. Passare solo `open_dataset=True` poteva quindi creare un `admin_root` e far rispondere `200` al controllo che attende `401`. Il helper locale passa anche `roles=orjson.dumps([Role.USER.value]).decode("UTF8")`, nel formato gia' usato dal framework; `open_dataset` e l'helper auth generico restano invariati. La regressione `test_regular_user_overrides_generated_admin_role` in `test_admin_attributions.py` forza un payload generato admin, usa creazione/login/DB reali e verifica ruolo esatto, permesso ordinario e rifiuto `401`.
 - **`delete_admin_records` con side effect m2m**: prima di cancellare un dataset svuota `dataset.users` (tabella `auth_association`), comportamento non evidente dal nome “delete records”.
-- **Cleanup LIFO dipendente dall'ordine di creazione**: la correttezza relazionale del teardown dipende dal fatto che il bundle crei il dataset per ultimo; il `CleanupRegistry` esegue in ordine inverso ([helpers/cleanup.py](projects/mistral/backend/tests/helpers/cleanup.py)).
+- **Stringa vuota diversa da `None` nei builder**: `url=None` fa generare un URL di default, mentre `url=""` (e `sort_index=""` passato a `dataset_payload`) arriva così com'è all'endpoint per attraversare la normalizzazione a `None` dello schema.
+- **Il bundle è solo catalogo**: `create_dataset_bundle_via_api` crea righe di metadata senza dati Arkimet/DB-All.e dietro. Una modifica ai builder o agli helper di creazione può far fallire tutti i moduli admin già nell'arrange, prima dell'azione sotto test.
+- **Cleanup LIFO dipendente dall'ordine di creazione**: la correttezza relazionale del teardown dipende dal fatto che il bundle crei il dataset per ultimo; il `CleanupRegistry` esegue in ordine inverso (`projects/mistral/backend/tests/helpers/cleanup.py`).
 - **`find_list_item` maschera un mismatch di tipo**: confronta id come stringa perché gli schema admin dichiarano `id` come `Str` mentre i modelli sono `Integer`; un assert “ingenuo” su id numerico sarebbe fragile.
 - **`created_id_from_response` codifica un'assunzione di contratto**: gli endpoint POST ritornano un **id scalare** (non un JSON annidato); se cambiasse il contratto, l'assert `isinstance` fallirebbe qui e non nel test.
 - **Nessun fake/monkeypatch/worker nel supporto**: tutto passa per Flask + SQLAlchemy reali. Solo la regressione dedicata sostituisce temporaneamente `BaseTests.buildData` per forzare il ruolo admin nel payload generato; non sostituisce gli helper o le API.

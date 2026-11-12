@@ -1,22 +1,24 @@
 # Review — `test_observations_auth.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 > Modulo di **validazione precoce**: copre i rami che falliscono *prima* di qualsiasi lookup dei dati osservati.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/observed/test_observations_auth.py](projects/mistral/backend/tests/integration/observed/test_observations_auth.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/observed/test_observations_auth.py`
 - **Scopo**: verificare che `GET /api/observations` rifiuti con **400** le richieste **anonime** in cui mancano input obbligatori: (a) una `reftime` completa (manca un estremo) e (b) la clausola `license`.
 - **Tipologia**: test di **integrazione HTTP** (controller reale + schema marshmallow + parsing query). Marker di modulo: `integration`, `deterministic`, `runtime_sensitive`.
 - **Nota sul marker `runtime_sensitive`**: è applicato a livello di modulo per coerenza col dominio observed, ma **questi due test non dipendono dai dati runtime** né possono fare `pytest.skip`: falliscono entrambi alla validazione, prima di toccare DBALLE/Arkimet. Sono di fatto deterministici.
+- **Nome del modulo**: "auth" non implica prove sulle credenziali: nessun test invia header, login o token, e non viene usata la discovery observed.
+- **Percorso comune del dominio** (`MapsObservations.get`, licenza, durata della finestra, archivio): vedi [conftest.py.review.md](conftest.py.review.md).
 
 ## 2. Backend realmente testato
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `MapsObservations.get` | [endpoints/maps_observed.py](projects/mistral/backend/endpoints/maps_observed.py) | `GET /api/observations` con `@decorators.auth.optional()`: i due rami di `BadRequest` esercitati sono "Reftime is missing" e "License group parameter is mandatory". |
-| `ObservationsQuery` (schema) | [endpoints/maps_observed.py](projects/mistral/backend/endpoints/maps_observed.py) | Tutti i campi sono `required=False`: nessun 422 di schema; la validazione è **applicativa** dentro `get`. |
-| `BeDballe.from_query_to_dic` | [services/dballe.py](projects/mistral/backend/services/dballe.py#L2283) | Parsa la stringa `q`; con `q="license:CCBY_COMPLIANT"` produce solo `{"license": ...}`, **senza** `datetimemin`/`datetimemax`. |
+| `MapsObservations.get` | `projects/mistral/backend/endpoints/maps_observed.py` | `GET /api/observations` con `@decorators.auth.optional()`: i due rami di `BadRequest` esercitati sono "Reftime is missing" e "License group parameter is mandatory". |
+| `ObservationsQuery` (schema) | `projects/mistral/backend/endpoints/maps_observed.py` | Tutti i campi sono `required=False`: nessun 422 di schema; la validazione è **applicativa** dentro `get`. |
+| `BeDballe.from_query_to_dic` | `projects/mistral/backend/services/dballe.py` | Parsa la stringa `q`; con `q="license:CCBY_COMPLIANT"` produce solo `{"license": ...}`, **senza** `datetimemin`/`datetimemax`. |
 
 ## 3. Mappa delle dipendenze
 
@@ -37,6 +39,8 @@ Nessuna fixture locale, nessun mock, nessun `monkeypatch`, nessun accesso DB dir
 - **Setup**: nessuno (`arrange` costruisce solo la URL).
 - **Assert**: `response.status_code == 400`.
 - **Casi coperti**: error path di validazione reftime. Il test supera volutamente il gate `license` per arrivare a misurare **proprio** il controllo reftime.
+- **Cosa non dimostra**: mancano entrambi gli estremi, quindi non distingue "manca solo `date_from`" da "manca solo `date_to`"; non verifica il messaggio d'errore, e un 400 prodotto prima da `check_access_authorization` (gruppo licenza `CCBY_COMPLIANT` inesistente → `UnexistingLicenseGroup` → 400) farebbe passare il test lo stesso.
+- **Se fallisce, guarda**: la sequenza di validazione in `MapsObservations.get` (`projects/mistral/backend/endpoints/maps_observed.py`); distinguere un problema di configurazione del gruppo licenza (SQL su `GroupLicense`) da un cambio del controllo sui tempi mancanti.
 
 ### `test_observations_without_license_returns_bad_request`
 - **Obiettivo**: una query **senza alcuna `license`** deve dare **400**.
@@ -45,6 +49,8 @@ Nessuna fixture locale, nessun mock, nessun `monkeypatch`, nessun accesso DB dir
 - **Setup**: nessuno.
 - **Assert**: `response.status_code == 400`.
 - **Casi coperti**: error path del gate license. È il **gate più a monte**: fallisce prima del controllo reftime.
+- **Cosa non dimostra**: mancano anche i tempi, quindi non isola la licenza su una query altrimenti valida; non verifica il messaggio d'errore.
+- **Se fallisce, guarda**: i controlli iniziali di `MapsObservations.get`, non l'autenticazione Basic/JWT.
 
 ## 5. Call chain
 

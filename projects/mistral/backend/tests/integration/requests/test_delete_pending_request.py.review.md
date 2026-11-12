@@ -1,26 +1,27 @@
 # Review — `test_delete_pending_request.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 > Modulo: copre il contratto di **cancellazione** delle richieste e il **cleanup automatico** delle richieste stagnanti.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/requests/test_delete_pending_request.py](projects/mistral/backend/tests/integration/requests/test_delete_pending_request.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/requests/test_delete_pending_request.py`
 - **Scopo**: verificare le regole di `DELETE /api/requests/<id>` attorno al *grace period* (cancellazione consentita oltre la finestra → `200`; negata dentro la finestra → `403`) e il comportamento del task Celery `automatic_cleanup` che marca come `FAILURE` le richieste stagnanti lasciando intatte quelle recenti.
 - **Tipologia**: test di **integrazione HTTP + task Celery** (controller reale + DB SQLAlchemy + task registrato). Marker: `integration`, `deterministic`.
 - **Numero di test**: 3, in un'unica classe `TestDeletePendingRequests(BaseTests)`.
+- **Helper locale**: `delete_pending_request` è un semplice wrapper di `DELETE /api/requests/<id>` senza assert propri; le verifiche restano nei test.
 
 ## 2. Backend realmente testato
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `UserRequests.delete` | [endpoints/requests.py](projects/mistral/backend/endpoints/requests.py) | `DELETE /api/requests/<id>` — sequenza `check_request` → `check_owner` → `check_request_is_pending_within_grace_period` → `delete_request_record` + `db.session.delete(request)` → `200`. |
-| `repo.check_request` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L69) | `True` se la `Request` esiste, altrimenti `False` → `NotFound`. |
-| `repo.check_owner` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L50) | `True` se `request.user_id == user.id`; altrimenti ritorna `None` (falsy) → `Unauthorized`. |
-| `repo.check_request_is_pending_within_grace_period` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L80) | `True` se `submission_date > now - GRACE_PERIOD` **e** `status not in READY_STATES` → `Forbidden`. |
-| `repo.delete_request_record` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L172) | Rimuove l'eventuale `fileoutput` su disco/DB poi `commit` (non cancella la `Request`, lo fa l'endpoint). |
-| `automatic_cleanup` | [tasks/requests_cleanup.py](projects/mistral/backend/tasks/requests_cleanup.py#L18) | Task Celery: per ogni `Request` senza `end_date`, se `status not in READY_STATES` e `now - GRACE_PERIOD > submission_date` setta `end_date`, `error_message`, `status = FAILURE`. |
-| Modello `Request` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L36) | Colonne usate negli assert: `id`, `status`, `submission_date`, `archived`. |
+| `UserRequests.delete` | `projects/mistral/backend/endpoints/requests.py` | `DELETE /api/requests/<id>` — sequenza `check_request` → `check_owner` → `check_request_is_pending_within_grace_period` → `delete_request_record` + `db.session.delete(request)` → `200`. |
+| `repo.check_request` | `projects/mistral/backend/services/sqlapi_db_manager.py` | `True` se la `Request` esiste, altrimenti `False` → `NotFound`. |
+| `repo.check_owner` | `projects/mistral/backend/services/sqlapi_db_manager.py` | `True` se `request.user_id == user.id`; altrimenti ritorna `None` (falsy) → `Unauthorized`. |
+| `repo.check_request_is_pending_within_grace_period` | `projects/mistral/backend/services/sqlapi_db_manager.py` | `True` se `submission_date > now - GRACE_PERIOD` **e** `status not in READY_STATES` → `Forbidden`. |
+| `repo.delete_request_record` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Rimuove l'eventuale `fileoutput` su disco/DB poi `commit` (non cancella la `Request`, lo fa l'endpoint). |
+| `automatic_cleanup` | `projects/mistral/backend/tasks/requests_cleanup.py` | Task Celery: per ogni `Request` senza `end_date`, se `status not in READY_STATES` e `now - GRACE_PERIOD > submission_date` setta `end_date`, `error_message`, `status = FAILURE`. |
+| Modello `Request` | `projects/mistral/backend/models/sqlalchemy.py` | Colonne usate negli assert: `id`, `status`, `submission_date`, `archived`. |
 
 ## 3. Mappa delle dipendenze
 
@@ -28,15 +29,15 @@
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
 | `app` | fixture | `restapi.tests` | App Flask di test; passata a `send_task` per il task di cleanup. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO**; usata **transitivamente** dalle fixture locali. |
-| `pending_request_user` | fixture **locale** | [requests/conftest.py](projects/mistral/backend/tests/integration/requests/conftest.py) | Utente temporaneo autenticato (senza permessi speciali) + cleanup utente/cartelle. |
-| `pending_delete_requests` | fixture **locale** | [requests/conftest.py](projects/mistral/backend/tests/integration/requests/conftest.py) | Crea **due** `Request` (una vecchia/`STARTED`, una recente/`PENDING`) e registra il cleanup; ritorna `(deletable_id, undeletable_id)`. |
-| `create_pending_delete_requests` / `delete_request_rows` | helper | [requests/support.py](projects/mistral/backend/tests/integration/requests/support.py) | Seeding/cleanup diretto delle righe `Request` (usati dalla fixture locale). |
+| `cleanup_registry` | fixture | `projects/mistral/backend/tests/conftest.py` | Teardown **LIFO**; usata **transitivamente** dalle fixture locali. |
+| `pending_request_user` | fixture **locale** | `projects/mistral/backend/tests/integration/requests/conftest.py` | Utente temporaneo autenticato (senza permessi speciali) + cleanup utente/cartelle. |
+| `pending_delete_requests` | fixture **locale** | `projects/mistral/backend/tests/integration/requests/conftest.py` | Crea **due** `Request` (una vecchia/`STARTED`, una recente/`PENDING`) e registra il cleanup; ritorna `(deletable_id, undeletable_id)`. |
+| `create_pending_delete_requests` / `delete_request_rows` | helper | `projects/mistral/backend/tests/integration/requests/support.py` | Seeding/cleanup diretto delle righe `Request` (usati dalla fixture locale). |
 | `faker` | fixture | plugin `faker` | Nomi randomici delle richieste (via la fixture locale). |
-| `AuthenticatedTestUser` | dataclass | [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) | Record `uuid`/`user_id`/`headers`/`output_dir`. |
+| `AuthenticatedTestUser` | dataclass | `projects/mistral/backend/tests/helpers/auth.py` | Record `uuid`/`user_id`/`headers`/`output_dir`. |
 | `sqlalchemy.get_instance()` | connettore | `restapi.connectors` | Accesso diretto al DB per gli assert di stato. |
 | `BaseTests.send_task` | helper | `restapi.tests` | Recupera il task Celery registrato per nome (`"automatic_cleanup"`) e lo esegue in-process. |
-| `requests_cleanup_perimeter` | fixture | [integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | Confina `automatic_cleanup` a utente e request del test e a una root download temporanea ([helpers/task_perimeter.py](projects/mistral/backend/tests/helpers/task_perimeter.py)). |
+| `requests_cleanup_perimeter` | fixture | `projects/mistral/backend/tests/integration/conftest.py` | Confina `automatic_cleanup` a utente e request del test e a una root download temporanea (`projects/mistral/backend/tests/helpers/task_perimeter.py`). |
 | `READY_STATES` | costante | `celery.states` | Insieme degli stati terminali (`SUCCESS`/`FAILURE`/`REVOKED`); usata nell'assert finale. |
 
 ## 4. Analisi dettagliata di ogni test
@@ -48,6 +49,8 @@
 - **Setup**: `pending_request_user` + `pending_delete_requests`; la richiesta cancellabile ha `status="STARTED"` e `submission_date = now - GRACE_PERIOD - 1g`.
 - **Assert**: `status_code == 200`; `db.Request.query.get(deletable_request_id) is None` (effetto persistito sul DB).
 - **Casi coperti**: happy path della cancellazione fuori grace period + side effect DB.
+- **Cosa non dimostra**: "before" indica una `submission_date` anteriore alla soglia, non una richiesta appena creata; il seed non ha `FileOutput`, quindi la rimozione dei file associati non è provata.
+- **Se fallisce, guarda**: `check_request_is_pending_within_grace_period` in `projects/mistral/backend/services/sqlapi_db_manager.py`, `READY_STATES` e le date calcolate da `create_pending_delete_requests` in `projects/mistral/backend/tests/integration/requests/support.py`.
 
 ### `test_delete_request_within_grace_period_returns_403`
 - **Obiettivo**: una richiesta **pendente e recente** è protetta dalla cancellazione manuale.
@@ -56,6 +59,8 @@
 - **Setup**: la richiesta non cancellabile ha `status="PENDING"` e `submission_date = now - GRACE_PERIOD + 1g` (dentro la finestra).
 - **Assert**: `status_code == 403`; la richiesta è **ancora presente** (`get(...) is not None`).
 - **Casi coperti**: error path / protezione grace period.
+- **Cosa non dimostra**: il contenuto della riga dopo il `403` (è verificata solo l'esistenza) e il comportamento all'esatta uguaglianza con la soglia (il seed usa un margine di ±1 giorno).
+- **Se fallisce, guarda**: il valore di `GRACE_PERIOD`; `support.py` non lo importa ma lo ricalcola da `Env.get_int("GRACE_PERIOD", 2)` come endpoint, repository e task, quindi le definizioni devono restare allineate. Poi `READY_STATES`.
 
 ### `test_requests_cleanup_marks_stale_request_as_failure`
 - **Obiettivo**: il cleanup automatico marca come `FAILURE` la richiesta stagnante e lascia pendente quella recente.
@@ -64,8 +69,10 @@
 - **Setup**: stesse due righe della fixture (`STARTED` vecchia, `PENDING` recente); `requests_cleanup_perimeter.allow(...)` registra `pending_request_user` e le due request, le sole righe visibili al task.
 - **Assert**:
   - `deletable_request is not None` e `status == "FAILURE"` (marcata, **non** cancellata: il ramo "stagnante" setta solo lo stato e fa `continue`).
-  - `undeletable_request is not None` e `status not in READY_STATES` (resta `PENDING`).
+  - `undeletable_request is not None` e `status not in READY_STATES` (l'assert esige solo uno stato non terminale, non proprio `PENDING`).
 - **Casi coperti**: comportamento del task su una richiesta oltre grace period vs una dentro.
+- **Cosa non dimostra**: broker e worker Celery, perché `BaseTests.send_task` esegue il task in-process.
+- **Se fallisce, guarda**: il ramo "stagnante" di `automatic_cleanup` in `projects/mistral/backend/tasks/requests_cleanup.py` e la facciata query di `RequestsCleanupPerimeter` in `projects/mistral/backend/tests/helpers/task_perimeter.py`; non rimuovere il perimetro per adattare un refactor del task.
 
 ## 5. Call chain
 
@@ -103,7 +110,7 @@ send_task(app, "automatic_cleanup")  → CeleryExt task automatic_cleanup (perim
 
 ## 8. Possibili criticità
 
-- **Perimetro accoppiato al task**: `automatic_cleanup` gira dentro la facciata fail-closed di [helpers/task_perimeter.py](projects/mistral/backend/tests/helpers/task_perimeter.py); se il task cambia il modo di leggere il DB, il test fallisce finché la facciata non viene aggiornata.
+- **Perimetro accoppiato al task**: `automatic_cleanup` gira dentro la facciata fail-closed di `projects/mistral/backend/tests/helpers/task_perimeter.py`; se il task cambia il modo di leggere il DB, il test fallisce finché la facciata non viene aggiornata.
 - **Dipendenza dal tempo wall-clock**: gli scenari si basano su `now()`; il margine ±1 giorno assorbe gli skew ordinari, ma resta una dipendenza dall'orologio (e dal valore di `GRACE_PERIOD`).
 - **`now()` naive vs `submission_date` default `utcnow`**: i seed impostano `submission_date` esplicitamente con `datetime.now()` locale, coerente con i controlli (anch'essi `now()` locale); il default del modello (`utcnow`) non viene usato qui, ma la discrepanza naive/UTC merita attenzione.
 - **Test cleanup accoppiato alla fixture di delete**: riusa `pending_delete_requests` (pensata per i test di delete); un cambio della fixture impatta sia delete sia cleanup.

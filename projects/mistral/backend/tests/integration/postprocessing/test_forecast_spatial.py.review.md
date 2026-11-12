@@ -1,40 +1,41 @@
 # Review — `test_forecast_spatial.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/postprocessing/test_forecast_spatial.py](projects/mistral/backend/tests/integration/postprocessing/test_forecast_spatial.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/postprocessing/test_forecast_spatial.py`
 - **Scopo**: verificare i postprocessori **spaziali** forecast su `lm5`: interpolazione di griglia senza template (riscrive la geometria), interpolazione con template (riusa la geometria da un GRIB), cropping di griglia (completa con successo) e **spare-point interpolation** (output BUFR).
 - **Tipologia**: integrazione **end-to-end reale**; `data_extract` eseguito sincrono via `send_task`, con esecuzione reale di `vg6d_transform` / `vg6d_getpoint` e lettura GRIB via `eccodes`. Marker (modulo): `integration`, `deterministic`, **`runtime_sensitive`**.
 - **RUNTIME-SENSITIVE — skip silenziosi**:
   - tutti i 4 test → `require_dataset(db,"lm5")` (da `pp_forecast_env`) può **skippare**;
   - `test_spare_point_interpolation_outputs_bufr` → in più `require_spare_point_template_archive()` **skippa** se manca `/data/templates_for_pp/template_for_spare_point.zip`.
+- **Percorso comune del dominio** (task diretto, ordine fisso dei processor, tool reali): vedi [conftest.py.review.md](conftest.py.review.md).
 
 ## 2. Backend realmente testato
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| Task `data_extract` | [tasks/data_extraction.py](projects/mistral/backend/tasks/data_extraction.py#L42) | Estrazione + dispatch postprocessori (**ordine fisso**: crop *prima* di interp). |
-| `pp3_1.pp_grid_interpolation` | [tools/grid_interpolation.py](projects/mistral/backend/tools/grid_interpolation.py#L24) | `vg6d_transform --trans-type/--sub-type` con `--x/y-min/max,--nx/ny` **oppure** `--output-format=grib_api:<template>`. |
-| `pp3_2.pp_grid_cropping` | [tools/grid_cropping.py](projects/mistral/backend/tools/grid_cropping.py#L17) | `vg6d_transform --trans-mode=s --trans-type=zoom --sub-type=coord --ilon/ilat/flon/flat`. |
-| `pp3_3.pp_sp_interpolation` | [tools/spare_point_interpol.py](projects/mistral/backend/tools/spare_point_interpol.py#L44) | `vg6d_getpoint`(grib) con shapefile `--coord-file`; output **BUFR**. |
-| `arki.arkimet_extraction` | [services/arkimet.py](projects/mistral/backend/services/arkimet.py#L355) | Estrazione forecast (filtro `forecast_pressure_filter`). |
+| Task `data_extract` | `projects/mistral/backend/tasks/data_extraction.py` | Estrazione + dispatch postprocessori (**ordine fisso**: crop *prima* di interp). |
+| `pp3_1.pp_grid_interpolation` | `projects/mistral/backend/tools/grid_interpolation.py` | `vg6d_transform --trans-type/--sub-type` con `--x/y-min/max,--nx/ny` **oppure** `--output-format=grib_api:<template>`. |
+| `pp3_2.pp_grid_cropping` | `projects/mistral/backend/tools/grid_cropping.py` | `vg6d_transform --trans-mode=s --trans-type=zoom --sub-type=coord --ilon/ilat/flon/flat`. |
+| `pp3_3.pp_sp_interpolation` | `projects/mistral/backend/tools/spare_point_interpol.py` | `vg6d_getpoint`(grib) con shapefile `--coord-file`; output **BUFR**. |
+| `arki.arkimet_extraction` | `projects/mistral/backend/services/arkimet.py` | Estrazione forecast (filtro `forecast_pressure_filter`). |
 | `eccodes` | sistema | `assert_grib_geometry` legge `latitudeOfFirstGridPointInDegrees` e `Ni`. |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
-| `pp_forecast_env` | fixture | [postprocessing/conftest.py](projects/mistral/backend/tests/integration/postprocessing/conftest.py) | Ambiente `lm5` + skip su dataset assente. |
-| `forecast_pressure_filter` | builder | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | Filtro singolo prodotto P (pressione). |
-| `grid_interpolation_without_template(x_min,y_min,nx)` | builder | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | Boundings inline (`x_max=20,y_max=10`), `nx=ny`. |
-| `grid_interpolation_with_template(path)` | builder | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | Riusa geometria dal GRIB `template`. |
-| `grid_cropping_postprocessor(initial_lon,initial_lat,final_lon,final_lat)` | builder | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | `zoom/coord`; l'area deve intersecare la griglia. |
-| `spare_point_postprocessor(path)` | builder | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | Shapefile `shp`, `inter/bilin`. |
-| `require_spare_point_template_archive` | guardia | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | **skip** se manca lo zip template. |
-| `env.unzip_upload/copy_upload/delete_request` | helper | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | Preparano `uploads/`, copiano il GRIB di seed, ripuliscono lo scenario. |
-| `assert_grib_geometry` | assert GRIB | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | Verifica geometria del **primo** messaggio. |
+| `pp_forecast_env` | fixture | `projects/mistral/backend/tests/integration/postprocessing/conftest.py` | Ambiente `lm5` + skip su dataset assente. |
+| `forecast_pressure_filter` | builder | `projects/mistral/backend/tests/integration/postprocessing/support.py` | Filtro singolo prodotto P (pressione). |
+| `grid_interpolation_without_template(x_min,y_min,nx)` | builder | `projects/mistral/backend/tests/integration/postprocessing/support.py` | Boundings inline (`x_max=20,y_max=10`), `nx=ny`. |
+| `grid_interpolation_with_template(path)` | builder | `projects/mistral/backend/tests/integration/postprocessing/support.py` | Riusa geometria dal GRIB `template`. |
+| `grid_cropping_postprocessor(initial_lon,initial_lat,final_lon,final_lat)` | builder | `projects/mistral/backend/tests/integration/postprocessing/support.py` | `zoom/coord`; l'area deve intersecare la griglia. |
+| `spare_point_postprocessor(path)` | builder | `projects/mistral/backend/tests/integration/postprocessing/support.py` | Shapefile `shp`, `inter/bilin`. |
+| `require_spare_point_template_archive` | guardia | `projects/mistral/backend/tests/integration/postprocessing/support.py` | **skip** se manca lo zip template. |
+| `env.unzip_upload/copy_upload/delete_request` | helper | `projects/mistral/backend/tests/integration/postprocessing/support.py` | Preparano `uploads/`, copiano il GRIB di seed, ripuliscono lo scenario. |
+| `assert_grib_geometry` | assert GRIB | `projects/mistral/backend/tests/integration/postprocessing/support.py` | Verifica geometria del **primo** messaggio. |
 
 ## 4. Analisi dettagliata di ogni test
 
@@ -44,6 +45,8 @@
 - **Flusso**: `create_request()` → `execute(filters=forecast_pressure_filter(), postprocessors=[grid_interpolation_without_template(x_min=-15,y_min=-10,nx=12)])` → `assert_success` → `assert_grib_geometry(out,-10,12)`.
 - **Assert**: primo messaggio con `latitudeOfFirstGridPointInDegrees == -10` e `Ni == 12`.
 - **Casi coperti**: happy path interpolazione “a parametri”.
+- **Cosa non dimostra**: non verifica `Nj`, longitudine, passo di griglia, i messaggi successivi al primo né i valori interpolati.
+- **Se fallisce, guarda**: il builder (`x_max=20`, `y_max=10`, `nx=ny`), `vg6d_transform` in `projects/mistral/backend/tools/grid_interpolation.py` e la lettura ecCodes; non è un test di `get_trans_type`, che il task non chiama.
 
 ### `test_grid_interpolation_with_template_reuses_template_geometry`
 - **Obiettivo**: l'interpolazione con template copia la geometria dal GRIB fornito.
@@ -54,6 +57,8 @@
 - **Assert**: la geometria finale coincide con quella del template (stessi `-10`/`12`).
 - **Casi coperti**: ramo `--output-format=grib_api:<template>` dell'interpolazione; riuso geometria.
 - **Coupling chiave**: la `delete_request` della seed è **necessaria** per l'invariante “un solo file in `outputs/`” di `assert_success`; il template vive in `uploads/` (cartella sorella) e non conta nel glob.
+- **Cosa non dimostra**: non prova l'uguaglianza integrale fra geometria del template e dell'output: confronta solo latitudine iniziale e `Ni` del primo messaggio.
+- **Se fallisce, guarda**: prima la fase di seed (copia in `uploads/gi_template.grib` e DELETE HTTP della request seed: un output residuo rompe l'assert "un solo file"), poi il ramo template di `projects/mistral/backend/tools/grid_interpolation.py`.
 
 ### `test_grid_cropping_completes_successfully`
 - **Obiettivo**: il cropping completa con successo (verifica di esito, non di geometria).
@@ -61,6 +66,8 @@
 - **Flusso**: `create_request()` → `execute(filters=forecast_pressure_filter(), postprocessors=[grid_cropping_postprocessor(initial_lon=10,initial_lat=40,final_lon=15,final_lat=45)])` → `assert_success` + `output_path.exists()`.
 - **Assert**: solo successo + file presente (**nessun** assert sui bounding del crop).
 - **Casi coperti**: happy path crop; **nota**: la correttezza geometrica del crop **non** è verificata (vedi §8).
+- **Cosa non dimostra**: non misura il ritaglio e non copre bounding box esterni alla griglia o invertiti.
+- **Se fallisce, guarda**: i parametri del builder e `vg6d_transform` in `projects/mistral/backend/tools/grid_cropping.py`, senza attribuire al test prove geometriche che non fa.
 
 ### `test_spare_point_interpolation_outputs_bufr`
 - **Obiettivo**: la spare-point interpolation esporta output **BUFR**.
@@ -68,6 +75,8 @@
 - **Flusso**: `create_request()` → `archive = require_spare_point_template_archive()` (**skip** se assente) → `unzip_upload(archive)` → `template = uploads/template_for_spare_point.shp` → `execute(filters=forecast_pressure_filter(), postprocessors=[spare_point_postprocessor(template)])` → `assert_success` → `assert output_path.suffix == ".bufr"`.
 - **Assert**: il file finale ha estensione `.bufr` (il task NON rinomina a `.grib` perché l'output non è grib né `.tmp`).
 - **Casi coperti**: happy path spare-point; cambio formato output GRIB→BUFR.
+- **Cosa non dimostra**: non decodifica il BUFR né verifica i punti interpolati; `check_coord_filepath` non viene esercitato da questo percorso.
+- **Se fallisce, guarda**: presenza dello ZIP e dei file sidecar dello shapefile in `uploads/`, `vg6d_getpoint` in `projects/mistral/backend/tools/spare_point_interpol.py` e la regola di naming dell'output nel task.
 
 ## 5. Call chain
 

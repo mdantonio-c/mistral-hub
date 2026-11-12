@@ -1,12 +1,12 @@
 # Review — `test_real_worker_cleanup.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 > Modulo deterministico: i worker sono simulati, utenti, request e API sono reali.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/data/test_real_worker_cleanup.py](projects/mistral/backend/tests/integration/data/test_real_worker_cleanup.py)
-- **Scopo**: verificare che il cleanup dei test `async_real` ([helpers/real_workers.py](projects/mistral/backend/tests/helpers/real_workers.py)) non cancelli mai dati sotto un task che un worker può ancora eseguire.
+- **Percorso**: `projects/mistral/backend/tests/integration/data/test_real_worker_cleanup.py`
+- **Scopo**: verificare che il cleanup dei test `async_real` (`projects/mistral/backend/tests/helpers/real_workers.py`) non cancelli mai dati sotto un task che un worker può ancora eseguire.
 - **Tipologia**: integrazione su DB e API reali, con il solo controllo Celery dell'helper sostituito. Marker: `integration`, `deterministic`. 3 funzioni, 4 casi (una parametrizzata).
 - **Dove gira**: ovunque, anche fuori dagli stack `rapydo --testing`: nessun task raggiunge i worker reali.
 

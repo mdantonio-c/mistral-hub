@@ -4,13 +4,13 @@
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/helpers/runtime.py](projects/mistral/backend/tests/helpers/runtime.py)
+- **Percorso**: `projects/mistral/backend/tests/helpers/runtime.py`
 - **Scopo**: singleton di sessione che cache-a risorse riusabili (id dataset) e offre un context manager per override temporanei di attributi.
 - **Tipologia**: infrastruttura di suite (usata dalla fixture `test_runtime`).
 
 ## 2. Backend realmente esercitato
 
-- `db.Datasets` ([models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py)) per risolvere `name`/`arkimet_id` → `id` numerico.
+- `db.Datasets` (`projects/mistral/backend/models/sqlalchemy.py`) per risolvere `name`/`arkimet_id` → `id` numerico.
 
 ## 3. Elementi definiti
 
@@ -23,8 +23,9 @@
 ## 4. Comportamenti nascosti
 
 - **Singleton di sessione**: `_dataset_cache` **persiste tra tutti i test** della sessione. Un id risolto resta valido per l'intera run.
-- **`override_attr` è thread-safe** (`RLock`) e garantisce ripristino in `finally`: usato per patchare attributi env-dependent senza leak tra test.
+- **`override_attr` garantisce il ripristino in `finally`**: usato per patchare attributi env-dependent senza leak tra test. L'`RLock` protegge solo le singole assegnazioni (sostituzione e ripristino), non l'intero intervallo in cui l'override è attivo: non isola thread o processi concorrenti e non è una prova di sicurezza in esecuzione parallela.
 - **`dataset_id` accetta sia `name` sia `arkimet_id`**: la stessa stringa può matchare due colonne diverse (query con `OR`).
+- **Consumatori principali**: conftest di `data_ready`, `schedules`, `observed`, `postprocessing`, gli helper `data_ready.py` e `observed_windows.py` e alcuni test di `fields`, `observed` e `data`.
 
 ## 5. Checklist di revisione
 

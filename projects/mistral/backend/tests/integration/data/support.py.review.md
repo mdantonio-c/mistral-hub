@@ -5,10 +5,10 @@
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/data/support.py](projects/mistral/backend/tests/integration/data/support.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/data/support.py`
 - **Scopo**: centralizzare builder di payload, creazione di utenti temporanei con permessi di estrazione, dataset/licenze sintetici, fake locali per Celery/RabbitMQ/Arkimet e helper di cleanup, così i test del dominio `data` restano confinati al backend di test senza avviare worker reali, broker AMQP o estrazioni meteorologiche pesanti.
 - **Tipologia**: modulo di supporto **puro** — definisce dataclass, classi fake e funzioni helper. **Non definisce nessuna fixture e nessun comportamento `autouse`**: ogni effetto è attivato esplicitamente dal test che chiama l'helper.
-- **Caratteristica chiave**: i fake Celery/Rabbit sono **locali a questo modulo** e **non** riusano `tests/helpers/celery_fakes.py`. L'isolamento dai servizi reali avviene via `monkeypatch` sui simboli importati dal modulo endpoint ([endpoints/data.py](projects/mistral/backend/endpoints/data.py)).
+- **Caratteristica chiave**: i fake Celery/Rabbit sono **locali a questo modulo** e **non** riusano `tests/helpers/celery_fakes.py`. L'isolamento dai servizi reali avviene via `monkeypatch` sui simboli importati dal modulo endpoint (`projects/mistral/backend/endpoints/data.py`).
 
 ## 2. Backend realmente esercitato
 
@@ -16,13 +16,13 @@ Il modulo non testa nulla, ma gli helper esercitano (in fase di arrange/teardown
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| Modelli SQLAlchemy reali | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py) | `User`, `Datasets`, `License`, `GroupLicense`, `Attribution`, `Request`, `FileOutput` creati/cancellati direttamente sul DB di test via `sqlalchemy.get_instance()`. |
-| `create_authenticated_test_user` / `register_test_user_cleanup` / `AuthenticatedTestUser` | [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) | Creazione utente via API admin reale + login reale + cleanup. |
+| Modelli SQLAlchemy reali | `projects/mistral/backend/models/sqlalchemy.py` | `User`, `Datasets`, `License`, `GroupLicense`, `Attribution`, `Request`, `FileOutput` creati/cancellati direttamente sul DB di test via `sqlalchemy.get_instance()`. |
+| `create_authenticated_test_user` / `register_test_user_cleanup` / `AuthenticatedTestUser` | `projects/mistral/backend/tests/helpers/auth.py` | Creazione utente via API admin reale + login reale + cleanup. |
 | `BaseTests` | `restapi.tests` | `create_user`, `do_login` (dentro l'helper auth). |
-| `DOWNLOAD_DIR` | [endpoints/\_\_init\_\_.py](projects/mistral/backend/endpoints/__init__.py) | Radice del path filesystem per output utente (`DOWNLOAD_DIR/<uuid>/outputs`). |
-| `DatasetCategories` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L132) | Enum `FOR/OBS/RAD/SEA` per la categoria del dataset sintetico. |
+| `DOWNLOAD_DIR` | `projects/mistral/backend/endpoints/__init__.py` | Radice del path filesystem per output utente (`DOWNLOAD_DIR/<uuid>/outputs`). |
+| `DatasetCategories` | `projects/mistral/backend/models/sqlalchemy.py` | Enum `FOR/OBS/RAD/SEA` per la categoria del dataset sintetico. |
 | `celery.states` | `celery` | Solo le costanti `PENDING` / `SUCCESS` (nessun broker). |
-| `data_endpoint_module.arki / celery / rabbitmq` | [endpoints/data.py](projects/mistral/backend/endpoints/data.py) | Bersagli del `monkeypatch` (vedi `patch_data_endpoint_runtime`). |
+| `data_endpoint_module.arki / celery / rabbitmq` | `projects/mistral/backend/endpoints/data.py` | Bersagli del `monkeypatch` (vedi `patch_data_endpoint_runtime`). |
 
 **Non** esercitato (volutamente fakeato/aggirato): Arkimet reale (config `arkimet_conf`), DBALLE, broker RabbitMQ, worker Celery, task `data_extract`.
 
@@ -50,9 +50,9 @@ Il modulo non testa nulla, ma gli helper esercitano (in fase di arrange/teardown
 
 - **Nessuna fixture, nessun `autouse`**: a differenza di un `conftest.py`, qui non c'è iniezione automatica. Tutto l'isolamento dai servizi reali esiste **solo se il test chiama** `patch_data_endpoint_runtime` (o passa i fake). Un test che dimentica il patch finirebbe per chiamare Arkimet/DBALLE/RabbitMQ reali — da tenere presente in revisione di nuovi test.
 - **Fake locali ≠ `celery_fakes.py`**: il dominio `data` **non** usa i transport-fake condivisi (`AcceptTasksWithoutRunningCelery`, `InlineDataExtractCelery`, …). Usa `RecordingCelery`/`FakeRabbit` locali, montati via `monkeypatch` su `data_endpoint_module.celery/rabbitmq`. Il task `data_extract` **non viene mai eseguito**: viene solo registrato. Nessun worker, broker, estrazione.
-- **Monkeypatch sui simboli di modulo**: `patch_data_endpoint_runtime` patcha `data_endpoint_module.arki/celery/rabbitmq` (oggetti importati a livello modulo in [endpoints/data.py](projects/mistral/backend/endpoints/data.py)). Funziona perché l'endpoint risolve quei nomi a runtime dai globals del modulo. Se l'endpoint cambiasse stile di import (es. import locale dentro la funzione), il patch potrebbe **mancare silenziosamente** il bersaglio.
+- **Monkeypatch sui simboli di modulo**: `patch_data_endpoint_runtime` patcha `data_endpoint_module.arki/celery/rabbitmq` (oggetti importati a livello modulo in `projects/mistral/backend/endpoints/data.py`). Funziona perché l'endpoint risolve quei nomi a runtime dai globals del modulo. Se l'endpoint cambiasse stile di import (es. import locale dentro la funzione), il patch potrebbe **mancare silenziosamente** il bersaglio.
 - **`amqp_queue` forzata sul record DB**: `create_data_endpoint_user` sovrascrive `db_user.amqp_queue` dopo la creazione via API (il faker/schema admin potrebbe generarne una casuale). Serve a distinguere in modo deterministico i tre stati del ramo push: queue assente (`None`), queue presente ma inesistente lato broker, queue valida. Effetto collaterale: il percorso “assegnazione queue via schema admin” **non** viene validato.
-- **`open_dataset=True` sempre attivo**: in [services/sqlapi_db_manager.py#L482](projects/mistral/backend/services/sqlapi_db_manager.py#L482) i dataset **pubblici** sono visibili se l'utente ha `open_dataset=True`; l'autorizzazione esplicita per nome (`ds.name in user.datasets`) serve **solo ai dataset privati**. Poiché `create_synthetic_dataset` crea dataset **pubblici** di default, la lista `datasets` (id numerici) passata come permesso è di fatto **ridondante** e il ramo di autorizzazione su dataset privati **non è coperto**.
+- **`open_dataset=True` sempre attivo**: in `projects/mistral/backend/services/sqlapi_db_manager.py` i dataset **pubblici** sono visibili se l'utente ha `open_dataset=True`; l'autorizzazione esplicita per nome (`ds.name in user.datasets`) serve **solo ai dataset privati**. Poiché `create_synthetic_dataset` crea dataset **pubblici** di default, la lista `datasets` (id numerici) passata come permesso è di fatto **ridondante** e il ramo di autorizzazione su dataset privati **non è coperto**.
 - **Cleanup condizionale dell'Attribution**: `create_synthetic_dataset` riusa la **prima** `Attribution` esistente se presente (`created_attribution_id=None`) e in tal caso **non** la cancella; crea+cancella un'attribution solo su catalogo vuoto. Il teardown del bundle dipende quindi dallo stato DB iniziale.
 - **`create_file_download_record` e i due livelli DB/FS**: con `content=None` il record `FileOutput` esiste ma il file fisico no e **non** viene registrato `add_path`; resta comunque registrato il cleanup della request. È il setup esatto del ramo “record presente, file mancante → 404”.
 - **`Request.args` arbitrari**: in `create_file_download_record` la request usa `args={"datasets": [], "reftime": {}, "filters": {}}` e `status=SUCCESS` — sufficiente perché `FileOutput.request_id` sia valido senza dipendere da un task reale.
@@ -63,7 +63,7 @@ Il modulo non testa nulla, ma gli helper esercitano (in fase di arrange/teardown
 
 - [ ] Confermare che l'assenza di fixture `autouse` sia voluta: ogni nuovo test del dominio **deve** ricordarsi di chiamare `patch_data_endpoint_runtime`, altrimenti contatta servizi reali.
 - [ ] Verificare che la duplicazione dei fake locali rispetto a `tests/helpers/celery_fakes.py` sia una scelta consapevole (rischio di drift fra le due infrastrutture Celery di test).
-- [ ] Confermare che il `monkeypatch` su `data_endpoint_module.arki/celery/rabbitmq` resti valido se [endpoints/data.py](projects/mistral/backend/endpoints/data.py) cambia stile di import.
+- [ ] Confermare che il `monkeypatch` su `data_endpoint_module.arki/celery/rabbitmq` resti valido se `projects/mistral/backend/endpoints/data.py` cambia stile di import.
 - [ ] Verificare che `open_dataset=True` non mascheri la **mancata copertura** del ramo di autorizzazione su dataset privati (lista `datasets` di fatto inutilizzata).
 - [ ] Confermare che il cleanup condizionale dell'Attribution non lasci residui o non cancelli per errore un'attribution condivisa, a seconda dello stato del catalogo.
 - [ ] Verificare che i fake (`RecordingCelery.send_task`, `FakeRabbit.queue_exists`, `FakeTaskResult`) restino allineati al contratto reale chiamato da `Data.post`.

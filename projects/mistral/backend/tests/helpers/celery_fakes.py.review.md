@@ -4,7 +4,7 @@
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/helpers/celery_fakes.py](projects/mistral/backend/tests/helpers/celery_fakes.py)
+- **Percorso**: `projects/mistral/backend/tests/helpers/celery_fakes.py`
 - **Scopo**: sostituire il solo strato di trasporto Celery (broker/worker) mantenendo l'esecuzione in-process, per testare la logica di submission/scheduling senza RabbitMQ né worker esterni.
 - **Tipologia**: modulo di **fake** (test double) condiviso.
 
@@ -12,9 +12,9 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `data_extraction.data_extract` | [tasks/data_extraction.py](projects/mistral/backend/tasks/data_extraction.py) | Task reale eseguito inline da `InlineDataExtractCelery`. |
-| `SqlApiDbManager.create_request_record` / `get_schedule_name` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py) | Creazione del record `Request` sintetico in `InlineDataReadyExtractionCelery`. |
-| `db.Request` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py) | Riga richiesta che i test ispezionano. |
+| `data_extraction.data_extract` | `projects/mistral/backend/tasks/data_extraction.py` | Task reale eseguito inline da `InlineDataExtractCelery`. |
+| `SqlApiDbManager.create_request_record` / `get_schedule_name` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Creazione del record `Request` sintetico in `InlineDataReadyExtractionCelery`. |
+| `db.Request` | `projects/mistral/backend/models/sqlalchemy.py` | Riga richiesta che i test ispezionano. |
 
 ## 3. Elementi definiti
 
@@ -31,10 +31,15 @@
 - **`InlineDataReadyExtractionCelery` riproduce la logica di de-duplicazione per reftime**: confronta l'ultima `Request` `SUCCESS` della schedule; questa logica vive nel fake, non nel test — il test verifica un comportamento implementato dal test double.
 - **`InlineDataExtractCelery` esegue il task vero**: i test che lo usano hanno side effect reali (creazione file, pubblicazione opendata) pur evitando broker/worker.
 - **Disallineamento potenziale**: la logica del fake (es. dedup) deve restare allineata al backend reale; se il backend cambia, il fake può divergere silenziosamente.
+- **Tre contratti diversi, da non scambiare**:
+  - `AcceptTasksWithoutRunningCelery`: salva `name`, `args`, `kwargs` in `sent_tasks` e ritorna `None`; senza nomi nel costruttore accetta qualunque task. Nessuna estrazione. Usato dal trigger data-ready (`helpers/data_ready.py`, sia per il submit del launcher sia nel conftest `data_ready`) e dalla creazione schedule nel bridge `schedules/test_schedule_opendata_bridge.py`.
+  - `InlineDataReadyExtractionCelery`: spacchetta i 12 argomenti posizionali di `data_extract` e crea solo la riga `Request` `SUCCESS`; nessun `FileOutput` né dato estratto. Usato da `trigger_data_ready_inline` per i test periodici e di gating data-ready. Replica parte della deduplicazione: non è una prova indipendente del worker.
+  - `InlineDataExtractCelery`: chiama `data_extract.run(*args)` ignorando i `kwargs` di `send_task` (semantica temporale e routing di coda). Usato solo dal bridge opendata.
+- **`delete_periodic_task` non tocca RedBeat**: tutti e tre ritornano sempre `True`; i fake espongono anche `celery_app` come il wrapper reale.
 
 ## 5. Checklist di revisione
 
-- [ ] Verificare che la logica di dedup in `_InlineDataReadyExtractionApp` rispecchi quella reale del path data-ready in [tasks/on_data_ready_extractions.py](projects/mistral/backend/tasks/on_data_ready_extractions.py).
+- [ ] Verificare che la logica di dedup in `_InlineDataReadyExtractionApp` rispecchi quella reale del path data-ready in `projects/mistral/backend/tasks/on_data_ready_extractions.py`.
 - [ ] Distinguere i test che usano il fake "accept-only" (verificano la decisione) da quelli con `InlineDataExtractCelery` (verificano side effect reali).
 - [ ] Verificare che gli `assert` interni ai fake non mascherino regressioni del backend come errori di helper.
 

@@ -1,24 +1,24 @@
 # Review — `test_data_extraction_real_worker.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 > Modulo `async_real`: l'estrazione gira su un worker Celery reale, senza fake.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/data/test_data_extraction_real_worker.py](projects/mistral/backend/tests/integration/data/test_data_extraction_real_worker.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/data/test_data_extraction_real_worker.py`
 - **Scopo**: verificare il flusso più usato, `POST /data`, fino al worker reale: estrazione riuscita, estrazione fallita con email di esito, cleanup di una request che il worker non ha ancora eseguito.
 - **Tipologia**: integrazione HTTP + broker + worker reali. Marker di modulo: `integration`, `async_real`, `runtime_sensitive`. 3 test.
-- **Dove gira**: solo sugli stack avviati con `rapydo --testing`, dove i worker usano il mock SMTP; altrove [tests/conftest.py](projects/mistral/backend/tests/conftest.py) salta il modulo.
+- **Dove gira**: solo sugli stack avviati con `rapydo --testing`, dove i worker usano il mock SMTP; altrove `projects/mistral/backend/tests/conftest.py` salta il modulo.
 - **Dataset reale**: `lm5`, con finestra e prima run lette da `/api/fields`.
 
 ## 2. Backend realmente testato
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `Data.post` | [endpoints/data.py](projects/mistral/backend/endpoints/data.py#L328) | Valida la richiesta, crea la `Request` e invia `data_extract` al broker (`countdown=1`). |
-| task `data_extract` | [tasks/data_extraction.py](projects/mistral/backend/tasks/data_extraction.py) | Eseguito dal worker reale: estrazione Arkimet, file e `FileOutput`, oppure `FAILURE` per quota con email di esito (`notify_by_email`). |
-| `UserRequests.get` | [endpoints/requests.py](projects/mistral/backend/endpoints/requests.py#L44) | `GET /requests`, letto in polling. |
-| `FileDownload.get` | [endpoints/file.py](projects/mistral/backend/endpoints/file.py) | `GET /data/<filename>`, download del file prodotto dal worker. |
+| `Data.post` | `projects/mistral/backend/endpoints/data.py` | Valida la richiesta, crea la `Request` e invia `data_extract` al broker (`countdown=1`). |
+| task `data_extract` | `projects/mistral/backend/tasks/data_extraction.py` | Eseguito dal worker reale: estrazione Arkimet, file e `FileOutput`, oppure `FAILURE` per quota con email di esito (`notify_by_email`). |
+| `UserRequests.get` | `projects/mistral/backend/endpoints/requests.py` | `GET /requests`, letto in polling. |
+| `FileDownload.get` | `projects/mistral/backend/endpoints/file.py` | `GET /data/<filename>`, download del file prodotto dal worker. |
 | revoca Celery | `celery_app.control.revoke` | Usata dal cleanup per fermare il task dell'utente prima di cancellarne la request. |
 
 ## 3. Mappa delle dipendenze
@@ -26,9 +26,9 @@
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `real_worker_user`, `_create_real_worker_user` | fixture e helper locali | questo file | `create_data_ready_user` su `lm5` (nessuna email reale), `pytest.skip` se `lm5` manca; registra il cleanup dell'utente e poi l'attesa dei worker. |
-| `create_data_ready_user`, `register_data_ready_user_cleanup`, `list_user_requests` | helper | [tests/helpers/data_ready.py](projects/mistral/backend/tests/helpers/data_ready.py) | Utente temporaneo (anche con `max_output_size` ridotto), cleanup di request, schedule, utente e cartella, listing delle request. |
-| `register_wait_for_user_requests`, `wait_for_finished_request`, `wait_for_mock_email`, `RealWorkerCleanupWarning` | helper | [tests/helpers/real_workers.py](projects/mistral/backend/tests/helpers/real_workers.py) | Attesa dei worker, cleanup che ferma i task dell'utente, lettura delle email del mock SMTP. |
-| `fetch_dataset_window` | helper | [tests/helpers/dataset_window.py](projects/mistral/backend/tests/helpers/dataset_window.py) | Finestra reale di `lm5`; `pytest.skip` su 404. |
+| `create_data_ready_user`, `register_data_ready_user_cleanup`, `list_user_requests` | helper | `projects/mistral/backend/tests/helpers/data_ready.py` | Utente temporaneo (anche con `max_output_size` ridotto), cleanup di request, schedule, utente e cartella, listing delle request. |
+| `register_wait_for_user_requests`, `wait_for_finished_request`, `wait_for_mock_email`, `RealWorkerCleanupWarning` | helper | `projects/mistral/backend/tests/helpers/real_workers.py` | Attesa dei worker, cleanup che ferma i task dell'utente, lettura delle email del mock SMTP. |
+| `fetch_dataset_window` | helper | `projects/mistral/backend/tests/helpers/dataset_window.py` | Finestra reale di `lm5`; `pytest.skip` su 404. |
 
 ## 4. Analisi dettagliata di ogni test
 

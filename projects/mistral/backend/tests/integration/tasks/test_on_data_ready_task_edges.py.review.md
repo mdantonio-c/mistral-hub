@@ -1,11 +1,11 @@
 # Review — `test_on_data_ready_task_edges.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 > Modulo: copertura dei rami edge del task data-ready, non coperti dall'happy path esistente.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/tasks/test_on_data_ready_task_edges.py](projects/mistral/backend/tests/integration/tasks/test_on_data_ready_task_edges.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/tasks/test_on_data_ready_task_edges.py`
 - **Scopo**: verificare i rami di `launch_all_on_data_ready_extractions` che **saltano** una schedule (0 dataset, ≥2 dataset, run filter non decodificabile) o che **falliscono** con `SystemError` quando l'invio Celery solleva un'eccezione.
 - **Tipologia**: test di **integrazione task** (schedule seedate nel DB di test + Celery fake). Marker dichiarati: `integration`, `deterministic`.
 - **Conteggio**: 4 test in `TestOnDataReadyTaskEdges`. Nessun `pytest.skip`.
@@ -15,9 +15,9 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `launch_all_on_data_ready_extractions(self, model, rundate)` | [tasks/on_data_ready_extractions.py](projects/mistral/backend/tasks/on_data_ready_extractions.py#L11) | Itera **tutte** le schedule; filtra per enabled/on_data_ready/dataset/run; invia `data_extract` su Celery o solleva `SystemError`. |
-| `SqlApiDbManager._get_schedule_response` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L455) | Normalizza la schedule (id/name/enabled/on_data_ready/args/period/crontab_set). |
-| `BeArkimet.decode_run` | [services/arkimet.py](projects/mistral/backend/services/arkimet.py) | Decodifica il run del filtro; solleva `ValueError` su input non valido (ramo skip). |
+| `launch_all_on_data_ready_extractions(self, model, rundate)` | `projects/mistral/backend/tasks/on_data_ready_extractions.py` | Itera **tutte** le schedule; filtra per enabled/on_data_ready/dataset/run; invia `data_extract` su Celery o solleva `SystemError`. |
+| `SqlApiDbManager._get_schedule_response` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Normalizza la schedule (id/name/enabled/on_data_ready/args/period/crontab_set). |
+| `BeArkimet.decode_run` | `projects/mistral/backend/services/arkimet.py` | Decodifica il run del filtro; solleva `ValueError` su input non valido (ramo skip). |
 | `@CeleryExt.task` failure hook (`mark_task_as_failed`) | `restapi.connectors.celery` | Hook eseguito quando `.run()` propaga un'eccezione (vedi §6). |
 
 - Backend **realmente eseguito**: l'intero corpo del task fino al `send_task` (filtri, `_get_schedule_response`, `decode_run` reale, costruzione reftime/args).
@@ -31,9 +31,9 @@
 | `delete_schedule_row` | helper locale | nel file di test | Cleanup idempotente della schedule seedata. |
 | `data_ready_task_user` | fixture locale | nel file di test | Crea utente reale (`allowed_schedule`) come owner della schedule; registra cleanup utente+dir. |
 | `faker` | fixture | `pytest-faker` | Nome schedule pseudo-casuale (`faker.pystr()`). |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py) | Teardown **LIFO**. |
+| `cleanup_registry` | fixture | `projects/mistral/backend/tests/conftest.py` | Teardown **LIFO**. |
 | `monkeypatch` | fixture | `pytest` | Sostituisce `celery.get_instance` e `mark_task_as_failed`. |
-| `confine_data_ready_schedules` | helper | [helpers/task_perimeter.py](projects/mistral/backend/tests/helpers/task_perimeter.py) | Rende visibile al task solo la schedule seedata dal test (facciata DB fail-closed). |
+| `confine_data_ready_schedules` | helper | `projects/mistral/backend/tests/helpers/task_perimeter.py` | Rende visibile al task solo la schedule seedata dal test (facciata DB fail-closed). |
 | `MagicMock` (`fake_celery`) | doppio | `unittest.mock` | Falso connettore Celery; `celery_app.send_task` ispezionato (`call_count`) o con `side_effect`. |
 | `celery_connector.mark_task_as_failed` | hook | `restapi.connectors.celery` | Patchato per **ri-sollevare** l'eccezione originale invece di emettere l'evento Celery. |
 | `sqlalchemy.get_instance()` | connettore | `restapi.connectors` | DB di test per seed/lettura schedule. |
@@ -47,6 +47,8 @@
 - **Setup**: `data_ready_task_user`, `fake_celery` (MagicMock), cleanup schedule.
 - **Assert**: `fake_celery.celery_app.send_task.call_count == 0`.
 - **Casi coperti**: skip per dataset vuoto.
+- **Cosa non dimostra**: il percorso HTTP, il worker né il comportamento con schedule di altri utenti (il perimetro le nasconde).
+- **Se fallisce, guarda**: la guardia sulla cardinalità dei dataset nel launcher e la facciata ORM di `confine_data_ready_schedules` in `projects/mistral/backend/tests/helpers/task_perimeter.py`.
 
 ### `test_skip_schedule_with_multiple_datasets`
 - **Obiettivo**: una schedule con ≥2 dataset (ancora non supportata) deve essere saltata.
@@ -54,6 +56,8 @@
 - **Flusso**: seed schedule `datasets=["lm5","lm2.2"]` → run del task.
 - **Assert**: `send_task.call_count == 0`.
 - **Casi coperti**: skip multi-dataset.
+- **Cosa non dimostra**: il comportamento con dataset reali: `lm5`/`lm2.2` sono nomi simbolici e nessun archivio viene letto.
+- **Se fallisce, guarda**: la guardia `len(datasets) >= 2`; se il supporto multi-dataset diventa un contratto, il test va riscritto, non adattato.
 
 ### `test_skip_schedule_with_invalid_run_filter_decode`
 - **Obiettivo**: una schedule con run filter malformato deve essere saltata.
@@ -61,6 +65,8 @@
 - **Flusso**: seed schedule `datasets=["lm5"]`, `run_filter=[{"invalid_arkimet_run":"broken"}]` → run del task con rundate ore 00:00.
 - **Assert**: `send_task.call_count == 0`.
 - **Casi coperti**: gestione `ValueError` nel decode del run. **Vedi §8**: l'assert è debole (non distingue il motivo dello skip).
+- **Cosa non dimostra**: il messaggio di log né ogni errore di decodifica: il launcher cattura solo `ValueError`, quindi un filtro che fa sollevare `TypeError` a `decode_run` (per esempio `MINUTE` con valore non intero) si propaga e segue un altro ramo.
+- **Se fallisce, guarda**: la forma del filtro seedato, il `try/except ValueError` attorno a `arki.decode_run` e il decoder in `projects/mistral/backend/services/arkimet.py`.
 
 ### `test_celery_send_failure_raises_system_error`
 - **Obiettivo**: se `send_task` fallisce, il task deve sollevare `SystemError`.
@@ -69,6 +75,8 @@
 - **Setup**: `data_ready_task_user`, `fake_celery` con side_effect, doppio patch (Celery + failure hook).
 - **Assert**: `pytest.raises(SystemError, match="Unable to submit the data ready request extraction")`.
 - **Casi coperti**: ramo di errore + propagazione attraverso il failure hook di restapi.
+- **Cosa non dimostra**: un broker realmente irraggiungibile, né il comportamento dell'hook vero, che oltre a inviare l'evento `task-failed` termina con `raise Ignore(...)` e quindi non propagherebbe `SystemError` al chiamante.
+- **Se fallisce, guarda**: distingui il `try/except` applicativo attorno a `send_task` dal failure hook di `submodules/http-api/restapi/connectors/celery/__init__.py`, mantenendo esplicita la patch di entrambi i confini.
 
 ## 5. Call chain
 

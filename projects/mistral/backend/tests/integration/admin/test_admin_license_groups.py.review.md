@@ -1,10 +1,10 @@
 # Review — `test_admin_license_groups.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/admin/test_admin_license_groups.py](projects/mistral/backend/tests/integration/admin/test_admin_license_groups.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/admin/test_admin_license_groups.py`
 - **Scopo**: verificare il CRUD admin dei *license group*, la preservazione dei campi `is_public` e `dballe_dsn` (rilevanti per autorizzazioni e dati observed), il listing con le license figlie annidate e i rami `404`.
 - **Tipologia**: test di **integrazione HTTP** (controller reale + DB SQLAlchemy). Marker: `integration`, `deterministic`.
 
@@ -12,29 +12,29 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `AdminLicGroups.get` | [endpoints/admin_license_groups.py](projects/mistral/backend/endpoints/admin_license_groups.py) | `GET /api/admin/licensegroups` — lista i gruppi via `SqlApiDbManager._get_license_group_response`, annidando le license figlie. |
-| `AdminLicGroups.post` | [endpoints/admin_license_groups.py](projects/mistral/backend/endpoints/admin_license_groups.py) | `POST /api/admin/licensegroups` — crea il gruppo e ritorna l'**id scalare** (200); `Conflict` (409) su `DatabaseDuplicatedEntry`. |
-| `AdminLicGroups.put` | [endpoints/admin_license_groups.py](projects/mistral/backend/endpoints/admin_license_groups.py) | `PUT /api/admin/licensegroups/<id>` — `NotFound` (404) se assente; altrimenti `setattr` + commit → `empty_response()` (204). |
-| `AdminLicGroups.delete` | [endpoints/admin_license_groups.py](projects/mistral/backend/endpoints/admin_license_groups.py) | `DELETE /api/admin/licensegroups/<id>` — `NotFound` (404) se assente; altrimenti delete → 204. |
-| `LicGroupInput` | [endpoints/admin_license_groups.py](projects/mistral/backend/endpoints/admin_license_groups.py) | Input: `name`/`descr`/`is_public` obbligatori, `dballe_dsn` opzionale. |
-| `LicGroup` (output) + `License` (nested) | [endpoints/admin_license_groups.py](projects/mistral/backend/endpoints/admin_license_groups.py) | Serializza `id`, `name`, `descr`, `is_public`, `dballe_dsn`, `license[]`. |
-| `SqlApiDbManager._get_license_group_response` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L286) | Costruisce il dict del gruppo (id, name, descr, is_public, dballe_dsn). |
-| `SqlApiDbManager._get_license_response` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L297) | Costruisce il dict di ciascuna license annidata. |
-| Modello `GroupLicense` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L101) | `name` indicizzato **ma non unique**; `license` (`lazy="dynamic"`), `is_public` Bool, `dballe_dsn` String(64). |
+| `AdminLicGroups.get` | `projects/mistral/backend/endpoints/admin_license_groups.py` | `GET /api/admin/licensegroups` — lista i gruppi via `SqlApiDbManager._get_license_group_response`, annidando le license figlie. |
+| `AdminLicGroups.post` | `projects/mistral/backend/endpoints/admin_license_groups.py` | `POST /api/admin/licensegroups` — crea il gruppo e ritorna l'**id scalare** (200); `Conflict` (409) su `DatabaseDuplicatedEntry`. |
+| `AdminLicGroups.put` | `projects/mistral/backend/endpoints/admin_license_groups.py` | `PUT /api/admin/licensegroups/<id>` — `NotFound` (404) se assente; altrimenti `setattr` + commit → `empty_response()` (204). |
+| `AdminLicGroups.delete` | `projects/mistral/backend/endpoints/admin_license_groups.py` | `DELETE /api/admin/licensegroups/<id>` — `NotFound` (404) se assente; altrimenti delete → 204. |
+| `LicGroupInput` | `projects/mistral/backend/endpoints/admin_license_groups.py` | Input: `name`/`descr`/`is_public` obbligatori, `dballe_dsn` opzionale. |
+| `LicGroup` (output) + `License` (nested) | `projects/mistral/backend/endpoints/admin_license_groups.py` | Serializza `id`, `name`, `descr`, `is_public`, `dballe_dsn`, `license[]`. |
+| `SqlApiDbManager._get_license_group_response` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Costruisce il dict del gruppo (id, name, descr, is_public, dballe_dsn). |
+| `SqlApiDbManager._get_license_response` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Costruisce il dict di ciascuna license annidata. |
+| Modello `GroupLicense` | `projects/mistral/backend/models/sqlalchemy.py` | `name` indicizzato **ma non unique**; `license` (`lazy="dynamic"`), `is_public` Bool, `dballe_dsn` String(64). |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO**, eseguito dopo lo `yield`; non ingoia eccezioni. |
-| `admin_headers` | fixture | [admin/conftest.py](conftest.py) | Scoperta automaticamente da pytest; login admin di **default** → header condivisi. |
-| `license_group_payload` | helper | [admin/support.py](projects/mistral/backend/tests/integration/admin/support.py) | Payload `LicGroupInput` con `is_public` e `dballe_dsn` espliciti (default `"DBALLE_EXT"`). |
-| `create_license_group_via_api` | helper | [admin/support.py](projects/mistral/backend/tests/integration/admin/support.py) | POST gruppo via API (asserisce 200) + registra cleanup DB del gruppo. |
-| `create_license_via_api` | helper | [admin/support.py](projects/mistral/backend/tests/integration/admin/support.py) | POST license figlia via API (asserisce 200) + cleanup DB. |
-| `find_list_item` | helper | [admin/support.py](projects/mistral/backend/tests/integration/admin/support.py) | Trova l'item per id normalizzato a stringa. |
-| `response_content` | helper | [admin/support.py](projects/mistral/backend/tests/integration/admin/support.py) | Decodifica body via `BaseTests().get_content`. |
-| `ADMIN_LICENSE_GROUPS_ENDPOINT`, `ADMIN_MISSING_ID` | costanti | [admin/support.py](projects/mistral/backend/tests/integration/admin/support.py) | URL `/api/admin/licensegroups` e id sentinella `987654321`. |
+| `cleanup_registry` | fixture | `projects/mistral/backend/tests/conftest.py` | Teardown **LIFO**, eseguito dopo lo `yield`; non ingoia eccezioni. |
+| `admin_headers` | fixture | `projects/mistral/backend/tests/integration/admin/conftest.py` | Scoperta automaticamente da pytest; login admin di **default** → header condivisi. |
+| `license_group_payload` | helper | `projects/mistral/backend/tests/integration/admin/support.py` | Payload `LicGroupInput` con `is_public` e `dballe_dsn` espliciti (default `"DBALLE_EXT"`). |
+| `create_license_group_via_api` | helper | `projects/mistral/backend/tests/integration/admin/support.py` | POST gruppo via API (asserisce 200) + registra cleanup DB del gruppo. |
+| `create_license_via_api` | helper | `projects/mistral/backend/tests/integration/admin/support.py` | POST license figlia via API (asserisce 200) + cleanup DB. |
+| `find_list_item` | helper | `projects/mistral/backend/tests/integration/admin/support.py` | Trova l'item per id normalizzato a stringa. |
+| `response_content` | helper | `projects/mistral/backend/tests/integration/admin/support.py` | Decodifica body via `BaseTests().get_content`. |
+| `ADMIN_LICENSE_GROUPS_ENDPOINT`, `ADMIN_MISSING_ID` | costanti | `projects/mistral/backend/tests/integration/admin/support.py` | URL `/api/admin/licensegroups` e id sentinella `987654321`. |
 | `sqlalchemy.get_instance()` | connettore | `restapi.connectors` | Accesso DB diretto per precondizioni e verifica post-delete. |
 
 ## 4. Analisi dettagliata di ogni test
@@ -51,6 +51,8 @@
   - `delete` → 204 e `GroupLicense.query.get(id) is None` → delete persistito.
 - **Casi coperti**: happy path completo + verifica esplicita dei booleani/stringhe sensibili + side effect DB.
 - **Nota**: `is_public` è asserito con `is False`/`is True` (identità booleana), non con `== 0/1`: protegge da serializzazioni numeriche.
+- **Cosa non dimostra**: che il DSN sia raggiungibile: `DBALLE_EXT` è un valore fittizio e nessuna connessione DB-All.e viene aperta.
+- **Se fallisce, guarda**: `LicGroupInput`, schema di output `LicGroup` e `_get_license_group_response`; non confondere un DSN serializzato correttamente con un servizio funzionante.
 
 ### `test_admin_license_group_list_includes_nested_licenses`
 - **Obiettivo**: verificare che il listing dei gruppi includa le license figlie (loop `for lic in gl.license`).
@@ -59,6 +61,8 @@
 - **Setup**: `create_license_group_via_api` + `create_license_via_api` (cleanup LIFO: license prima del gruppo).
 - **Assert**: `status_code == 200` e `str(license_id) in {str(item["id"]) for item in group_item["license"]}` → la relazione gruppo→license è serializzata correttamente; confronto su id normalizzato a stringa (robusto a Int vs Str).
 - **Casi coperti**: happy path / contratto relazionale annidato.
+- **Cosa non dimostra**: che la license creata sia l'unica annidata o l'unica del catalogo: è un controllo di appartenenza.
+- **Se fallisce, guarda**: relazione `GroupLicense.license` e i serializer `_get_license_group_response`/`_get_license_response` in `projects/mistral/backend/services/sqlapi_db_manager.py`.
 
 ### `test_admin_license_group_missing_update_delete_return_404`
 - **Obiettivo**: verificare i rami `NotFound` di `put`/`delete` su gruppo inesistente.
@@ -68,6 +72,8 @@
 - **Assert**: `update_response.status_code == 404` e `delete_response.status_code == 404`.
 - **Casi coperti**: error path.
 - **Nota esplicita nel test**: **non** esiste un test di duplicate/409 per questo modello perché `GroupLicense.name` **non è unique** (no oracolo 409 stabile senza modificare il backend). È una scelta motivata e dichiarata, non una dimenticanza.
+- **Cosa non dimostra**: conflitti da duplicato (vedi nota) né la validazione del payload, che è valido.
+- **Se fallisce, guarda**: le guardie `NotFound` di `put`/`delete`; non introdurre un'attesa 409 senza un nuovo vincolo unique nel modello.
 
 ## 5. Call chain
 
@@ -87,7 +93,7 @@ DELETE /api/admin/licensegroups/<id>  → require_all(ADMIN) → filter_by(id).f
 
 ## 6. Comportamenti nascosti
 
-- **Fixture `admin_headers` scoperta dal [conftest locale](conftest.py)**, senza import nel test: login dell'admin di **default**, stato condiviso fra tutti i test del dominio.
+- **Fixture `admin_headers` scoperta dal conftest locale (`projects/mistral/backend/tests/integration/admin/conftest.py`)**, senza import nel test: login dell'admin di **default**, stato condiviso fra tutti i test del dominio.
 - **Listing globale**: `get` ritorna **tutti** i gruppi; l'isolamento si basa su nomi uuid e `find_list_item`.
 - **Conflict 409 deliberatamente non testato**: dichiarato nel docstring del terzo test (modello senza vincolo unique su `name`).
 - **Helper con assert interni**: `create_license_group_via_api`/`create_license_via_api` asseriscono `200` e registrano cleanup; un fallimento in arrange è un assert dell'helper.

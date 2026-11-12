@@ -4,13 +4,13 @@
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/helpers/templates/endpoint_template.py](projects/mistral/backend/tests/helpers/templates/endpoint_template.py)
+- **Percorso**: `projects/mistral/backend/tests/helpers/templates/endpoint_template.py`
 - **Scopo**: riferimento strutturale (arrange/act/assert) per chi scrive o rifattorizza test. **Non è un test reale**.
 - **Tipologia**: documentazione/scaffold (non eseguibile come test: pur contenendo metodi `test_...`, non fa asserzioni reali — i corpi sono `pass`).
 
 ## 2. Elementi definiti
 
-- `pytestmark = [pytest.mark.integration, pytest.mark.example_area]` — marker d'esempio (`example_area` **non** è registrato in [tests/conftest.py](projects/mistral/backend/tests/conftest.py)).
+- `pytestmark = [pytest.mark.integration, pytest.mark.example_area]` — marker d'esempio (`example_area` **non** è registrato in `projects/mistral/backend/tests/conftest.py`).
 - `class TestExampleArea` con `test_happy_path_returns_expected_status` e `test_invalid_input_returns_error`: scheletri con `pass`, solo a scopo illustrativo.
 - Commenti finali con le "Regole di adozione" della suite.
 
@@ -18,6 +18,7 @@
 
 - **Non è in un path `test_*.py`**, quindi pytest non lo raccoglie: i metodi `test_...` non vengono eseguiti.
 - **Usa un marker non registrato** (`example_area`): se il file venisse mai raccolto, emetterebbe warning sui marker sconosciuti.
+- **`payload` e `bad_payload` sono illustrativi**: le chiamate e gli assert sono commentati. Copiare la struttura, non i corpi; il file non aggiunge copertura e non va contato nel totale dei test della suite.
 
 ## 4. Checklist di revisione
 

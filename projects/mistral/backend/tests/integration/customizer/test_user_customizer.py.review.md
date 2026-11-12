@@ -1,10 +1,10 @@
 # Review — `test_user_customizer.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/customizer/test_user_customizer.py](projects/mistral/backend/tests/integration/customizer/test_user_customizer.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/customizer/test_user_customizer.py`
 - **Scopo**: coprire direttamente il `Customizer` di Meteo-Hub — default e separazione `datasets` nel pre hook (`custom_user_properties_pre`), risoluzione/validazione degli id dataset nel post hook (`custom_user_properties_post`), serializzazione del profilo (`manipulate_profile`), e schema custom per scope (`get_custom_input_fields` ADMIN/PROFILE/REGISTRATION + `get_custom_output_fields`).
 - **Tipologia**: **mista**. Tre test sono **unit puri** (`pre`, `manipulate_profile`, schema by-scope) che invocano gli static method del customizer con un **dummy user dataclass** e `request=None`. Due test sono **integrazione DB** (`post`): usano `sqlalchemy.get_instance()` reale (uno crea un bundle dataset sintetico, l'altro fa una sola read). **Nessun monkeypatch**; **nessun passaggio dagli endpoint HTTP profilo** — gli hook reali sono chiamati direttamente. Marker dichiarati: `integration`, `deterministic` (vedi §6 per la discrepanza marker↔natura reale).
 
@@ -12,21 +12,21 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `Customizer.custom_user_properties_pre` | [customization.py](projects/mistral/backend/customization.py#L18) | Estrae `datasets` in `extra_properties`; `setdefault` dei campi custom (open_dataset, disk_quota, requests_expiration_*, max_*, allowed_*, request_par_hour, notify_on_successful_request). |
-| `Customizer.custom_user_properties_post` | [customization.py](projects/mistral/backend/customization.py#L40) | Per ogni id in `extra_properties["datasets"]`: `db.Datasets.query.filter_by(id=int(id)).first()` → `NotFound` se assente; assegna `user.datasets`. |
-| `Customizer.manipulate_profile` | [customization.py](projects/mistral/backend/customization.py#L55) | Copia gli attributi custom dell'utente nel dict `data` del profilo; `ref` (EndpointResource) non usato. |
-| `Customizer.get_custom_input_fields` | [customization.py](projects/mistral/backend/customization.py#L73) | Schema marshmallow per scope; interroga i dataset **solo se `request`** è truthy; `required = request and method=="POST"`. |
-| `Customizer.get_custom_output_fields` | [customization.py](projects/mistral/backend/customization.py#L217) | Mappa di output con `datasets = Nested(Datasets(many=True))`. |
-| `Datasets` (Schema) | [customization.py](projects/mistral/backend/customization.py#L11) | Schema `{id, name}` annidato in output. |
-| `db.Datasets` / `GroupLicense` / `License` / `Attribution` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py) | Modelli reali creati/risolti dagli helper di seeding e dal post hook. |
-| `DatasetCategories.FOR` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py) | Enum categoria per il dataset sintetico. |
-| `NotFound` | [exceptions](projects/mistral/backend/customization.py#L6) (`restapi.exceptions`) | Sollevata dal post hook su id dataset inesistente. |
+| `Customizer.custom_user_properties_pre` | `projects/mistral/backend/customization.py` | Estrae `datasets` in `extra_properties`; `setdefault` dei campi custom (open_dataset, disk_quota, requests_expiration_*, max_*, allowed_*, request_par_hour, notify_on_successful_request). |
+| `Customizer.custom_user_properties_post` | `projects/mistral/backend/customization.py` | Per ogni id in `extra_properties["datasets"]`: `db.Datasets.query.filter_by(id=int(id)).first()` → `NotFound` se assente; assegna `user.datasets`. |
+| `Customizer.manipulate_profile` | `projects/mistral/backend/customization.py` | Copia gli attributi custom dell'utente nel dict `data` del profilo; `ref` (EndpointResource) non usato. |
+| `Customizer.get_custom_input_fields` | `projects/mistral/backend/customization.py` | Schema marshmallow per scope; interroga i dataset **solo se `request`** è truthy; `required = request and method=="POST"`. |
+| `Customizer.get_custom_output_fields` | `projects/mistral/backend/customization.py` | Mappa di output con `datasets = Nested(Datasets(many=True))`. |
+| `Datasets` (Schema) | `projects/mistral/backend/customization.py` | Schema `{id, name}` annidato in output. |
+| `db.Datasets` / `GroupLicense` / `License` / `Attribution` | `projects/mistral/backend/models/sqlalchemy.py` | Modelli reali creati/risolti dagli helper di seeding e dal post hook. |
+| `DatasetCategories.FOR` | `projects/mistral/backend/models/sqlalchemy.py` | Enum categoria per il dataset sintetico. |
+| `NotFound` | `projects/mistral/backend/customization.py` (`restapi.exceptions`) | Sollevata dal post hook su id dataset inesistente. |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO**; usata solo dal test "associates valid" per rimuovere il bundle sintetico. |
+| `cleanup_registry` | fixture | `projects/mistral/backend/tests/conftest.py` | Teardown **LIFO**; usata solo dal test "associates valid" per rimuovere il bundle sintetico. |
 | `sqlalchemy.get_instance()` | connettore | `restapi.connectors` | Istanza DB **reale** (read/write su tabelle dataset/license/group/attribution). |
 | `DummyCustomizerUser` | dataclass | (questo file) | Utente fittizio con i soli attributi custom; **non** è un model ORM. |
 | `seed_customizer_dataset` | helper | (questo file) | Crea group→license→attribution→dataset (commit) e registra il cleanup; ritorna `dataset.id`. |
@@ -34,9 +34,9 @@
 | `BaseCustomizer.ADMIN/PROFILE/REGISTRATION` | costanti | `restapi.customizer` | Selettori di scope per `get_custom_input_fields`. |
 | `NotFound` | eccezione | `restapi.exceptions` | Target di `pytest.raises`. |
 | `uuid4` | stdlib | `uuid` | Nomi unici per evitare collisioni con dati iniziali / test paralleli. |
-| `pytest.mark.integration` / `deterministic` | marker | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L13) | Solo classificazione. |
+| `pytest.mark.integration` / `deterministic` | marker | `projects/mistral/backend/tests/conftest.py` | Solo classificazione. |
 
-> **Nota infra**: nessun `conftest.py`/`support` locale in `integration/customizer/`. L'unica fixture condivisa usata è [`cleanup_registry`](projects/mistral/backend/tests/conftest.py#L59); `auth_headers`/`fresh_access_key` ([integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py#L28)) **non** sono richieste, perché i test non passano da HTTP.
+> **Nota infra**: nessun `conftest.py`/`support` locale in `integration/customizer/`. L'unica fixture condivisa usata è `cleanup_registry` (`projects/mistral/backend/tests/conftest.py`); `auth_headers`/`fresh_access_key` (`projects/mistral/backend/tests/integration/conftest.py`) **non** sono richieste, perché i test non passano da HTTP.
 
 ## 4. Analisi dettagliata di ogni test
 
@@ -49,6 +49,8 @@
 - **Setup**: nessuno (chiamata diretta, niente DB).
 - **Assert**: `"datasets" not in updated_properties`; `extra_properties == {"datasets": ["1","2"]}`; `disk_quota == 99` (**preservato** da `setdefault`); `open_dataset is True`; `requests_expiration_days == 180`; `requests_expiration_delete is False`; `max_templates == 1`; `allowed_schedule is True`; `notify_on_successful_request is True`.
 - **Casi coperti**: separazione `datasets` + default custom + non-override dei valori espliciti. (Il default `disk_quota=1073741824` non è esercitato perché il test passa `99`.)
+- **Cosa non dimostra**: tutti i default (ne asserisce un sottoinsieme); nessuna API o persistenza.
+- **Se fallisce, guarda**: i `setdefault` di `custom_user_properties_pre` in `projects/mistral/backend/customization.py` e i contratti schema/profilo che li usano.
 
 ### `test_custom_user_properties_post_associates_valid_datasets` — **integrazione DB**
 - **Obiettivo**: il post hook risolve id dataset validi e li assegna all'utente.
@@ -57,6 +59,8 @@
 - **Setup**: `cleanup_registry` (rimozione bundle in teardown), `db = sqlalchemy.get_instance()`.
 - **Assert**: `user.datasets is not None`; `[d.id for d in user.datasets] == [dataset_id]`.
 - **Casi coperti**: happy path risoluzione id reali. **Nota**: `user.datasets = [...]` su un dataclass è un'assegnazione **in-memory**, non una relazione ORM persistita (vedi §6); il test verifica solo l'attributo, non la scrittura DB lato utente.
+- **Cosa non dimostra**: il salvataggio di un utente reale o dell'associazione many-to-many.
+- **Se fallisce, guarda**: il lookup per id nel post hook e `seed_customizer_dataset`; l'API utenti è un livello distinto.
 
 ### `test_custom_user_properties_post_missing_dataset_raises_notfound` — **integrazione DB (read)**
 - **Obiettivo**: id dataset inesistente → `NotFound`.
@@ -65,6 +69,8 @@
 - **Setup**: `db = sqlalchemy.get_instance()`; **nessun** dato creato, **nessun** cleanup.
 - **Assert**: `pytest.raises(NotFound)`.
 - **Casi coperti**: error path validazione. La read sul DB conferma l'assenza prima di misurare l'eccezione.
+- **Cosa non dimostra**: lo status o il body HTTP dell'errore (nessun HTTP coinvolto).
+- **Se fallisce, guarda**: la guardia `if not dat: raise NotFound`; se fallisce la precondizione, l'id `987654321` collide con dati esistenti (problema di setup, non del backend).
 
 ### `test_manipulate_profile_includes_all_custom_fields` — **unit**
 - **Obiettivo**: il profilo serializzato deve includere tutti i campi custom.
@@ -73,6 +79,8 @@
 - **Setup**: nessuno (pura funzione, `ref` ignorato).
 - **Assert**: `email` invariata + 13 campi custom uguali agli attributi dell'utente (`disk_quota`, `amqp_queue`, `requests_expiration_days`, `requests_expiration_delete`, `open_dataset`, `datasets`, `max_templates`, `max_output_size`, `allowed_postprocessing`, `allowed_schedule`, `allowed_obs_archive`, `request_par_hour`, `notify_on_successful_request`).
 - **Casi coperti**: contratto di serializzazione del profilo (copertura 1:1 dei campi).
+- **Cosa non dimostra**: lo schema HTTP del profilo o la conversione ORM/JSON.
+- **Se fallisce, guarda**: il mapping in `manipulate_profile` e la coerenza con `get_custom_output_fields`.
 
 ### `test_custom_input_and_output_fields_by_scope` — **unit**
 - **Obiettivo**: schema custom corretti per ADMIN, PROFILE, REGISTRATION e output.
@@ -81,6 +89,8 @@
 - **Setup**: nessuno; `request=None` → `datasets=[]`, `required` falsy.
 - **Assert**: ADMIN → set operativo completo **issubset** (12 chiavi); PROFILE → **uguaglianza esatta** `{requests_expiration_days, requests_expiration_delete, notify_on_successful_request}`; REGISTRATION → `{}`; output → set completo **issubset** (incl. `datasets`).
 - **Casi coperti**: presenza campi per scope. Non copre il ramo `request` truthy (POST → `required=True`, `datasets` popolati, `OneOf` dinamica) — vedi §6.
+- **Cosa non dimostra**: i validator dei campi.
+- **Se fallisce, guarda**: la selezione per scope in `get_custom_input_fields`; aggiunte ai campi ADMIN/output passano comunque per via di `issubset`.
 
 ## 5. Call chain
 

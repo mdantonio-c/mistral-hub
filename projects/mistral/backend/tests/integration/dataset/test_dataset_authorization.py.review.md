@@ -5,11 +5,12 @@
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/dataset/test_dataset_authorization.py](projects/mistral/backend/tests/integration/dataset/test_dataset_authorization.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/dataset/test_dataset_authorization.py`
 - **Scopo**: verificare separatamente accesso pubblico, grant privati, transizione di `open_dataset` e lookup inesistenti.
 - **Marker**: `integration`, `deterministic`.
 - **Numero di test**: 4, indipendenti dall'ordine.
 - **Skip**: nessuno.
+- **Prerequisiti**: app, autenticazione e DB reali; nessuna patch e nessun archivio meteo. Non ha il marker `runtime_sensitive`. Gli utenti nascono dalle funzioni locali `_create_test_user`/`_delete_user` (non fixture), che ritornano helper `BaseTests`, uuid, header utente, header admin e permessi.
 
 ## 2. Test e contratti
 
@@ -23,6 +24,22 @@
 I lookup negativi restano in un solo test perche rappresentano lo stesso
 contratto di `SingleDataset`; i tre comportamenti autorizzativi sono invece
 isolati in test autonomi.
+
+### `test_user_with_open_dataset_can_access_public_catalog`
+- **Cosa non dimostra**: che il catalogo contenga solo quel dataset (l'assert usa `any(...)`).
+- **Se fallisce, guarda**: il filtro pubblico in `SqlApiDbManager.get_datasets` e la shape della risposta. Se il bundle manca dalla lista, controlla seed e licenza create da `create_test_dataset`.
+
+### `test_private_dataset_visibility_requires_explicit_grant`
+- **Cosa non dimostra**: la lettura dei dati contenuti. Il `404` nasconde la risorsa: non è un `401`/`403`.
+- **Se fallisce, guarda**: l'associazione utente/dataset (`user.datasets`) e il gruppo licenza del bundle.
+
+### `test_private_grant_survives_disabling_open_dataset`
+- **Cosa non dimostra**: l'effetto del flag su opendata, che ha un controllo diverso.
+- **Se fallisce, guarda**: l'update utente del customizer e il filtro di `get_datasets`. Il payload del `PUT` deve conservare la lista `datasets`, altrimenti il grant privato viene perso.
+
+### `test_unknown_dataset_lookups_return_404`
+- **Cosa non dimostra**: nulla oltre il `404`; presuppone che `error` e `duplicates` non siano dataset del catalogo. È un ciclo nello stesso test, non una parametrizzazione pytest: il nome che fallisce compare nel messaggio dell'assert.
+- **Se fallisce, guarda**: il lookup del dettaglio in `SingleDataset.get`; distinguere una collisione col catalogo reale da una regressione.
 
 ## 3. Backend esercitato
 

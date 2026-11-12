@@ -4,7 +4,7 @@
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/conftest.py`
 - **Scopo**: base autenticata minima riusabile da tutti i sottoalberi di `integration/`, più il perimetro del task globale di cleanup.
 - **Tipologia**: `conftest.py` di area (visibile a `integration/**`).
 
@@ -16,18 +16,21 @@
 - **Usata da**: domini che leggono dati con l'account predefinito (es. `observed`); non va usata per creare o ruotare access key.
 
 ### `access_key_owner` — fixture
-- Crea un utente temporaneo con [helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) e registra il cleanup standard (utente + directory).
+- Crea un utente temporaneo con `projects/mistral/backend/tests/helpers/auth.py` e registra il cleanup standard (utente + directory).
 - Registra **dopo** l'utente la revoca `DELETE /access-key` (204 o 404): in LIFO gira prima della cancellazione utente, necessaria perché `AccessKey.user_id` non ammette `NULL`.
 - Ritorna `AuthenticatedTestUser`, incluso `email` per gli header BasicAuth.
+- **Usata da**: domini `access_key` e `arco`. `_revoke_access_key` è una normale funzione registrata come callback, non una fixture.
 
 ### `fresh_access_key` — fixture
 - Dipende da `client` + `access_key_owner`.
-- `POST {API_URI}/access-key` (costante importata da [access_key/support.py](projects/mistral/backend/tests/integration/access_key/support.py)) con gli header del proprietario temporaneo; asserisce `200` e presenza di `key`; ritorna `(access_key_owner.headers, key)`.
+- `POST {API_URI}/access-key` (costante importata da `projects/mistral/backend/tests/integration/access_key/support.py`) con gli header del proprietario temporaneo; asserisce `200` e presenza di `key`; ritorna `(access_key_owner.headers, key)`.
 - **Usata da**: domini `access_key` e `arco`, abbinata a `access_key_owner.email` nei test BasicAuth.
+- Non registra cleanup propri: revoca della key e cancellazione utente sono delegate a `access_key_owner`.
 
 ### `requests_cleanup_perimeter` — fixture
-- Chiama `confine_requests_cleanup` di [helpers/task_perimeter.py](projects/mistral/backend/tests/helpers/task_perimeter.py) con una root download in `tmp_path`.
-- Il test registra con `allow(user_ids=..., request_ids=...)` le sole righe che `automatic_cleanup` può processare.
+- Chiama `confine_requests_cleanup` di `projects/mistral/backend/tests/helpers/task_perimeter.py` con una root download in `tmp_path`.
+- Il test registra con `allow(user_ids=..., request_ids=...)` le sole righe che `automatic_cleanup` può processare; alla creazione nessun id è ammesso.
+- **Usata da**: `requests/test_delete_pending_request.py` e `tasks/test_requests_cleanup_expiration.py`.
 
 ## 3. Comportamenti nascosti
 

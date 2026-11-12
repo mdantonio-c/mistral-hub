@@ -4,15 +4,15 @@
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/requests/support.py](projects/mistral/backend/tests/integration/requests/support.py)
-- **Scopo**: fornire gli helper di **seeding** e **cleanup** delle righe `Request` usati dalle fixture di [requests/conftest.py](projects/mistral/backend/tests/integration/requests/conftest.py) per costruire lo scenario "una richiesta cancellabile + una protetta" dei test sul grace period.
+- **Percorso**: `projects/mistral/backend/tests/integration/requests/support.py`
+- **Scopo**: fornire gli helper di **seeding** e **cleanup** delle righe `Request` usati dalle fixture di `projects/mistral/backend/tests/integration/requests/conftest.py` per costruire lo scenario "una richiesta cancellabile + una protetta" dei test sul grace period.
 - **Tipologia**: modulo di supporto puramente di dominio (nessuna chiamata HTTP, solo `db.session`).
-- **Consumatori**: [requests/conftest.py](projects/mistral/backend/tests/integration/requests/conftest.py) (`pending_delete_requests`). **Non** importato dal modulo `test_requests_listing_archive_clone.py`.
+- **Consumatori**: `projects/mistral/backend/tests/integration/requests/conftest.py` (`pending_delete_requests`). **Non** importato dal modulo `test_requests_listing_archive_clone.py`.
 
 ## 2. Backend realmente esercitato
 
-- Solo il modello `Request` ([models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L36)) via `db.session.add/delete/commit`. Nessun endpoint, nessun task.
-- Le date riproducono **manualmente** la soglia di [check_request_is_pending_within_grace_period](projects/mistral/backend/services/sqlapi_db_manager.py#L80): la finestra `now - GRACE_PERIOD`.
+- Solo il modello `Request` (`projects/mistral/backend/models/sqlalchemy.py`) via `db.session.add/delete/commit`. Nessun endpoint, nessun task.
+- Le date riproducono **manualmente** la soglia di `check_request_is_pending_within_grace_period` (`projects/mistral/backend/services/sqlapi_db_manager.py`): la finestra `now - GRACE_PERIOD`.
 
 ## 3. Elementi definiti
 
@@ -29,6 +29,7 @@
 - **`args={}` (minimale e non list-safe)**: le righe non hanno la chiave `datasets`; sono adatte ai soli test di delete/cleanup (che non leggono `args`) ma provocherebbero `KeyError` in `GET /requests` (che fa `pop("datasets")`).
 - **`commit` unico nel cleanup**: `delete_request_rows` accumula le `delete` e fa **un solo** `commit` finale; se una riga è già stata rimossa altrove, viene semplicemente saltata.
 - **`datetime.now()` naive**: le date sono calcolate con l'ora locale (come i controlli backend), mentre il default del modello è `datetime.utcnow`; qui `submission_date` è sempre impostata esplicitamente, quindi il default non interviene.
+- **`GRACE_PERIOD` letto all'import**: le costanti sono calcolate una volta sola quando il modulo viene importato; cambiare la variabile d'ambiente dopo (es. con `monkeypatch.setenv`) non le ricalcola.
 
 ## 5. Checklist di revisione
 

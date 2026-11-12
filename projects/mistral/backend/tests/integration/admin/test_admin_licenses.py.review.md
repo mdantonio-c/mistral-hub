@@ -1,10 +1,10 @@
 # Review — `test_admin_licenses.py`
 
-> File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
+> File di review per facilitare la revisione manuale della suite. Non modifica codice.
 
 ## 1. Informazioni generali
 
-- **Percorso**: [projects/mistral/backend/tests/integration/admin/test_admin_licenses.py](projects/mistral/backend/tests/integration/admin/test_admin_licenses.py)
+- **Percorso**: `projects/mistral/backend/tests/integration/admin/test_admin_licenses.py`
 - **Scopo**: verificare il CRUD admin delle *license* (create con group, cambio di group in update, normalizzazione `url=""`→`None`), il listing con `group_license` e `datasets` annidati, i rami `404` per license mancante e il `400` di validazione su `group_license` inesistente senza creare license (ADMIN-001).
 - **Tipologia**: test di **integrazione HTTP** (controller reale + schema dinamica + DB SQLAlchemy). Marker: `integration`, `deterministic`.
 
@@ -12,28 +12,28 @@
 
 | Elemento | Path | Ruolo |
 |---|---|---|
-| `AdminLicenses.get` | [endpoints/admin_licenses.py](projects/mistral/backend/endpoints/admin_licenses.py) | `GET /api/admin/licenses` — lista via `_get_license_response`, aggiunge `group_license` (id/name/descr) e `datasets[]` (`{name, id=arkimet_id}`). |
-| `AdminLicenses.post` | [endpoints/admin_licenses.py](projects/mistral/backend/endpoints/admin_licenses.py) | `POST /api/admin/licenses` — crea la license, collega `group_license_id`, ritorna l'**id** (200); `Conflict` (409) su dup. |
-| `AdminLicenses.put` | [endpoints/admin_licenses.py](projects/mistral/backend/endpoints/admin_licenses.py) | `PUT /api/admin/licenses/<id>` — `NotFound` (404) se license assente; `setattr`; eventuale cambio `group_license_id` → `empty_response()` (**204**). |
-| `AdminLicenses.delete` | [endpoints/admin_licenses.py](projects/mistral/backend/endpoints/admin_licenses.py) | `DELETE /api/admin/licenses/<id>` — `NotFound` (404) se assente; delete → **204**. |
-| `getInputSchema` / `getPOSTInputSchema` / `getPUTInputSchema` | [endpoints/admin_licenses.py](projects/mistral/backend/endpoints/admin_licenses.py) | **Schema dinamica valutata a runtime**: `group_license` è una `OneOf` costruita sugli id dei gruppi **esistenti** nel DB. |
-| `LicenseInput` + `@pre_load null_url` | [endpoints/admin_licenses.py](projects/mistral/backend/endpoints/admin_licenses.py) | Converte `url == ""` in `None`. |
-| `SqlApiDbManager._get_license_response` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L297) | Dict base della license (id, name, descr, url). |
-| Modello `License` | [models/sqlalchemy.py](projects/mistral/backend/models/sqlalchemy.py#L111) | `group_license_id` FK, `name` indicizzato **non unique**, `url` String, `datasets` (`lazy="dynamic"`). |
+| `AdminLicenses.get` | `projects/mistral/backend/endpoints/admin_licenses.py` | `GET /api/admin/licenses` — lista via `_get_license_response`, aggiunge `group_license` (id/name/descr) e `datasets[]` (`{name, id=arkimet_id}`). |
+| `AdminLicenses.post` | `projects/mistral/backend/endpoints/admin_licenses.py` | `POST /api/admin/licenses` — crea la license, collega `group_license_id`, ritorna l'**id** (200); `Conflict` (409) su dup. |
+| `AdminLicenses.put` | `projects/mistral/backend/endpoints/admin_licenses.py` | `PUT /api/admin/licenses/<id>` — `NotFound` (404) se license assente; `setattr`; eventuale cambio `group_license_id` → `empty_response()` (**204**). |
+| `AdminLicenses.delete` | `projects/mistral/backend/endpoints/admin_licenses.py` | `DELETE /api/admin/licenses/<id>` — `NotFound` (404) se assente; delete → **204**. |
+| `getInputSchema` / `getPOSTInputSchema` / `getPUTInputSchema` | `projects/mistral/backend/endpoints/admin_licenses.py` | **Schema dinamica valutata a runtime**: `group_license` è una `OneOf` costruita sugli id dei gruppi **esistenti** nel DB. |
+| `LicenseInput` + `@pre_load null_url` | `projects/mistral/backend/endpoints/admin_licenses.py` | Converte `url == ""` in `None`. |
+| `SqlApiDbManager._get_license_response` | `projects/mistral/backend/services/sqlapi_db_manager.py` | Dict base della license (id, name, descr, url). |
+| Modello `License` | `projects/mistral/backend/models/sqlalchemy.py` | `group_license_id` FK, `name` indicizzato **non unique**, `url` String, `datasets` (`lazy="dynamic"`). |
 
 ## 3. Mappa delle dipendenze
 
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L59) | Teardown **LIFO**; non ingoia eccezioni. |
-| `admin_headers` | fixture | [admin/conftest.py](conftest.py) | Scoperta automaticamente da pytest; login admin di **default**. |
-| `license_payload` | helper | [admin/support.py](projects/mistral/backend/tests/integration/admin/support.py) | Payload license; `group_license` inviato come **stringa** (per la `OneOf`); `url` opzionale (`""`/`None`). |
-| `create_license_group_via_api` | helper | [admin/support.py](projects/mistral/backend/tests/integration/admin/support.py) | POST gruppo (asserisce 200) + cleanup; necessario perché la `OneOf` di `group_license` esista. |
-| `create_license_via_api` | helper | [admin/support.py](projects/mistral/backend/tests/integration/admin/support.py) | POST license (asserisce 200) + cleanup. |
-| `create_dataset_bundle_via_api` | helper | [admin/support.py](projects/mistral/backend/tests/integration/admin/support.py) | Crea attribution+group+license+dataset per il test di listing annidato. |
-| `find_list_item`, `response_content` | helper | [admin/support.py](projects/mistral/backend/tests/integration/admin/support.py) | Ricerca item per id stringa; decodifica body. |
-| `ADMIN_LICENSES_ENDPOINT`, `ADMIN_MISSING_ID` | costanti | [admin/support.py](projects/mistral/backend/tests/integration/admin/support.py) | URL `/api/admin/licenses` e id sentinella. |
+| `cleanup_registry` | fixture | `projects/mistral/backend/tests/conftest.py` | Teardown **LIFO**; non ingoia eccezioni. |
+| `admin_headers` | fixture | `projects/mistral/backend/tests/integration/admin/conftest.py` | Scoperta automaticamente da pytest; login admin di **default**. |
+| `license_payload` | helper | `projects/mistral/backend/tests/integration/admin/support.py` | Payload license; `group_license` inviato come **stringa** (per la `OneOf`); `url` opzionale (`""`/`None`). |
+| `create_license_group_via_api` | helper | `projects/mistral/backend/tests/integration/admin/support.py` | POST gruppo (asserisce 200) + cleanup; necessario perché la `OneOf` di `group_license` esista. |
+| `create_license_via_api` | helper | `projects/mistral/backend/tests/integration/admin/support.py` | POST license (asserisce 200) + cleanup. |
+| `create_dataset_bundle_via_api` | helper | `projects/mistral/backend/tests/integration/admin/support.py` | Crea attribution+group+license+dataset per il test di listing annidato. |
+| `find_list_item`, `response_content` | helper | `projects/mistral/backend/tests/integration/admin/support.py` | Ricerca item per id stringa; decodifica body. |
+| `ADMIN_LICENSES_ENDPOINT`, `ADMIN_MISSING_ID` | costanti | `projects/mistral/backend/tests/integration/admin/support.py` | URL `/api/admin/licenses` e id sentinella. |
 | `sqlalchemy.get_instance()` | connettore | `restapi.connectors` | Precondizioni DB, verifica post-delete e assenza di license dopo il 400. |
 
 ## 4. Analisi dettagliata di ogni test
@@ -48,6 +48,8 @@
   - `update_response.status_code == 204` (`empty_response`), poi `url is None` (pre_load) e `group_license.id == updated_group_id` → il cambio relazione è persistito.
   - `delete` → 204 e `License.query.get(id) is None`.
 - **Casi coperti**: happy path completo + validation/normalization (url) + cambio FK + side effect DB.
+- **Cosa non dimostra**: i rami `NotFound` sul gruppo del controller, irraggiungibili via HTTP perché la `OneOf` filtra prima.
+- **Se fallisce, guarda**: `LicenseInput.null_url`, il mapping delle relazioni nel listing e la `OneOf` dinamica di `group_license`.
 
 ### `test_admin_license_list_includes_group_and_datasets`
 - **Obiettivo**: verificare lo schema list con `group_license` e `datasets` annidati.
@@ -56,6 +58,8 @@
 - **Setup**: `create_dataset_bundle_via_api` (cleanup LIFO).
 - **Assert**: `status_code == 200`; `group_license.id == bundle.group_license_id`; `{"id": bundle.dataset_arkimet_id, "name": bundle.dataset_name} in datasets` → conferma il doppio annidamento (gruppo + dataset con `id=arkimet_id`).
 - **Casi coperti**: happy path / contratto relazionale annidato.
+- **Cosa non dimostra**: il contenuto del resto del catalogo; cerca solo l'item del bundle e il dataset atteso.
+- **Se fallisce, guarda**: serializzazione in `AdminLicenses.get` e le FK create da `create_dataset_bundle_via_api`.
 
 ### `test_admin_license_missing_license_returns_404`
 - **Obiettivo**: `NotFound` per `put`/`delete` su license inesistente.
@@ -64,6 +68,8 @@
 - **Setup**: `admin_headers`, `cleanup_registry` (per il gruppo creato).
 - **Assert**: `update_response.status_code == 404` e `delete_response.status_code == 404`.
 - **Casi coperti**: error path. Il gruppo valido isola il test dal ramo di validazione: il 404 misura la ricerca della **license** path, non il body.
+- **Cosa non dimostra**: il caso del gruppo mancante nel body, coperto dal test successivo con esito 400.
+- **Se fallisce, guarda**: la guardia `NotFound` sulla license; se arriva 400 indagare il gruppo e lo schema dinamico prima del controller.
 
 ### `test_admin_license_missing_group_returns_400` — **ADMIN-001 (contratto di validazione)**
 - **Obiettivo**: verificare il `400` di validazione quando si tenta di creare una license con `group_license` **inesistente**, senza persistenza.
@@ -73,6 +79,8 @@
 - **Assert**: `status_code == 400`; `"group_license" in response_content(response)`; `License.query.filter_by(name=payload["name"]).count() == 0`.
 - **Casi coperti**: edge/contract negativo. La `OneOf` rifiuta l'id mancante con **400** prima del controller; il ramo `NotFound` non viene raggiunto via HTTP. Il test non usa skip.
 - **Doppio problema di backend dietro ADMIN-001** (vedi §8): anche se l'input superasse lo schema, il controllo `if not lic_group:` userebbe `db.GroupLicense.query.filter_by(...).first` **senza parentesi** → un *bound method* sempre truthy → il `raise NotFound("This license group")` è **codice morto**.
+- **Cosa non dimostra**: il `NotFound` del controller sul gruppo (dead code per il `.first` senza parentesi).
+- **Se fallisce, guarda**: `getPOSTInputSchema` e la costruzione della `OneOf` di `group_license` in `projects/mistral/backend/endpoints/admin_licenses.py`; il contratto adottato è il 400 di validazione.
 
 ## 5. Call chain
 
