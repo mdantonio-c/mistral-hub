@@ -19,14 +19,17 @@ from types import SimpleNamespace
 from uuid import uuid4
 
 import mistral.endpoints.request_hourly_report as hourly_endpoint_module
+import mistral.services.sqlapi_db_manager as sqlapi_db_manager_module
 import pytest
 from mistral.endpoints import DOWNLOAD_DIR
+from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from mistral.tests.helpers.auth import (
     AuthenticatedTestUser,
     create_authenticated_test_user,
     register_test_user_cleanup,
 )
 from restapi.connectors import sqlalchemy
+from restapi.exceptions import Unauthorized
 from restapi.tests import API_URI, BaseTests, FlaskClient
 
 
@@ -340,3 +343,96 @@ def test_hourly_reports_submitted_total_and_remaining_in_current_hour(
         "total": 3,
         "remaining": 1,
     }
+
+
+def test_hourly_report_counts_the_window_edges(
+    client: FlaskClient,
+    cleanup_registry,
+    monkeypatch,
+) -> None:
+    """Verifica i bordi della finestra oraria del report GET /hourly.
+
+    Con l'orologio alle 10:30 sono contate le request delle 10:00:00 (inizio dell'ora),
+    delle 10:20 e delle 10:30:00 (istante corrente); non quelle delle 09:59:59 e future.
+    """
+    # arrange
+    monkeypatch.setattr(
+        hourly_endpoint_module,
+        "datetime",
+        SimpleNamespace(datetime=FixedHourlyDateTime),
+    )
+    user = create_user_limits_user(
+        client,
+        cleanup_registry,
+        disk_quota=4096,
+        request_par_hour=5,
+    )
+    db = sqlalchemy.get_instance()
+    fixed_now = FixedHourlyDateTime.utcnow()
+    for submission_date in (
+        fixed_now.replace(hour=9, minute=59, second=59),
+        fixed_now.replace(minute=0, second=0),
+        fixed_now.replace(minute=20),
+        fixed_now,
+        fixed_now.replace(minute=45),
+    ):
+        seed_hourly_request(db, cleanup_registry, user, submission_date)
+
+    # act
+    response = client.get(HOURLY_ENDPOINT, headers=user.headers)
+
+    # assert
+    assert response.status_code == 200
+    assert BaseTests().get_content(response) == {
+        "submitted": 3,
+        "total": 5,
+        "remaining": 2,
+    }
+
+
+@pytest.mark.parametrize(
+    ("minutes", "limit_reached"),
+    [((0, 20), True), ((20, 45), False)],
+    ids=["request-at-the-start-of-the-hour", "future-request"],
+)
+def test_request_limit_counts_the_same_window_of_the_report(
+    client: FlaskClient,
+    cleanup_registry,
+    monkeypatch,
+    minutes: tuple[int, int],
+    limit_reached: bool,
+) -> None:
+    """Verifica che il limite orario conti la stessa finestra del report.
+
+    Con limite 2 e orologio alle 10:30, una request alle 10:00:00 conta (nuove request
+    rifiutate), una alle 10:45 (futura) no.
+    Metodo esercitato: SqlApiDbManager.check_user_request_limit.
+    """
+    # arrange
+    monkeypatch.setattr(
+        sqlapi_db_manager_module,
+        "datetime",
+        SimpleNamespace(
+            datetime=FixedHourlyDateTime, timedelta=datetime_module.timedelta
+        ),
+    )
+    user = create_user_limits_user(
+        client,
+        cleanup_registry,
+        disk_quota=4096,
+        request_par_hour=2,
+    )
+    db = sqlalchemy.get_instance()
+    fixed_now = FixedHourlyDateTime.utcnow()
+    for minute in minutes:
+        seed_hourly_request(
+            db, cleanup_registry, user, fixed_now.replace(minute=minute, second=0)
+        )
+    db_user = db.User.query.get(user.user_id)
+
+    # act / assert
+    if limit_reached:
+        with pytest.raises(Unauthorized, match="max number of requests par hour"):
+            SqlApiDbManager.check_user_request_limit(db, db_user)
+    else:
+        SqlApiDbManager.check_user_request_limit(db, db_user)

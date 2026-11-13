@@ -116,3 +116,80 @@ def test_listing_filters_by_reftime_and_run_can_exclude_results(
     content = BaseTests().get_content(response)
     assert response.status_code == 200
     assert content == []
+
+
+@pytest.mark.parametrize(
+    ("q", "expected_message"),
+    [
+        ("run", "Invalid run filter in q: run"),
+        ("runX", "Invalid run filter in q: runX"),
+        (
+            "reftime:>=2019-06-21,<=2019-06-22 00:00",
+            "Invalid reftime in q: 2019-06-21 (expected YYYY-MM-DD HH:MM)",
+        ),
+        (
+            "reftime:>=2019-02-30 00:00,<=2019-03-01 00:00",
+            "Invalid reftime in q: 2019-02-30 00:00 (expected YYYY-MM-DD HH:MM)",
+        ),
+        (
+            "reftime:>2019-06-21 00:00,<=2019-06-22 00:00",
+            "Invalid reftime filter in q: >2019-06-21 00:00",
+        ),
+        (
+            "reftime:>=2019-06-21 00:00",
+            "Invalid reftime filter in q: both bounds are required",
+        ),
+    ],
+    ids=[
+        "run-without-colon",
+        "unknown-run-prefix",
+        "reftime-without-time",
+        "reftime-unexisting-date",
+        "reftime-unknown-comparison",
+        "reftime-single-bound",
+    ],
+)
+def test_listing_malformed_q_returns_400_with_clear_message(
+    client: FlaskClient,
+    cleanup_registry,
+    q: str,
+    expected_message: str,
+) -> None:
+    """Verifica che un parametro ``q`` malformato dia un 400 con messaggio chiaro.
+
+    Prima gli stessi input sollevavano IndexError/ValueError/KeyError, che restapi
+    trasforma in un 400 generico con il solo nome dell'eccezione.
+    """
+    # arrange
+    dataset, _ = create_listing_env(client, cleanup_registry)
+    endpoint = f"{API_URI}/datasets/{dataset.arkimet_id}/opendata"
+
+    # act
+    response = client.get(endpoint, query_string={"q": q})
+
+    # assert
+    assert response.status_code == 400
+    assert BaseTests().get_content(response) == expected_message
+
+
+def test_listing_filters_by_documented_query_with_spaces(
+    client: FlaskClient,
+    cleanup_registry,
+) -> None:
+    """Verifica la query documentata nel codice, con spazio dopo ``reftime:``.
+
+    Esercita GET /api/datasets/<id>/opendata con
+    ``q=reftime: >=...,<=...;run:MINUTE,00:00``.
+    """
+    # arrange
+    dataset, seeded_results = create_listing_env(client, cleanup_registry)
+    query = "reftime: >=2020-01-01 00:00,<=2020-01-02 23:59;run:MINUTE,00:00"
+    endpoint = f"{API_URI}/datasets/{dataset.arkimet_id}/opendata"
+
+    # act
+    response = client.get(endpoint, query_string={"q": query})
+
+    # assert
+    content = BaseTests().get_content(response)
+    assert response.status_code == 200
+    assert [item["filename"] for item in content] == [seeded_results[0].filename]

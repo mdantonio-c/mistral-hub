@@ -1,7 +1,9 @@
 # Test CRUD dell'endpoint admin /api/admin/datasets
 # (projects/mistral/backend/endpoints/admin_datasets.py).
 # Ambito: verifica create/list/update/delete, relazioni license/attribution, sort_index
-# vuoto normalizzato a None, 404 su dataset mancante e conflict su vincoli unique.
+# vuoto normalizzato a None, 404 su dataset mancante e conflict su vincoli unique,
+# NotFound del controller per license/attribution inesistenti e status 204 di PUT/DELETE
+# dichiarati nella specifica OpenAPI.
 # Finestra dati: nessun dato meteorologico reale viene usato; il dataset e un record di
 # catalogo sintetico con arkimet_id uuid e senza file di runtime.
 # Runtime fake: nessun fake; il test attraversa Flask, schema dinamiche e SQLAlchemy.
@@ -9,9 +11,13 @@
 
 from __future__ import annotations
 
+import inspect
+
 import pytest
+from mistral.endpoints.admin_datasets import AdminDatasets
 from restapi.connectors import sqlalchemy
-from restapi.tests import FlaskClient
+from restapi.exceptions import NotFound
+from restapi.tests import API_URI, FlaskClient
 
 from mistral.tests.integration.admin.support import (
     ADMIN_DATASETS_ENDPOINT,
@@ -212,3 +218,67 @@ def test_admin_dataset_missing_update_delete_return_404(
     # assert - entrambi i rami devono restituire 404.
     assert update_response.status_code == 404
     assert delete_response.status_code == 404
+
+
+def _delete_datasets_by_arkimet_id(db, arkimet_id: str) -> None:
+    """Rimuove i dataset sintetici con l'arkimet_id indicato (cleanup idempotente)."""
+    db.session.rollback()
+    for dataset in db.Datasets.query.filter_by(arkimet_id=arkimet_id).all():
+        db.session.delete(dataset)
+    db.session.commit()
+
+
+@pytest.mark.parametrize("missing", ["license", "attribution"])
+def test_admin_dataset_controller_missing_reference_returns_not_found(
+    client: FlaskClient,
+    admin_headers: dict[str, str],
+    cleanup_registry,
+    missing: str,
+) -> None:
+    """Verifica il ramo NotFound del controller per license o attribution inesistenti.
+
+    Via HTTP la OneOf rifiuta prima gli id inesistenti: il controller viene quindi
+    chiamato direttamente, senza decoratori. Il dataset appena creato deve essere
+    rimosso, senza lasciare righe parziali.
+    Metodo esercitato: AdminDatasets.post.
+    """
+    # arrange
+    attribution_id = create_attribution_via_api(
+        client, admin_headers, cleanup_registry
+    )
+    group_license_id = create_license_group_via_api(
+        client, admin_headers, cleanup_registry
+    )
+    license_id = create_license_via_api(
+        client, admin_headers, cleanup_registry, group_license_id
+    )
+    if missing == "license":
+        payload = dataset_payload(ADMIN_MISSING_ID, attribution_id)
+    else:
+        payload = dataset_payload(license_id, ADMIN_MISSING_ID)
+    db = sqlalchemy.get_instance()
+    cleanup_registry.add(
+        lambda: _delete_datasets_by_arkimet_id(db, payload["arkimet_id"])
+    )
+    post = inspect.unwrap(AdminDatasets.post)
+
+    # act / assert
+    with pytest.raises(NotFound):
+        post(AdminDatasets(), None, **payload)
+    assert db.Datasets.query.filter_by(arkimet_id=payload["arkimet_id"]).count() == 0
+
+
+def test_admin_dataset_openapi_declares_204_for_update_and_delete(
+    client: FlaskClient,
+    admin_headers: dict[str, str],
+) -> None:
+    """Verifica che la specifica OpenAPI dichiari 204, lo status reale di PUT/DELETE."""
+    # act
+    response = client.get(f"{API_URI}/specs", headers=admin_headers)
+
+    # assert
+    assert response.status_code == 200
+    path = response_content(response)["paths"]["/api/admin/datasets/{dataset_id}"]
+    for method in ("put", "delete"):
+        assert "204" in path[method]["responses"]
+        assert "200" not in path[method]["responses"]

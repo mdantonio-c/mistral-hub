@@ -1,7 +1,8 @@
 # Test dei rami ad alto rischio di `tasks.data_extraction` (tasks/data_extraction.py)
 # non esercitati dagli happy path di postprocessing.
 # Ambito: i test proteggono quota utente, disabilitazione schedule su quota,
-# duplicate data-ready, notification email/AMQP e package license. Non rieseguono
+# duplicate data-ready, errori prima della creazione della request, notification
+# email/AMQP (retry, esaurimento, esito non alterato) e package license. Non rieseguono
 # estrazioni meteorologiche reali e non duplicano i flussi `integration/postprocessing`.
 # Finestra dati: nessun dataset runtime reale viene usato. Le reftime sono
 # dizionari sintetici per confronti duplicate data-ready e non rappresentano finestre
@@ -21,11 +22,14 @@ import tarfile
 from types import SimpleNamespace
 
 import pytest
+import restapi.connectors.celery as celery_connector
 from celery import states
+from celery.exceptions import Ignore
 from restapi.connectors import sqlalchemy
 from restapi.tests import FlaskClient
 
 from mistral.exceptions import DiskQuotaException, MaxOutputSizeExceeded
+from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from mistral.tasks import data_extraction
 from mistral.tests.integration.tasks.support import (
     RecordingPeriodicTaskDeletionEXT,
@@ -331,6 +335,79 @@ class TestDataExtractDataReadyEXT:
             assert list(user.output_dir.iterdir()) == []
 
 
+class TestDataExtractEarlyErrorsEXT:
+    """Errori prima che la request esista: arriva al chiamante la causa originale.
+
+    Prima della correzione i blocchi except/finally usavano nomi non ancora assegnati
+    (``request``, ``outfile``) e il task terminava con ``UnboundLocalError``.
+    """
+
+    @staticmethod
+    def _raise_original(*args, exception, **kwargs):
+        # Sostituisce l'hook di fallimento di restapi, che userebbe il broker.
+        raise exception
+
+    def test_data_extract_missing_schedule_raises_reference_error(
+        self,
+        client: FlaskClient,
+        cleanup_registry,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Una schedule inesistente fa fallire il task con ReferenceError."""
+        # arrange
+        db = sqlalchemy.get_instance()
+        user = create_task_test_user(client, cleanup_registry)
+        missing_schedule_id = 2_000_000_000
+        assert db.Schedule.query.get(missing_schedule_id) is None
+        monkeypatch.setattr(
+            celery_connector, "mark_task_as_failed", self._raise_original
+        )
+
+        # act / assert
+        with pytest.raises(ReferenceError, match="Cannot find schedule reference"):
+            data_extraction.data_extract.run(
+                user.user_id,
+                ["synthetic-task-ext"],
+                {"from": "2026-05-29T00:00:00.000000Z", "to": "2026-05-29T01:00:00Z"},
+                None,
+                [],
+                None,
+                None,
+                False,
+                None,
+                missing_schedule_id,
+                False,
+                False,
+            )
+        assert db.Request.query.filter_by(user_id=user.user_id).count() == 0
+
+    def test_data_extract_database_failure_raises_the_original_error(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Un errore di connessione al DB arriva al chiamante con il suo tipo."""
+
+        # arrange
+        class DatabaseUnavailable(Exception):
+            pass
+
+        def unavailable_database(*args, **kwargs):
+            raise DatabaseUnavailable("synthetic database failure")
+
+        monkeypatch.setattr(
+            data_extraction,
+            "sqlalchemy",
+            SimpleNamespace(get_instance=unavailable_database),
+        )
+        monkeypatch.setattr(
+            celery_connector, "mark_task_as_failed", self._raise_original
+        )
+
+        # act / assert
+        with pytest.raises(DatabaseUnavailable):
+            data_extraction.data_extract.run(1, ["synthetic-task-ext"], None, None, [])
+
+
 class TestDataExtractionNotificationsEXT:
     """Verifica email con template reali e trasporti SMTP/AMQP simulati."""
 
@@ -373,10 +450,13 @@ class TestDataExtractionNotificationsEXT:
         # act
         # La funzione non deve propagare il primo errore SMTP: deve fare retry e poi
         # registrare un invio riuscito nel fake.
-        data_extraction.notify_by_email(db, user.user_id, request, " after retry")
+        result = data_extraction.notify_by_email(
+            db, user.user_id, request, " after retry"
+        )
 
         # assert
         # Contenuti distintivi del template reale, senza snapshot di HTML o plain text.
+        assert result is True
         assert smtp_factory.send_attempts == 2
         assert len(smtp_factory.sent_messages) == 1
         sent = smtp_factory.sent_messages[0]
@@ -405,6 +485,112 @@ class TestDataExtractionNotificationsEXT:
             {"retries": 5, "retry_wait": 10},
             {"retries": 5, "retry_wait": 10},
         ]
+
+    @pytest.mark.parametrize(
+        ("failures", "expected_result", "expected_sleeps"),
+        [(0, True, 0), (3, False, 2)],
+        ids=["immediate-success", "all-attempts-fail"],
+    )
+    def test_notify_by_email_reports_the_final_outcome(
+        self,
+        client: FlaskClient,
+        cleanup_registry,
+        monkeypatch: pytest.MonkeyPatch,
+        failures: int,
+        expected_result: bool,
+        expected_sleeps: int,
+    ) -> None:
+        """L'esito dell'invio arriva al chiamante; si attende solo tra due tentativi.
+
+        Con un successo immediato non ci sono attese. Con tre tentativi falliti le
+        attese sono due (nessuna dopo l'ultimo) e la funzione restituisce False.
+        """
+        # arrange
+        db = sqlalchemy.get_instance()
+        user = create_task_test_user(client, cleanup_registry)
+        smtp_factory = RetryThenSuccessSmtpFactoryEXT(failures_before_success=failures)
+        sleep_calls: list[int] = []
+        monkeypatch.setattr(
+            data_extraction.smtp,
+            "get_instance",
+            smtp_factory.get_instance,
+        )
+        monkeypatch.setattr(
+            data_extraction.time,
+            "sleep",
+            lambda seconds: sleep_calls.append(seconds),
+        )
+        request = SimpleNamespace(
+            name="email-outcome-ext",
+            status=states.SUCCESS,
+            error_message=None,
+        )
+
+        # act
+        result = data_extraction.notify_by_email(db, user.user_id, request, "")
+
+        # assert
+        assert result is expected_result
+        expected_attempts = min(failures + 1, data_extraction.MAX_RETRIES)
+        assert smtp_factory.send_attempts == expected_attempts
+        assert sleep_calls == [data_extraction.SLEEP_TIME] * expected_sleeps
+
+    def test_data_extract_failed_notification_does_not_change_the_result(
+        self,
+        client: FlaskClient,
+        cleanup_registry,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Una notifica email non inviata non cambia l'esito salvato dell'estrazione.
+
+        L'estrazione fallisce subito per dataset non autorizzati (nessun accesso ad
+        Arkimet): la request resta in FAILURE con il suo messaggio e il task termina
+        con lo stesso errore anche se ``notify_by_email`` restituisce False.
+        """
+        # arrange
+        db = sqlalchemy.get_instance()
+        user = create_task_test_user(client, cleanup_registry)
+        cleanup_registry.add(lambda: delete_requests_for_user(db, user.user_id))
+        request_id = seed_request(db, user.user_id, status=states.PENDING)
+        notifications: list[tuple] = []
+
+        def failed_notification(*args):
+            notifications.append(args)
+            return False
+
+        def raise_original(*args, exception, **kwargs):
+            raise exception
+
+        monkeypatch.setattr(data_extraction, "notify_by_email", failed_notification)
+        monkeypatch.setattr(
+            data_extraction,
+            "arki",
+            SimpleNamespace(
+                get_datasets_format=lambda datasets: "grib",
+                get_datasets_category=lambda datasets: "FOR",
+            ),
+        )
+        monkeypatch.setattr(
+            SqlApiDbManager, "get_datasets", staticmethod(lambda db, user: [])
+        )
+        monkeypatch.setattr(
+            celery_connector, "mark_task_as_failed_ignore", raise_original
+        )
+
+        # act
+        with pytest.raises(Ignore, match="not allowed to access"):
+            data_extraction.data_extract.run(
+                user.user_id, ["synthetic-task-ext"], None, None, [], None, request_id
+            )
+
+        # assert
+        db.session.expire_all()
+        request = db.Request.query.get(request_id)
+        assert request.status == states.FAILURE
+        assert request.error_message == (
+            "user is not allowed to access the requested datasets"
+        )
+        assert len(notifications) == 1
 
     def test_notify_by_amqp_queue_sends_success_payload_with_download_url(
         self,

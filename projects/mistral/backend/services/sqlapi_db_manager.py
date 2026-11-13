@@ -82,7 +82,8 @@ class SqlApiDbManager:
             log.debug("look for request with ID {}", request_id)
             req = db.Request.query.get(int(request_id))
 
-            forbidden_delete_time = datetime.datetime.now() - GRACE_PERIOD
+            # submission_date is saved in UTC (without timezone)
+            forbidden_delete_time = datetime.datetime.utcnow() - GRACE_PERIOD
 
             # Verificare se la data di sottomissione è all'interno della finestra del grace period
             if req.submission_date > forbidden_delete_time:
@@ -648,11 +649,12 @@ class SqlApiDbManager:
         if max_request_hour:
             now = datetime.datetime.utcnow()
             last_hour = now.replace(minute=0, second=0, microsecond=0)
+            # the beginning of the hour and now are included, future dates are not
             request_count = (
                 db.session.query(db.Request)
                 .filter(db.Request.user_id == user.id)
-                .filter(db.Request.submission_date > last_hour)
-                .filter(db.Request.submission_date < now)
+                .filter(db.Request.submission_date >= last_hour)
+                .filter(db.Request.submission_date <= now)
                 .count()
             )
             if request_count >= max_request_hour:

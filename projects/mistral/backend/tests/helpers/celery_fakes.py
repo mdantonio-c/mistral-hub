@@ -81,11 +81,13 @@ class InlineDataReadyExtractionCelery:
     I test periodici data-ready vogliono verificare la decisione dello scheduler:
     va generata o no una nuova richiesta di estrazione? Non serve eseguire il vero
     worker di estrazione. Questo fake traduce l'invio del task Celery nella stessa
-    riga ``Request`` che il resto del test si aspetta di trovare nel DB.
+    riga ``Request`` che il resto del test si aspetta di trovare nel DB, e registra
+    in ``sent_tasks`` gli invii del launcher, distinti dalle righe create.
     """
 
     def __init__(self, db: Any) -> None:
-        self.celery_app = _InlineDataReadyExtractionApp(db)
+        self.sent_tasks: list[dict[str, Any]] = []
+        self.celery_app = _InlineDataReadyExtractionApp(db, self.sent_tasks)
 
     def delete_periodic_task(self, *args: Any, **kwargs: Any) -> bool:
         """Finge che la rimozione del task periodico sia riuscita.
@@ -122,8 +124,9 @@ class InlineDataExtractCelery:
 class _InlineDataReadyExtractionApp:
     """Facade minimale di ``celery_app`` che emula gli effetti di ``data_extract``."""
 
-    def __init__(self, db: Any) -> None:
+    def __init__(self, db: Any, sent_tasks: list[dict[str, Any]]) -> None:
         self.db = db
+        self.sent_tasks = sent_tasks
 
     def send_task(
         self,
@@ -134,12 +137,15 @@ class _InlineDataReadyExtractionApp:
         """Converte l'invio di ``data_extract`` in una riga di richiesta sintetica.
 
         Il metodo verifica che il codice sotto test stia davvero inviando
-        ``data_extract`` in modalita ``data_ready``. Poi salta gli invii duplicati
-        per lo stesso reftime oppure inserisce una nuova richiesta riuscita, cosi
-        il chiamante puo fare asserzioni sullo stato risultante della schedule.
+        ``data_extract`` in modalita ``data_ready`` e registra l'invio in
+        ``sent_tasks``. Poi salta gli invii duplicati per lo stesso reftime, come il
+        controllo del worker reale in ``data_extract``, oppure inserisce una nuova
+        richiesta riuscita, cosi il chiamante puo fare asserzioni sullo stato
+        risultante della schedule.
         """
         assert name == "data_extract"
         assert args is not None
+        self.sent_tasks.append({"name": name, "args": args, "kwargs": kwargs})
         (
             user_id,
             datasets,

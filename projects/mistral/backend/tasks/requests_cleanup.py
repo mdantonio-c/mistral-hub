@@ -26,7 +26,8 @@ def automatic_cleanup(self: Task[[], str]) -> str:
             users_settings[u.id] = timedelta(days=exp)
             users[u.id] = u
 
-    now = datetime.now()
+    # request dates are saved in UTC (without timezone)
+    now = datetime.utcnow()
 
     # Retrieve all request IDs in order to iterate over them.
     request_ids = (r_id for r_id, in db.session.query(db.Request.id).all())
@@ -98,12 +99,12 @@ def automatic_cleanup(self: Task[[], str]) -> str:
                         if (
                             f.suffix == ".tmp"
                             and now - GRACE_PERIOD
-                            > datetime.fromtimestamp(f.stat().st_mtime)
+                            > datetime.utcfromtimestamp(f.stat().st_mtime)
                         ):
                             log.info(
                                 "temp file {} created on {} has passed the grace period and has been deleted",
                                 f,
-                                datetime.fromtimestamp(f.stat().st_mtime),
+                                datetime.utcfromtimestamp(f.stat().st_mtime),
                             )
                             f.unlink()
                             continue
@@ -113,13 +114,13 @@ def automatic_cleanup(self: Task[[], str]) -> str:
                         ).first()
                         if not file_object:
                             # check if has passed the grace period
-                            if now - GRACE_PERIOD > datetime.fromtimestamp(
+                            if now - GRACE_PERIOD > datetime.utcfromtimestamp(
                                 f.stat().st_mtime
                             ):
                                 log.info(
                                     "output file {} without a db entry and created on {} has passed the grace period and has been deleted",
                                     f,
-                                    datetime.fromtimestamp(f.stat().st_mtime),
+                                    datetime.utcfromtimestamp(f.stat().st_mtime),
                                 )
                                 f.unlink()
                                 continue

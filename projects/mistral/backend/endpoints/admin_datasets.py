@@ -212,8 +212,8 @@ class AdminDatasets(EndpointResource):
         except DatabaseDuplicatedEntry as exc:
             db.session.rollback()
             raise Conflict(str(exc))
-        license = db.License.query.filter_by(id=license_id).first
-        attribution = db.Attribution.query.filter_by(id=attribution_id).first
+        license = db.License.query.filter_by(id=license_id).first()
+        attribution = db.Attribution.query.filter_by(id=attribution_id).first()
         if not license:
             db.session.delete(new_dataset)
             db.session.commit()
@@ -234,7 +234,7 @@ class AdminDatasets(EndpointResource):
         path="/admin/datasets/<dataset_id>",
         summary="Modify a dataset",
         responses={
-            200: "Dataset successfully modified",
+            204: "Dataset successfully modified",
             404: "Dataset not found",
             409: "Request is invalid due to conflicts",
         },
@@ -256,14 +256,14 @@ class AdminDatasets(EndpointResource):
             raise Conflict(str(exc))
 
         if license_id is not None:
-            license = db.License.query.filter_by(id=license_id).first
+            license = db.License.query.filter_by(id=license_id).first()
             if not license:
                 raise NotFound("This license")
 
             dataset.license_id = license_id
             db.session.commit()
         if attribution_id is not None:
-            attribution = db.Attribution.query.filter_by(id=attribution_id).first
+            attribution = db.Attribution.query.filter_by(id=attribution_id).first()
             if not attribution:
                 raise NotFound("This attribution")
 
@@ -276,7 +276,7 @@ class AdminDatasets(EndpointResource):
     @decorators.endpoint(
         path="/admin/datasets/<dataset_id>",
         summary="Delete a dataset",
-        responses={200: "Dataset successfully deleted", 404: "Dataset not found"},
+        responses={204: "Dataset successfully deleted", 404: "Dataset not found"},
     )
     def delete(self, dataset_id: str, user: User) -> Response:
 

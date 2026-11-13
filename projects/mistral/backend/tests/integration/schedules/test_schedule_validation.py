@@ -12,6 +12,7 @@
 # - POST /schedules con postprocessor da utente non autorizzato restituisce 401
 # - POST /schedules con push senza coda restituisce 403
 # - POST /schedules con push su coda inesistente restituisce 403
+# - crontab-settings: day_of_week 0..6 (0 = domenica) e day_of_month 1..31
 #
 # test_schedule_opendata_bridge.py copre gia il flusso di creazione della schedule
 # nel caso di successo. Questo modulo si concentra sui casi limite di validazione
@@ -28,6 +29,7 @@ from unittest.mock import MagicMock
 import mistral.endpoints.schedules as schedules_endpoint
 import orjson
 import pytest
+from marshmallow import ValidationError
 from restapi.connectors import sqlalchemy
 from restapi.services.authentication import Role
 from restapi.tests import API_URI, BaseTests, FlaskClient
@@ -438,3 +440,61 @@ class TestScheduleValidation:
 
         # assert - accesso negato
         assert response.status_code == 403
+
+
+@pytest.mark.parametrize(
+    "settings",
+    [
+        {"day_of_week": 0},
+        {"day_of_week": 6},
+        {"day_of_month": 1},
+        {"day_of_month": 31},
+    ],
+    ids=["sunday", "saturday", "first-day", "day-31"],
+)
+def test_crontab_settings_accept_every_valid_day(settings: dict[str, int]) -> None:
+    """Domenica (0, come nel crontab Celery) e il giorno 31 sono selezionabili."""
+    # act / assert
+    assert schedules_endpoint.CrontabSettings().load(settings) == settings
+
+
+@pytest.mark.parametrize(
+    "settings",
+    [
+        {"day_of_week": -1},
+        {"day_of_week": 7},
+        {"day_of_month": 0},
+        {"day_of_month": 32},
+    ],
+    ids=["negative-weekday", "weekday-7", "day-0", "day-32"],
+)
+def test_crontab_settings_reject_days_out_of_range(settings: dict[str, int]) -> None:
+    """Valori che il crontab Celery non accetta sono rifiutati dalla validazione."""
+    # act / assert
+    with pytest.raises(ValidationError):
+        schedules_endpoint.CrontabSettings().load(settings)
+
+
+def test_crontab_settings_out_of_range_returns_400(
+    client: FlaskClient,
+    schedules_user: AuthenticatedTestUser,
+) -> None:
+    """POST /schedules con day_of_week fuori intervallo risponde 400."""
+    # arrange
+    body = json.dumps({
+        "request_name": "test_crontab_out_of_range",
+        "reftime": {"from": "2020-04-06T00:00:00Z", "to": "2020-04-06T01:00:00Z"},
+        "dataset_names": ["agrmet"],
+        "crontab-settings": {"hour": 1, "minute": 0, "day_of_week": 7},
+    })
+
+    # act
+    response = client.post(
+        f"{API_URI}/schedules",
+        headers=schedules_user.headers,
+        data=body,
+        content_type="application/json",
+    )
+
+    # assert
+    assert response.status_code == 400

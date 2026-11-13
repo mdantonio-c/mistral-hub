@@ -147,7 +147,7 @@ class AdminLicenses(EndpointResource):
         except DatabaseDuplicatedEntry as exc:
             db.session.rollback()
             raise Conflict(str(exc))
-        lic_group = db.GroupLicense.query.filter_by(id=lgroup_id).first
+        lic_group = db.GroupLicense.query.filter_by(id=lgroup_id).first()
         if not lic_group:
             db.session.delete(new_lic)
             db.session.commit()
@@ -163,7 +163,7 @@ class AdminLicenses(EndpointResource):
         path="/admin/licenses/<license_id>",
         summary="Modify a license",
         responses={
-            200: "License successfully modified",
+            204: "License successfully modified",
             404: "license not found",
             409: "Request is invalid due to conflicts",
         },
@@ -184,7 +184,7 @@ class AdminLicenses(EndpointResource):
             raise Conflict(str(exc))
 
         if lgroup_id is not None:
-            lic_group = db.GroupLicense.query.filter_by(id=lgroup_id).first
+            lic_group = db.GroupLicense.query.filter_by(id=lgroup_id).first()
             if not lic_group:
                 raise NotFound("This license group")
 
@@ -197,7 +197,7 @@ class AdminLicenses(EndpointResource):
     @decorators.endpoint(
         path="/admin/licenses/<license_id>",
         summary="Delete a license",
-        responses={200: "License successfully deleted", 404: "License not found"},
+        responses={204: "License successfully deleted", 404: "License not found"},
     )
     def delete(self, license_id: str, user: User) -> Response:
 

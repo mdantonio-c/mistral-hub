@@ -1,5 +1,3 @@
-from datetime import datetime, timezone
-
 from flask import request
 from mistral.models.sqlalchemy import AccessKey
 from restapi.connectors import sqlalchemy
@@ -18,13 +16,11 @@ def is_access_key_valid(key_record: AccessKey, provided_key: str) -> bool:
     if not key_record:
         return False
 
-    # Check expiration:
+    # Check expiration with the rule of the model (AccessKey.is_valid):
     #    - if expiration is None: key always valid
-    #    - if expiration is in the past: key expired
-    if key_record.expiration is not None:
-        now = datetime.now(timezone.utc)
-        if key_record.expiration < now:
-            return False
+    #    - if expiration is now or in the past: key expired
+    if not key_record.is_valid():
+        return False
 
     return key_record.key == provided_key
 

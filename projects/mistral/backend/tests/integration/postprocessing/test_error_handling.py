@@ -33,16 +33,17 @@ class TestPostprocessingErrorHandling:
     ) -> None:
         """Verifica che un postprocessore sconosciuto lasci la request in FAILURE.
 
-        Il task ``data_extract`` rifiuta il ``processor_type`` non abilitato; il
-        messaggio viene controllato solo sull'eccezione, perche su DB viene salvato
-        il messaggio generico "Failed to extract data".
+        Il task ``data_extract`` rifiuta il ``processor_type`` non abilitato e salva
+        nella request un messaggio che identifica il postprocessore rifiutato.
         """
         # arrange
         request_id = pp_forecast_env.create_request()
-        postprocessor = {"processor_type": pp_forecast_env.faker.pystr()}
+        processor_type = pp_forecast_env.faker.pystr()
+        postprocessor = {"processor_type": processor_type}
+        expected_message = f"Unknown post-processor: {processor_type}"
 
         # act
-        with pytest.raises(Ignore, match="Unknown post-processor"):
+        with pytest.raises(Ignore, match=expected_message):
             pp_forecast_env.execute(
                 request_id,
                 postprocessors=[postprocessor],
@@ -50,7 +51,7 @@ class TestPostprocessingErrorHandling:
             )
 
         # assert
-        pp_forecast_env.assert_failure(request_id, expected_message=None)
+        pp_forecast_env.assert_failure(request_id, expected_message=expected_message)
 
     def test_forecast_derived_variables_require_all_inputs(
         self, pp_forecast_env

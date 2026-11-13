@@ -17,8 +17,10 @@ def get_trans_type(params: PostProcessorsType) -> None:
     sub_type = params["sub_type"]
     if sub_type in ("near", "bilin"):
         params["trans_type"] = "inter"
-    if sub_type in ("average", "min", "max"):
+    elif sub_type in ("average", "min", "max"):
         params["trans_type"] = "boxinter"
+    else:
+        raise BadRequest(f"Unknown interpolation sub_type: {sub_type}")
 
 
 def pp_grid_interpolation(

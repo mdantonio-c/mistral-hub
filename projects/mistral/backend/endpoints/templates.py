@@ -1,6 +1,6 @@
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 from zipfile import ZipFile
 
 from flask import request
@@ -14,6 +14,7 @@ from restapi.exceptions import (
     BadRequest,
     Forbidden,
     NotFound,
+    RestApiException,
     ServerError,
     Unauthorized,
 )
@@ -22,6 +23,7 @@ from restapi.rest.definition import EndpointResource, Response
 from restapi.services.authentication import User
 from restapi.services.uploader import Uploader
 from restapi.utilities.logs import log
+from werkzeug.utils import secure_filename
 
 
 class TemplatesFormatter(Schema):
@@ -110,9 +112,9 @@ class Template(EndpointResource, Uploader):
     @decorators.endpoint(
         path="/templates",
         summary="Upload of templates for postprocessors",
-        responses={202: "File uploaded", 400: "File cannot be uploaded"},
+        responses={200: "File uploaded", 400: "File cannot be uploaded"},
     )
-    # 202: {'schema': {'$ref': '#/definitions/TemplateFile'}}
+    # 200: {'schema': {'$ref': '#/definitions/TemplateFile'}}
     def post(self, user: User) -> Response:
 
         request_file = request.files["file"]
@@ -133,6 +135,7 @@ class Template(EndpointResource, Uploader):
         file_extension = Path(request_file.filename).suffix.strip(".")
 
         # check if the shapefile in the zip folder is complete
+        uploaded_files: List[str] = []
         if file_extension == "zip":
             with ZipFile(request_file, "r") as zip:
                 uploaded_files = zip.namelist()
@@ -153,14 +156,27 @@ class Template(EndpointResource, Uploader):
             user, param="templates"
         )
         if max_user_templates:
-            if file_extension == "grib":
-                template_list = subfolder.glob("*")
+            # a zip is checked against the type and the number of the templates it
+            # contains; every upload counts at least as one template
+            template_ext = ext
+            new_templates = 1
+            if file_extension == "zip":
+                template_ext, zip_templates = self.get_zip_templates(uploaded_files)
+                new_templates = max(zip_templates, 1)
+            templates_folder = DATA_PATH.joinpath(user.uuid, "uploads", template_ext)
+            if template_ext == "grib":
+                template_list = templates_folder.glob("*")
             else:
-                template_list = subfolder.glob("*.shp")
-            if len(list(template_list)) == int(max_user_templates):
+                template_list = templates_folder.glob("*.shp")
+            if len(list(template_list)) + new_templates > int(max_user_templates):
                 raise Unauthorized(
                     "user has reached the max number of templates of this kind"
                 )
+
+        # files already uploaded by the user: in case of errors only the files
+        # created by this upload are removed
+        uploads_dir = DATA_PATH.joinpath(user.uuid, "uploads")
+        previous_files = {f for f in uploads_dir.rglob("*") if f.is_file()}
 
         log.debug("uploading in {}", subfolder)
         try:
@@ -170,14 +186,14 @@ class Template(EndpointResource, Uploader):
             upload_filepath = subfolder.joinpath(upload_filename)
             log.debug("File uploaded. Filepath : {}", upload_filepath)
         except Exception as error:
+            uploaded_file = subfolder.joinpath(secure_filename(request_file.filename))
+            if uploaded_file.is_file() and uploaded_file not in previous_files:
+                uploaded_file.unlink()
+            if isinstance(error, RestApiException):
+                # validation errors raised by the uploader
+                # (e.g. file extension not allowed) are returned unchanged
+                raise
             log.error(error)
-            # delete all geojson or zip files in the directory in order to clean it
-            # geojson and zip files are always deleted if the process doesn't
-            # rise an exception. If there are such ind of files in the directory
-            # means they were uploaded but the exception was risen
-            for i in subfolder.iterdir():
-                if i.name.endswith(".zip") or i.name.endswith(".geojson"):
-                    i.unlink()
             raise ServerError("Unable to upload the template file")
 
         # if the file is a zip file extract the content in the upload folder
@@ -187,17 +203,7 @@ class Template(EndpointResource, Uploader):
                 zip_files = zip.namelist()
                 log.debug("filelist: {}", zip_files)
 
-                ext = "INVALID_EXT"
-                for z in zip_files:
-                    if z.endswith("grib"):
-                        ext = "grib"
-                        break
-                    if z.endswith("shp"):
-                        ext = "shp"
-                        break
-                    if z.endswith("geojson"):
-                        ext = "shp"
-                        break
+                ext, _ = self.get_zip_templates(zip_files)
 
                 zip_upload_path = DATA_PATH.joinpath(user.uuid, "uploads", ext)
                 zip.extractall(path=zip_upload_path)
@@ -214,7 +220,7 @@ class Template(EndpointResource, Uploader):
         if file_extension == "geojson":
             upload_filepath = self.convert_to_shapefile(upload_filepath)
 
-        # check user quota
+        # check user quota: the measure already includes the files of this upload
         user_dir = DOWNLOAD_DIR.joinpath(user.uuid)
         used_quota = int(subprocess.check_output(["du", "-sb", user_dir]).split()[0])
         # check for exceeding quota
@@ -222,13 +228,11 @@ class Template(EndpointResource, Uploader):
         max_user_quota = (
             db.session.query(db.User.disk_quota).filter_by(id=user.id).scalar()
         )
-        file_size = upload_filepath.stat().st_size
-        if used_quota + file_size > max_user_quota:
-            filebase = upload_filepath.stem
-
-            # delete all the files related to the template
-            for f in zip_upload_path.parent.glob(f"{filebase}*"):
-                f.unlink()
+        if used_quota > max_user_quota:
+            # delete all the files created by this upload
+            for f in list(uploads_dir.rglob("*")):
+                if f.is_file() and f not in previous_files:
+                    f.unlink()
 
             raise Forbidden("Disk quota exceeded")
 
@@ -253,7 +257,7 @@ class Template(EndpointResource, Uploader):
 
         filepath = DATA_PATH.joinpath(user.uuid, "uploads", fileext, template_name)
         # check if the template exists
-        if filepath.exists():
+        if not filepath.exists():
             raise NotFound("The template doesn't exist")
 
         res = {
@@ -279,13 +283,34 @@ class Template(EndpointResource, Uploader):
         if not filepath.exists():
             raise NotFound("The template doesn't exist")
 
-        filebase = template.stem
-        for f in filepath.parent.glob(f"{filebase}*"):
-            f.unlink()
+        if fileext == "shp":
+            # delete the shapefile and its sidecar files, i.e. the files with exactly
+            # the same name: other templates whose name only starts with the same
+            # prefix are kept
+            for f in filepath.parent.iterdir():
+                if f.is_file() and f.stem == template.stem:
+                    f.unlink()
+        else:
+            filepath.unlink()
 
         return self.response(
             f"File {template_name} succesfully deleted",
         )
+
+    @staticmethod
+    def get_zip_templates(files: List[str]) -> Tuple[str, int]:
+        """Return the template type of the zip content (the folder where it is
+        extracted) and the number of templates of that type it contains"""
+        ext = "INVALID_EXT"
+        for f in files:
+            if f.endswith("grib"):
+                ext = "grib"
+                break
+            if f.endswith("shp") or f.endswith("geojson"):
+                ext = "shp"
+                break
+        template_suffixes = ("grib",) if ext == "grib" else ("shp", "geojson")
+        return ext, sum(1 for f in files if f.endswith(template_suffixes))
 
     @staticmethod
     def check_files_to_upload(

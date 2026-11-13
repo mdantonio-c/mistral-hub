@@ -340,13 +340,15 @@ def trigger_data_ready_inline(
     rundate: str,
     schedule_ids: Iterable[int | str],
     cluster: str = "g100",
+    extraction_celery: InlineDataReadyExtractionCelery | None = None,
 ):
     """Invia un evento data-ready ed esegue il launcher dentro il processo del test.
 
     Esercita ``POST /api/data/ready`` e il task
     ``launch_all_on_data_ready_extractions``. Il launcher reale scorre tutte le
     schedule del database: ``schedule_ids`` lo limita alle schedule create dal
-    test chiamante.
+    test chiamante. Passando ``extraction_celery`` il test puo leggere gli invii
+    del launcher (``sent_tasks``), distinti dalle righe create dal fake.
     """
     endpoint_celery = AcceptTasksWithoutRunningCelery(
         "launch_all_on_data_ready_extractions"
@@ -365,10 +367,12 @@ def trigger_data_ready_inline(
     )
     assert len(endpoint_celery.sent_tasks) == 1
 
+    if extraction_celery is None:
+        extraction_celery = InlineDataReadyExtractionCelery(db)
     monkeypatch.setattr(
         on_data_ready_task.celery,
         "get_instance",
-        lambda: InlineDataReadyExtractionCelery(db),
+        lambda: extraction_celery,
     )
     confine_data_ready_schedules(monkeypatch, schedule_ids)
     on_data_ready_task.launch_all_on_data_ready_extractions.run(
@@ -378,13 +382,19 @@ def trigger_data_ready_inline(
     return response
 
 
+def data_ready_reftime(rundate: datetime) -> dict[str, str]:
+    """Restituisce il reftime che il launcher data-ready invia per ``rundate``."""
+    reftime = rundate.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+    return {"from": reftime, "to": reftime}
+
+
 def create_schedule_request_record(
     db,
     user_id: int,
     request_name: str,
     *,
-    dataset_name: str,
-    reftime: str,
+    datasets: list[str],
+    reftime: dict[str, str],
     schedule_id: str,
     submission_date: datetime | None = None,
     status: str | None = None,
@@ -395,20 +405,20 @@ def create_schedule_request_record(
     gia esistente per verificare se un nuovo evento data-ready debba generare una
     richiesta in piu. Questo helper prepara quella storia (tramite
     ``SqlApiDbManager.create_request_record``) senza invocare il vero worker di
-    estrazione.
+    estrazione. Gli argomenti hanno la stessa forma di quelli salvati dal worker
+    (``data_extract``): ``datasets`` e una lista e ``reftime`` un dict from/to, cosi
+    il controllo dei duplicati sul reftime si comporta come nel caso reale.
     """
     request = repo.create_request_record(
         db,
         user_id,
         request_name,
         {
-            "datasets": dataset_name,
+            "datasets": datasets,
             "reftime": reftime,
-            "filters": [],
+            "filters": None,
             "postprocessors": [],
             "output_format": None,
-            "only_reliable": True,
-            "pushing_queue": None,
         },
         schedule_id,
         True,

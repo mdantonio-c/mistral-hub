@@ -10,7 +10,7 @@ from mistral.endpoints.schemas import DatasetSchema
 from mistral.services.access_key_service import validate_access_key_from_request
 from restapi import decorators
 from restapi.connectors import sqlalchemy
-from restapi.exceptions import NotFound, Unauthorized
+from restapi.exceptions import NotFound, ServerError, Unauthorized
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.logs import log
 
@@ -51,7 +51,11 @@ class ArcoResource(EndpointResource):
     @decorators.endpoint(
         path="/arco/<path:object_path>",
         summary="Access ARCO datasets",
-        responses={200: "Data retrieved", 404: "Data not found"},
+        responses={
+            200: "Data retrieved",
+            404: "Data not found",
+            500: "Unable to access the ARCO storage",
+        },
     )
     def get(self, object_path: str) -> Response:
         log.debug(f"Accessing ARCO dataset: {object_path}")
@@ -69,7 +73,7 @@ class ArcoResource(EndpointResource):
             if e.response["Error"]["Code"] == "NoSuchKey":
                 raise NotFound(f"The object '{object_path}' does not exist.") from e
             else:
-                raise Exception from e
+                raise ServerError("Unable to access the ARCO storage") from e
 
         # 3. return S3 data as HTTP response
         data = s3_object["Body"].read()

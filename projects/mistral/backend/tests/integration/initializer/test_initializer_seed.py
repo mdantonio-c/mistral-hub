@@ -12,9 +12,8 @@
 # toccare RedBeat; Arkimet e monkeypatchato.
 # Cleanup: `session.rollback()` a fine test annulla tutto; il fixture verifica
 # poi che le tabelle seed abbiano esattamente le righe presenti prima del test.
-# Bug noto: il test xfail strict documenta che ogni rerun riscrive
-# `datasets.category` (enum confrontato con stringa Arkimet). Il bug maschera anche i
-# confronti degli altri campi dataset nel ramo di update.
+# Regressione INIT-SEED: con lo stato gia allineato il rerun non deve riscrivere
+# `datasets.category` (enum confrontato con la stringa Arkimet).
 
 from __future__ import annotations
 
@@ -122,10 +121,6 @@ EXPECTED_CLEANUP_CRON = {
 }
 
 SEED_MODELS = ("GroupLicense", "License", "Attribution", "Datasets")
-
-KNOWN_CATEGORY_REWRITE = (
-    "UPDATE datasets SET category=%(category)s WHERE datasets.id = %(datasets_id)s"
-)
 
 
 @contextmanager
@@ -388,9 +383,8 @@ class TestInitializerSeed:
         # assert
         after_second_run = _seed_snapshot(initializer_harness)
         assert after_second_run == after_first_run
-        # Nessun INSERT e nessun UPDATE sulle tabelle seed; l'unica scrittura tollerata
-        # e la riscrittura di `category` documentata dal test xfail qui sotto.
-        assert set(writes) <= {KNOWN_CATEGORY_REWRITE}
+        # Nessun INSERT e nessun UPDATE sulle tabelle seed.
+        assert writes == []
         assert len(initializer_harness.commits) == 6
         assert initializer_harness.celery.calls == [
             ("get", "requests_cleanup"),
@@ -403,16 +397,6 @@ class TestInitializerSeed:
             "requests_cleanup": EXPECTED_CLEANUP_CRON
         }
 
-    @pytest.mark.xfail(
-        strict=True,
-        raises=AssertionError,
-        reason=(
-            "Bug noto in Initializer: `ds_entry.category` (enum DatasetCategories) "
-            "viene confrontato con la stringa Arkimet (es. 'OBS'), quindi risulta "
-            "sempre diverso e ogni avvio riscrive il dataset. Rimuovere il marker "
-            "quando il confronto sara corretto."
-        ),
-    )
     def test_second_run_on_aligned_state_writes_nothing(
         self,
         initializer_harness: _InitializerHarness,

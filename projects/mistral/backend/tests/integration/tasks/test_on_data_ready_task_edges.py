@@ -8,7 +8,8 @@
 # (tasks/on_data_ready_extractions.py):
 # - salta la schedule con zero dataset
 # - salta la schedule con piu dataset
-# - salta la schedule con un filtro run non decodificabile
+# - salta la schedule con un filtro run non decodificabile (passando dal decoder reale)
+#   e invia invece la schedule gemella con un run valido
 # - solleva SystemError se l'invio del task a Celery fallisce
 #
 # test_schedule_opendata_bridge.py copre gia il caso di successo del flusso data-ready.
@@ -27,6 +28,7 @@ from faker import Faker
 from restapi.connectors import sqlalchemy
 from restapi.tests import BaseTests, FlaskClient
 
+from mistral.services.arkimet import BeArkimet
 from mistral.tasks.on_data_ready_extractions import (
     launch_all_on_data_ready_extractions,
 )
@@ -193,43 +195,77 @@ class TestOnDataReadyTaskEdges:
         # assert - send_task di Celery non viene mai chiamato
         assert fake_celery.celery_app.send_task.call_count == 0
 
-    def test_skip_schedule_with_invalid_run_filter_decode(
+    @pytest.mark.parametrize(
+        ("run_filter", "expected_error", "expected_sends"),
+        [
+            ({"invalid_arkimet_run": "broken"}, ValueError, 0),
+            ({"style": "MINUTE", "value": 0}, None, 1),
+        ],
+        ids=["invalid-run-is-skipped", "valid-run-is-sent"],
+    )
+    def test_run_filter_goes_through_the_real_decoder(
         self,
         faker: Faker,
         cleanup_registry,
         monkeypatch: pytest.MonkeyPatch,
         data_ready_task_user: AuthenticatedTestUser,
+        run_filter: dict[str, Any],
+        expected_error: type[Exception] | None,
+        expected_sends: int,
     ):
-        """Verifica che il task salti le schedule con un filtro run non decodificabile.
+        """Verifica che il filtro run arrivi al vero ``BeArkimet.decode_run``.
 
-        Il filtro non valido fa fallire ``arki.decode_run`` dentro
-        launch_all_on_data_ready_extractions; nessun send_task deve essere invocato.
+        Uno spy delega al decoder reale e registra input ed eccezioni: il run
+        malformato solleva ValueError e la sua schedule non viene inviata, mentre la
+        schedule gemella con un run valido (00:00, come il rundate) viene inviata.
         """
-        # arrange - schedule con filtro run non valido
+        # arrange - schedule con il filtro run dello scenario
         db = sqlalchemy.get_instance()
         schedule_id = seed_schedule_for_data_ready(
             db,
             faker,
             data_ready_task_user.user_id,
             datasets=["lm5"],
-            run_filter=[{"invalid_arkimet_run": "broken"}],
+            run_filter=[run_filter],
         )
         cleanup_registry.add(lambda: delete_schedule_row(db, schedule_id))
 
+        real_decode_run = BeArkimet.decode_run
+        decoded: list[dict[str, Any]] = []
+        errors: list[Exception] = []
+
+        def decode_run_spy(run: dict[str, Any]) -> str:
+            decoded.append(dict(run))
+            try:
+                return real_decode_run(run)
+            except Exception as exc:
+                errors.append(exc)
+                raise
+
+        monkeypatch.setattr(BeArkimet, "decode_run", staticmethod(decode_run_spy))
         fake_celery = MagicMock()
         from restapi.connectors import celery
         monkeypatch.setattr(celery, "get_instance", lambda: fake_celery)
         # Il task legge tutte le schedule: il perimetro lascia visibile solo questa.
         confine_data_ready_schedules(monkeypatch, [schedule_id])
 
-        # act - esegue il task per il modello lm5 con la schedule dal filtro run rotto
+        # act
         launch_all_on_data_ready_extractions.run(
             "lm5",
             datetime(2021, 10, 19, 0, 0, 0),
         )
 
-        # assert - send_task di Celery non viene mai chiamato
-        assert fake_celery.celery_app.send_task.call_count == 0
+        # assert
+        assert decoded == [run_filter]
+        if expected_error is None:
+            assert errors == []
+        else:
+            assert [type(error) for error in errors] == [expected_error]
+        send_task = fake_celery.celery_app.send_task
+        assert send_task.call_count == expected_sends
+        if expected_sends:
+            # args[9] e l'id della schedule passato a data_extract
+            assert send_task.call_args.kwargs["args"][9] == schedule_id
 
     def test_celery_send_failure_raises_system_error(
         self,

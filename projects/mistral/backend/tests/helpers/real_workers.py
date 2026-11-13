@@ -248,7 +248,9 @@ def register_wait_for_user_requests(
 
     Se i worker sono troppo lenti, ``stop_user_tasks`` ferma i task dell'utente e
     solo dopo vengono cancellate le sue richieste non terminate. Se i worker non
-    confermano, il passo fallisce e non cancella nulla.
+    confermano, il passo fallisce e non cancella nulla: e registrato come barriera,
+    quindi anche le pulizie registrate prima (dati e account dell'utente) restano
+    bloccate.
     """
 
     def user_tasks_finished() -> bool:
@@ -271,7 +273,7 @@ def register_wait_for_user_requests(
             stop_user_tasks(user, timeout=stop_timeout, interval=interval)
             _delete_unfinished_requests(user)
 
-    cleanup_registry.add(wait_for_workers)
+    cleanup_registry.add(wait_for_workers, barrier=True)
 
 
 def _unfinished_requests(user: AuthenticatedTestUser) -> list[Any]:

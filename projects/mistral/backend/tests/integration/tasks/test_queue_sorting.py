@@ -145,3 +145,13 @@ class TestQueueSorting:
 
         # assert
         assert queue == expected_queue
+
+    def test_queue_sorting_unknown_dataset_type_raises_value_error(self):
+        """Un tipo di dataset non previsto e rifiutato con un errore esplicito.
+
+        Non esiste una coda di ripiego: la funzione non restituisce None e non sceglie
+        una coda a caso. Funzione esercitata: `queue_sorting`.
+        """
+        # act / assert
+        with pytest.raises(ValueError, match="Unsupported dataset type: UNKNOWN"):
+            data_extraction_utilities.queue_sorting("UNKNOWN")

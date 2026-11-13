@@ -26,5 +26,8 @@ def queue_sorting(dataset_type, reftime=None):
 
     is_operational = date_from is not None and (now - date_from) < days_for_operationals
     lookup_key = (dataset_type, is_operational)
+    if lookup_key not in queue_map:
+        # no default queue: a request for an unsupported dataset type is not sent
+        raise ValueError(f"Unsupported dataset type: {dataset_type}")
     celery_queue = queue_map[lookup_key]
     return celery_queue

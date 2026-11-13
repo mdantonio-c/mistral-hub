@@ -261,3 +261,79 @@ def test_post_data_observed_quota_forbidden_uses_fake_size_and_quota_checks(
     # perche il contratto quota viene applicato prima del repository create_request_record.
     assert response.status_code == 403
     assert latest_request_for_user(db, user.user_id) is None
+
+
+def test_post_data_unsupported_dataset_type_returns_400_without_request(
+    client: FlaskClient,
+    cleanup_registry,
+    monkeypatch,
+) -> None:
+    """Verifica che un tipo di dataset non supportato non crei request ne task.
+
+    `queue_sorting` rifiuta il tipo prima della creazione del record Request: prima la
+    request restava salvata in stato CREATED e il client riceveva un errore generico.
+    """
+    # arrange
+    db = sqlalchemy.get_instance()
+    dataset = create_synthetic_dataset(cleanup_registry=cleanup_registry, db=db)
+    user = create_data_endpoint_user(client, cleanup_registry, dataset_ids=[dataset.id])
+    cleanup_registry.add(lambda: delete_requests_for_user(db, user.user_id))
+    celery_fake = patch_data_endpoint_runtime(
+        monkeypatch,
+        data_endpoint_module,
+        dataset_category="UNKNOWN",
+    )
+    payload = build_data_payload([dataset.arkimet_id])
+
+    # act
+    response = client.post(DATA_ENDPOINT, headers=user.headers, json=payload)
+
+    # assert
+    assert response.status_code == 400
+    assert BaseTests().get_content(response) == "Unsupported dataset type: UNKNOWN"
+    assert latest_request_for_user(db, user.user_id) is None
+    assert celery_fake.sent_tasks == []
+
+
+@pytest.mark.parametrize(
+    ("reftime_from", "reftime_to"),
+    [
+        ("2020-01-01T00:00:00Z", "2020-01-01T01:00:00Z"),
+        ("2020-01-01T02:00:00+02:00", "2020-01-01T03:00:00+02:00"),
+        ("2019-12-31T19:00:00-05:00", "2019-12-31T20:00:00-05:00"),
+    ],
+    ids=["utc", "positive-offset", "negative-offset-previous-day"],
+)
+def test_post_data_saves_reftime_in_utc(
+    client: FlaskClient,
+    cleanup_registry,
+    monkeypatch,
+    reftime_from: str,
+    reftime_to: str,
+) -> None:
+    """Verifica che lo stesso istante, con qualunque fuso, dia la stessa finestra UTC.
+
+    Prima l'offset veniva perso: l'ora locale era salvata come se fosse UTC.
+    """
+    # arrange
+    db = sqlalchemy.get_instance()
+    dataset = create_synthetic_dataset(cleanup_registry=cleanup_registry, db=db)
+    user = create_data_endpoint_user(client, cleanup_registry, dataset_ids=[dataset.id])
+    cleanup_registry.add(lambda: delete_requests_for_user(db, user.user_id))
+    celery_fake = patch_data_endpoint_runtime(monkeypatch, data_endpoint_module)
+    payload = build_data_payload(
+        [dataset.arkimet_id], reftime_from=reftime_from, reftime_to=reftime_to
+    )
+
+    # act
+    response = client.post(DATA_ENDPOINT, headers=user.headers, json=payload)
+
+    # assert
+    expected_reftime = {
+        "from": "2020-01-01T00:00:00.000000Z",
+        "to": "2020-01-01T01:00:00.000000Z",
+    }
+    assert response.status_code == 202
+    request = latest_request_for_user(db, user.user_id)
+    assert request.args["reftime"] == expected_reftime
+    assert celery_fake.sent_tasks[0]["args"][2] == expected_reftime

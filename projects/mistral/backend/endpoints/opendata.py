@@ -17,6 +17,16 @@ from restapi.services.authentication import User
 from restapi.utilities.logs import log
 
 
+def parse_reftime_bound(value: str) -> datetime:
+    """Parse a reftime bound of the q parameter (format: YYYY-MM-DD HH:MM)"""
+    try:
+        return datetime.strptime(value.strip(), "%Y-%m-%d %H:%M")
+    except ValueError:
+        raise BadRequest(
+            f"Invalid reftime in q: {value.strip()} (expected YYYY-MM-DD HH:MM)"
+        )
+
+
 class OpendataFileList(EndpointResource):
 
     labels = ["opendata_filelist"]
@@ -66,32 +76,33 @@ class OpendataFileList(EndpointResource):
             for e in query_list:
                 # add the run param
                 if e.startswith("run"):
-                    val = e.split("run:")[1]
+                    if not e.startswith("run:"):
+                        raise BadRequest(f"Invalid run filter in q: {e}")
+                    val = e[len("run:") :]
                     query["filters"] = {
                         "run": [{"desc": "{})".format(val.replace(",", "("))}]
                     }
                 # parse the reftime
                 if e.startswith("reftime"):
-                    val = e.split("reftime:")[1]
+                    if not e.startswith("reftime:"):
+                        raise BadRequest(f"Invalid reftime filter in q: {e}")
+                    val = e[len("reftime:") :]
                     reftimes = [x.strip() for x in val.split(",")]
                     for ref in reftimes:
-                        if ref.startswith(">"):
-                            date_min = ref.strip(">=")
-                            log.info(date_min)
-                            reftime["from"] = datetime.strptime(
-                                date_min, "%Y-%m-%d %H:%M"
+                        if ref.startswith(">="):
+                            reftime["from"] = parse_reftime_bound(ref[2:])
+                        elif ref.startswith("<="):
+                            reftime["to"] = parse_reftime_bound(ref[2:])
+                        elif ref.startswith("="):
+                            reftime["from"] = reftime["to"] = parse_reftime_bound(
+                                ref[1:]
                             )
-                        if ref.startswith("<"):
-                            date_max = ref.strip("<=")
-                            log.info(date_max)
-                            reftime["to"] = datetime.strptime(
-                                date_max, "%Y-%m-%d %H:%M"
-                            )
-                        if ref.startswith("="):
-                            ref_date = ref.strip("=")
-                            reftime["from"] = reftime["to"] = datetime.strptime(
-                                ref_date, "%Y-%m-%d %H:%M"
-                            )
+                        else:
+                            raise BadRequest(f"Invalid reftime filter in q: {ref}")
+                    if "from" not in reftime or "to" not in reftime:
+                        raise BadRequest(
+                            "Invalid reftime filter in q: both bounds are required"
+                        )
 
         log.debug("opendata query {}", query)
         # get the available opendata requests

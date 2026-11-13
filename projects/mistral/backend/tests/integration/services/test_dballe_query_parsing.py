@@ -216,6 +216,63 @@ class TestDballeQueryParsing:
         assert aggregation_dsn == "dballe-aggregations"
         assert normal_dsn is None
 
+    @pytest.mark.parametrize(
+        "query",
+        [
+            {"product": [], "timerange": ["1,0,3600"]},
+            {"product": ["B13011"], "timerange": []},
+            {"product": ["B13011"], "timerange": ["invalid"]},
+            {"product": ["B13011"], "timerange": ["1,0"]},
+            {"product": ["B13011"], "timerange": ["1,0,hourly"]},
+        ],
+        ids=[
+            "empty-product",
+            "empty-timerange",
+            "malformed-timerange",
+            "missing-p2",
+            "non-numeric-p2",
+        ],
+    )
+    def test_is_query_for_pluvio_aggregations_rejects_invalid_filters(self, query):
+        """Filtri presenti ma vuoti o malformati sono rifiutati con un errore esplicito.
+
+        Prima producevano IndexError o ValueError generici.
+        """
+        # act / assert
+        with pytest.raises(InvalidFiltersException):
+            BeDballe.is_query_for_pluvio_aggregations(query)
+
+    @pytest.mark.parametrize(
+        ("query", "expected"),
+        [
+            ({}, None),
+            ({"product": ["B13011"]}, None),
+            ({"timerange": ["1,0,3600"]}, None),
+            ({"product": ["B13011"], "timerange": ["1,0,7200"]}, "dballe-aggregations"),
+            ({"product": ["B13011"], "timerange": ["1,0,900"]}, None),
+            ({"product": ["B13011"], "timerange": ["1,0,90000"]}, None),
+            ({"product": ["B12101"], "timerange": ["254,0,0"]}, None),
+        ],
+        ids=[
+            "no-filters",
+            "no-timerange",
+            "no-product",
+            "hourly",
+            "not-hourly",
+            "over-one-day",
+            "other-product",
+        ],
+    )
+    def test_is_query_for_pluvio_aggregations_keeps_absent_and_valid_filters(
+        self, monkeypatch, query, expected
+    ):
+        """Filtri assenti o validi mantengono la selezione del DSN esistente."""
+        # arrange
+        monkeypatch.setattr(BeDballe, "AGGREGATIONS_DSN", "dballe-aggregations")
+
+        # act / assert
+        assert BeDballe.is_query_for_pluvio_aggregations(query) == expected
+
     def test_get_queries_and_dsn_list_with_itertools_expands_filter_combinations(
         self, monkeypatch
     ):

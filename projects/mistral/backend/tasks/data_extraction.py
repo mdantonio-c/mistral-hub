@@ -59,14 +59,18 @@ def data_extract(
 ):
 
     log.info("Start task [{}:{}]", self.request.id, self.name)
+    # initialized before the try block: the except and finally blocks below use them
+    # also when the task fails before the request is created or loaded
+    db = None
+    request = None
+    data_size = 0
+    outfile = None
+    pp_output: Optional[Path] = None
+    double_request = False
+    output_dir = None
+    tmp_file_list = []
     try:
         db = sqlalchemy.get_instance()
-        data_size = 0
-        outfile = None
-        pp_output: Optional[Path] = None
-        double_request = False
-        output_dir = None
-        tmp_file_list = []
         if schedule_id is not None:
             # load schedule for this request
             schedule = db.Schedule.query.get(schedule_id)
@@ -276,7 +280,7 @@ def data_extract(
                 pp_type = p.get("processor_type")
 
                 if pp_type not in enabled_postprocessors:
-                    raise ValueError("Unknown post-processor: {}", pp_type)
+                    raise PostProcessingException(f"Unknown post-processor: {pp_type}")
 
                 log.debug("Data extraction with post-processing <{}>", pp_type)
                 requested_postprocessors[pp_type] = p
@@ -432,6 +436,10 @@ def data_extract(
         # check if a file exists
         if outfile and outfile.is_file():
             outfile.unlink()
+        if request is None:
+            # the error happened before the request was created or loaded:
+            # nothing to update, the original error is raised
+            raise
         request.status = states.FAILURE
         request.error_message = str(exc)
         raise Ignore(str(exc))
@@ -442,12 +450,15 @@ def data_extract(
         if outfile and outfile.is_file():
             outfile.unlink()
 
-        request.status = states.FAILURE
-        request.error_message = "Failed to extract data"
+        if request is not None:
+            request.status = states.FAILURE
+            request.error_message = "Failed to extract data"
         # log.exception("Failed to extract data: {}", repr(exc))
         raise exc
     finally:
-        if not double_request:  # which means if the extraction hasn't been interrupted
+        # which means if the extraction hasn't been interrupted
+        # (and if there is a request to update)
+        if not double_request and request is not None:
             if output_dir:
                 # remove tmp files
                 for f in tmp_file_list:
@@ -478,17 +489,32 @@ def data_extract(
                     except BaseException as exc:
                         extra_msg = f"failed communication with {amqp_queue} amqp queue"
                         # notify via mail (adding the amqp communication error)
-                        notify_by_email(db, user_id, request, extra_msg)
+                        if not notify_by_email(db, user_id, request, extra_msg):
+                            log.error(
+                                "Request {}: user {} notified neither via amqp "
+                                "nor via email",
+                                request.id,
+                                user_id,
+                            )
+                        # the original amqp error is raised anyway
                         raise exc
                 else:
+                    email_sent = True
                     # send email notification to the user only if the notification is enabled for successful extraction
                     # (in case of failure the notification is always sent)
                     if request.status != states.SUCCESS:
-                        notify_by_email(db, user_id, request, "")
+                        email_sent = notify_by_email(db, user_id, request, "")
                     else:
                         notify_on_success = db.session.query(db.User.notify_on_successful_request).filter_by(id=user_id).scalar()
                         if notify_on_success:
-                            notify_by_email(db, user_id, request, "")
+                            email_sent = notify_by_email(db, user_id, request, "")
+                    if not email_sent:
+                        # the failed notification does not change the request result
+                        log.error(
+                            "Request {}: unable to notify user {} by email",
+                            request.id,
+                            user_id,
+                        )
 
 
 def check_user_quota(
@@ -692,7 +718,10 @@ def observed_extraction(
 
 
 def notify_by_email(db, user_id, request, extra_msg):
-    """Send email notification."""
+    """Send email notification.
+
+    Return True if the email has been sent, False if all the attempts failed.
+    """
     user_email = db.session.query(db.User.email).filter_by(id=user_id).scalar()
 
     body_msg = request.error_message or "Your data is ready for downloading"
@@ -711,15 +740,19 @@ def notify_by_email(db, user_id, request, extra_msg):
                     user_email,
                     plain_body=plain,
                 )
-            break
+            return True
         except Exception as e:
-            if i < MAX_RETRIES:
-                log.error(
-                    f"Failure in sending the email notification. The following exception was raised: {e}"
-                )
+            log.error(
+                f"Failure in sending the email notification. The following exception was raised: {e}"
+            )
+            # wait only if another attempt is left
+            if i < MAX_RETRIES - 1:
                 log.info(f"Retry n.{i + 1} will be done in {SLEEP_TIME} seconds")
                 time.sleep(SLEEP_TIME)
-                continue
+    log.error(
+        f"Email notification for request {request.name} not sent after {MAX_RETRIES} attempts"
+    )
+    return False
 
 
 def notify_by_amqp_queue(amqp_queue, request):
@@ -772,28 +805,15 @@ def adapt_reftime(schedule, reftime):
             if "day_of_week" in cron_settings:
                 schedule_interval = datetime.timedelta(days=7)
             elif "day_of_month" in cron_settings:
-                if "month of year" not in cron_settings:
-                    days_in_month_dict = {
-                        1: 31,
-                        2: 28,
-                        3: 31,
-                        4: 30,
-                        5: 31,
-                        6: 30,
-                        7: 31,
-                        8: 31,
-                        9: 30,
-                        10: 31,
-                        11: 30,
-                        12: 31,
-                    }
-                    # interval is the number of the day of the past month
+                if "month_of_year" not in cron_settings:
+                    # interval is the number of the days of the previous month
+                    # (in january it is december of the previous year)
+                    first_day_of_month = datetime.datetime.now().replace(day=1)
+                    last_day_of_previous_month = (
+                        first_day_of_month - datetime.timedelta(days=1)
+                    )
                     schedule_interval = datetime.timedelta(
-                        **{
-                            "days": days_in_month_dict[
-                                datetime.datetime.now().month - 1
-                            ]
-                        }
+                        days=last_day_of_previous_month.day
                     )
                 else:
                     schedule_interval = datetime.timedelta(days=365)

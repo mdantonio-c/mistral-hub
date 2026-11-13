@@ -27,11 +27,13 @@ class HourlyReport(EndpointResource):
         if user.request_par_hour:
             now = datetime.datetime.utcnow()
             last_hour = now.replace(minute=0, second=0, microsecond=0)
+            # same window of SqlApiDbManager.check_user_request_limit:
+            # the beginning of the hour and now are included, future dates are not
             request_count = (
                 db.session.query(db.Request)
                 .filter(db.Request.user_id == user.id)
-                .filter(db.Request.submission_date > last_hour)
-                .filter(db.Request.submission_date < now)
+                .filter(db.Request.submission_date >= last_hour)
+                .filter(db.Request.submission_date <= now)
                 .count()
             )
             data["submitted"] = request_count

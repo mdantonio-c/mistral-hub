@@ -57,14 +57,18 @@ class Fields(EndpointResource):
     ) -> Response:
         """Get all fields for given datasets"""
         bounding_box = {}
-        if lonmin:
-            if not lonmax or not latmin or not latmax:
+        bbox_coords = {
+            "lonmin": lonmin,
+            "lonmax": lonmax,
+            "latmin": latmin,
+            "latmax": latmax,
+        }
+        # a coordinate equal to 0 is valid: only None means missing
+        if any(v is not None for v in bbox_coords.values()):
+            if any(v is None for v in bbox_coords.values()):
                 raise BadRequest("Coordinates for bounding box are missing")
             else:
-                bounding_box["lonmin"] = lonmin
-                bounding_box["lonmax"] = lonmax
-                bounding_box["latmin"] = latmin
-                bounding_box["latmax"] = latmax
+                bounding_box = bbox_coords
 
         # check for existing dataset(s)
         db = sqlalchemy.get_instance()
@@ -296,7 +300,8 @@ class Fields(EndpointResource):
             # we want to return ONLY summary Stats with no fields
             log.debug("ONLY Summary Stats")
             summary = summary["items"]["summarystats"]
-        if not SummaryStats:
+        if not SummaryStats and not onlySummaryStats and summary:
             log.debug("not summary")
-            resulting_fields.pop("summarystats", None)
+            # summary["items"] is the object returned for both observed and forecast
+            summary["items"].pop("summarystats", None)
         return self.response(summary)

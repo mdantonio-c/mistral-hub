@@ -1,4 +1,3 @@
-import shutil
 import subprocess
 from pathlib import Path
 
@@ -13,8 +12,10 @@ def get_trans_type(params: PostProcessorsType) -> None:
     sub_type = params["sub_type"]
     if sub_type in ("near", "bilin"):
         params["trans_type"] = "inter"
-    if sub_type in ("average", "min", "max"):
+    elif sub_type in ("average", "min", "max"):
         params["trans_type"] = "polyinter"
+    else:
+        raise BadRequest(f"Unknown interpolation sub_type: {sub_type}")
 
 
 def check_coord_filepath(params: PostProcessorsType) -> None:
@@ -27,13 +28,12 @@ def check_coord_filepath(params: PostProcessorsType) -> None:
 
     # if a file is a shapefile, check if .shx and .dbf are in the same folder.
     # If not ask the user to upload all the files again
+    # (the folder is shared by all the user templates: nothing is deleted here)
     if params["file_format"] == "shp":
         if (
             not coord_filepath.with_suffix(".shx").exists()
             or not coord_filepath.with_suffix(".dbf").exists()
         ):
-            # delete the folder with the corrupted files
-            shutil.rmtree(coord_filepath.parent)
             raise BadRequest(
                 "Sorry. The file for the interpolation is corrupted. "
                 "Please try to upload it again"

@@ -1,3 +1,4 @@
+from mistral.models.sqlalchemy import DatasetCategories
 from mistral.services.arkimet import BeArkimet as arki
 from restapi.connectors import celery, sqlalchemy
 from restapi.utilities.logs import log
@@ -313,7 +314,9 @@ class Initializer:
                     or ds_entry.description != ds["description"]
                     or ds_entry.license_id != ds_license.id
                     or ds_entry.attribution_id != ds_attribution.id
-                    or ds_entry.category != ds["category"]
+                    # the db stores a DatasetCategories enum, arkimet its name
+                    or ds_entry.category
+                    != DatasetCategories.__members__.get(ds["category"])
                 ):
                     ds_entry.name = dataset_name
                     ds_entry.description = ds["description"]

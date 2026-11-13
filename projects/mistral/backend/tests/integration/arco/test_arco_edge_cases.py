@@ -343,14 +343,6 @@ class TestArcoProxyEdges:
         # assert
         assert response.status_code == 404
 
-    @pytest.mark.xfail(
-        reason=(
-            "ARCO-001: il wrapper restapi espone come 400 invece di 500 "
-            "il ClientError S3 non NoSuchKey rilanciato dal proxy."
-        ),
-        strict=True,
-        raises=AssertionError,
-    )
     def test_proxy_s3_non_no_such_key_returns_server_error(
         self,
         client: FlaskClient,
@@ -360,8 +352,8 @@ class TestArcoProxyEdges:
     ) -> None:
         """Un `ClientError` S3 diverso da `NoSuchKey` resta errore server."""
         # arrange
-        # Il backend oggi rilancia un'eccezione generica per errori S3 non missing-key.
-        # Il test protegge il contratto osservabile senza mascherare il ramo di errore.
+        # Il backend traduce gli errori S3 non missing-key in ServerError (500), con un
+        # messaggio che non espone bucket, chiavi o endpoint (regressione ARCO-001).
         fake_client = MagicMock()
         fake_client.get_object.side_effect = _client_error("InternalError")
         _install_fake_arco_s3(monkeypatch, fake_client)
@@ -372,6 +364,7 @@ class TestArcoProxyEdges:
 
         # assert
         assert response.status_code == 500
+        assert response.get_json() == "Unable to access the ARCO storage"
 
     def test_proxy_sets_mimetype_from_object_filename(
         self,

@@ -1,6 +1,7 @@
 # Test di GET /fields (Fields.get in endpoints/fields.py): filtri e statistiche.
-# Ambito: copre OBS map mode, OBS dataset mode, errori di autorizzazione e validazione e
-# FOR dataset mode con lm5/lm2.2, incluse le descriptions e la sonda SummaryStats=False.
+# Ambito: copre OBS map mode, OBS dataset mode, errori di autorizzazione e validazione
+# (bbox incluse, anche con coordinate a zero) e FOR dataset mode con lm5/lm2.2, incluse
+# le descriptions e SummaryStats=False.
 # Finestra dati: OBS usa solo agrmet DBALLE 2020-04-06 00:00-01:00 e agrmet Arkimet
 # 2020-03-31/2020-04-01; FOR usa solo lm5 2021-10-19 o lm2.2 2019-09-10.
 # Runtime fake: i rami multi-dataset non richiedono dati Arkimet reali e usano dataset
@@ -16,6 +17,8 @@ from uuid import uuid4
 import mistral.endpoints.fields as fields_endpoint_module
 import pytest
 from mistral.models.sqlalchemy import DatasetCategories
+from mistral.services.arkimet import BeArkimet
+from mistral.services.dballe import BeDballe
 from mistral.tests.helpers.auth import create_dataset_test_user
 from mistral.tests.helpers.datasets import create_private_test_network
 from mistral.tests.helpers.observed_windows import (
@@ -275,6 +278,65 @@ def test_fields_observed_incomplete_bbox_returns_bad_request(
     assert response.status_code == 400
 
 
+def test_fields_observed_bbox_with_zero_coordinates_is_applied(
+    client: FlaskClient,
+    auth_headers,
+    test_runtime,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verifica che una bbox completa con estremi a zero venga passata alla query.
+
+    Lo zero (meridiano di Greenwich, equatore) e una coordinata valida, non un valore
+    mancante. Il caricamento dei filtri DB-All.e e sostituito da un fake che registra
+    la query ricevuta.
+    """
+    # arrange
+    received_queries: list[dict] = []
+
+    def fake_load_filters(*args, query_dic=None, **kwargs):
+        received_queries.append(dict(query_dic))
+        return {}, {}
+
+    monkeypatch.setattr(BeDballe, "load_filters", staticmethod(fake_load_filters))
+    endpoint = fields_url(
+        q=OBS_DBALLE_QUERY, lonmin=0.0, latmin=0.0, lonmax=20.0, latmax=50.0
+    )
+
+    # act
+    with dballe_window_override(test_runtime):
+        response = client.get(endpoint, headers=auth_headers)
+
+    # assert
+    assert response.status_code == 200
+    assert len(received_queries) == 1
+    bbox = {
+        key: received_queries[0][key]
+        for key in ("lonmin", "latmin", "lonmax", "latmax")
+    }
+    assert bbox == {"lonmin": 0.0, "latmin": 0.0, "lonmax": 20.0, "latmax": 50.0}
+
+
+def test_fields_observed_bbox_without_lonmin_returns_bad_request(
+    client: FlaskClient,
+    auth_headers,
+    test_runtime,
+) -> None:
+    """Verifica il 400 di GET /fields per una bbox parziale senza lonmin.
+
+    Una bbox parziale deve essere segnalata qualunque estremo manchi, non ignorata.
+    """
+    # arrange
+    endpoint = fields_url(q=OBS_DBALLE_QUERY, latmin=40.0, lonmax=12.0, latmax=46.0)
+
+    # act
+    with dballe_window_override(test_runtime):
+        response = client.get(endpoint, headers=auth_headers)
+
+    # assert
+    assert response.status_code == 400
+    assert parse_response(response) == "Coordinates for bounding box are missing"
+
+
 def test_fields_observed_only_summary_stats_returns_stats_only(
     client: FlaskClient,
     auth_headers,
@@ -523,23 +585,15 @@ def test_fields_forecast_only_summary_stats_returns_stats_only(
     assert "items" not in content
 
 
-def test_fields_forecast_summary_stats_false_is_skipped_for_known_backend_bug(
+def test_fields_forecast_summary_stats_false_omits_summarystats(
     client: FlaskClient,
     cleanup_registry,
 ) -> None:
-    """Sonda SummaryStats=False sul forecast e salta esplicitamente il bug backend noto.
+    """Verifica che SummaryStats=False sul forecast ometta summarystats.
 
-    Analisi del difetto riprodotto dal probe:
-    - `Fields.get` inizializza `resulting_fields` solo nel ramo OBS.
-    - Il blocco finale `if not SummaryStats` lo usa però anche dopo il ramo forecast.
-    - Nel ramo FOR il runtime può quindi sollevare `UnboundLocalError`, che il wrapper
-      restapi in questo ambiente espone come `400` o `500`.
-
-    Politica della suite:
-    - niente `xfail` stabile in suite;
-    - se il bug è ancora presente, il test viene skippato in modo esplicito e verboso;
-    - quando il backend verrà corretto, questo stesso test dovrà tornare verde con
-      `200` e assenza di `summarystats` nel payload forecast.
+    Regressione FIELDS-001: il blocco finale di `Fields.get` usava `resulting_fields`,
+    definito solo nel ramo OBS, e nel ramo forecast falliva con `UnboundLocalError`.
+    Ora `summarystats` viene tolto dall'oggetto restituito in entrambi i rami.
     """
     # arrange
     forecast_case = require_forecast_fields_case(client, cleanup_registry)
@@ -556,14 +610,52 @@ def test_fields_forecast_summary_stats_false_is_skipped_for_known_backend_bug(
 
     # assert
     content = parse_response(response)
-    if response.status_code in {400, 500} and (
-        "resulting_fields" in str(content) or "UnboundLocalError" in str(content)
-    ):
-        pytest.skip(
-            "Known backend bug in Fields.get forecast SummaryStats=False: the "
-            "final `if not SummaryStats` block uses `resulting_fields`, defined "
-            "only in the OBS branch; re-enable the assertive path after the "
-            "backend removes summarystats from summary['items'] in both OBS and FOR"
-        )
     assert response.status_code == 200
     assert "summarystats" not in content["items"]
+
+
+@pytest.mark.parametrize(
+    ("params", "expected"),
+    [
+        ({"SummaryStats": "false"}, {"items": {"level": []}}),
+        ({"SummaryStats": "false", "onlySummaryStats": "true"}, {"c": 0, "s": 0}),
+    ],
+    ids=["summary-stats-false", "only-summary-stats-wins"],
+)
+def test_fields_forecast_summary_stats_with_controlled_arkimet_summary(
+    client: FlaskClient,
+    cleanup_registry,
+    monkeypatch: pytest.MonkeyPatch,
+    params: dict[str, str],
+    expected: dict,
+) -> None:
+    """Verifica SummaryStats=False sul forecast senza dipendere dai dati Arkimet.
+
+    Il summary Arkimet e sostituito da un valore controllato. Con onlySummaryStats=true
+    la risposta contiene comunque solo le statistiche, anche se SummaryStats=false.
+    """
+    # arrange
+    db = sqlalchemy.get_instance()
+    dataset = db.Datasets.query.filter_by(arkimet_id="lm5").first()
+    if dataset is None:
+        pytest.skip("Dataset 'lm5' is not available in this environment")
+    user = create_dataset_test_user(client, cleanup_registry, [dataset.id])
+    monkeypatch.setattr(
+        BeArkimet,
+        "load_summary",
+        staticmethod(
+            lambda datasets=[], query="": {
+                "items": {"summarystats": {"c": 0, "s": 0}, "level": []}
+            }
+        ),
+    )
+
+    # act
+    response = client.get(
+        fields_url(datasets="lm5", q="reftime:>=2021-10-19 00:00", **params),
+        headers=user.headers,
+    )
+
+    # assert
+    assert response.status_code == 200
+    assert parse_response(response) == expected

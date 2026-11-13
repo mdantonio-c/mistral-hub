@@ -54,6 +54,37 @@ class TestArkimetQueryParsing:
         # assert
         assert matcher == "reftime: >=2026-05-28 00:00,<=2026-05-28 03:30"
 
+    @pytest.mark.parametrize(
+        ("from_str", "to_str"),
+        [
+            ("2026-05-28T08:00:00Z", "2026-05-28T09:00:00Z"),
+            ("2026-05-28T10:00:00+02:00", "2026-05-28T11:00:00+02:00"),
+            ("2026-05-28T03:00:00-05:00", "2026-05-28T04:00:00-05:00"),
+            ("2026-05-28T08:00:00.000000Z", "2026-05-28T09:00:00.000000Z"),
+        ],
+        ids=["utc", "positive-offset", "negative-offset", "endpoint-format"],
+    )
+    def test_parse_reftime_converts_offsets_to_utc(self, from_str, to_str):
+        """Lo stesso istante con fusi diversi produce la stessa finestra UTC.
+
+        BeArkimet.parse_reftime converte in UTC le date con fuso prima di formattarle.
+        """
+        # act
+        matcher = BeArkimet.parse_reftime(from_str, to_str)
+
+        # assert
+        assert matcher == "reftime: >=2026-05-28 08:00,<=2026-05-28 09:00"
+
+    def test_parse_reftime_offset_can_change_the_day(self):
+        """Un fuso positivo vicino alla mezzanotte porta l'istante al giorno prima."""
+        # act
+        matcher = BeArkimet.parse_reftime(
+            "2026-05-28T01:00:00+02:00", "2026-05-28T03:00:00+02:00"
+        )
+
+        # assert
+        assert matcher == "reftime: >=2026-05-27 23:00,<=2026-05-28 01:00"
+
     def test_parse_matchers_decodes_run_and_quantity_filters(self):
         """BeArkimet.parse_matchers unisce i filtri nella sintassi matcher Arkimet."""
         # arrange

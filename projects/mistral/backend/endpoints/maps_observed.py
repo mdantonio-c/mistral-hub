@@ -102,8 +102,10 @@ class MapsObservations(EndpointResource):
         # Initialize the database connection and the query dictionary
         alchemy_db = sqlalchemy.get_instance()
         query: Dict[str, Any] = {}
-        if lonmin or latmin or lonmax or latmax:
-            if not lonmin or not lonmax or not latmin or not latmax:
+        # a coordinate equal to 0 is valid: only None means missing
+        bbox_coords = (lonmin, latmin, lonmax, latmax)
+        if any(c is not None for c in bbox_coords):
+            if any(c is None for c in bbox_coords):
                 raise BadRequest("Coordinates for bounding box are missing")
             else:
                 # append bounding box params to the query
@@ -149,7 +151,7 @@ class MapsObservations(EndpointResource):
                     "You can set a maximum of 1 network in parameter 'networks' if stationDetails is chosen"
                 )
             if not ident:
-                if not lat or not lon:
+                if lat is None or lon is None:
                     raise BadRequest("Parameters to get station details are missing")
                 else:
                     query_station_data["lat"] = lat
@@ -220,12 +222,14 @@ class MapsObservations(EndpointResource):
             log.debug(f"entering {not datetime_min or datetime_max}")
             raise BadRequest("Reftime is missing")
 
-        # check the timedelta
-        requested_days = (datetime_max - datetime_min).days
-        if requested_days > MAX_REQ_DAYS:
+        # check the timedelta (the fraction of day counts as well)
+        requested_interval = datetime_max - datetime_min
+        if requested_interval > datetime.timedelta(days=MAX_REQ_DAYS):
             # check if the user is authenticated
             if user:
-                if requested_days > MAX_REQ_DAYS_AUTHENTICATED:
+                if requested_interval > datetime.timedelta(
+                    days=MAX_REQ_DAYS_AUTHENTICATED
+                ):
                     raise Unauthorized(
                         f"maximum {MAX_REQ_DAYS_AUTHENTICATED} days can be requested"
                     )
@@ -352,7 +356,8 @@ class MapsObservations(EndpointResource):
         # parse the response
         res = dballe.parse_obs_maps_response(raw_res, last)
 
-        if not res and stationDetails:
+        # the parser always returns a dict with "descr" and "data" keys
+        if stationDetails and not res.get("data"):
             raise NotFound("Station data not found")
 
         return self.response(res)
@@ -387,8 +392,10 @@ class MapsObservations(EndpointResource):
     ) -> Response:
         alchemy_db = sqlalchemy.get_instance()
         query_data: Dict[str, Any] = {}
-        if lonmin or latmin or lonmax or latmax:
-            if not lonmin or not lonmax or not latmin or not latmax:
+        # a coordinate equal to 0 is valid: only None means missing
+        bbox_coords = (lonmin, latmin, lonmax, latmax)
+        if any(c is not None for c in bbox_coords):
+            if any(c is None for c in bbox_coords):
                 raise BadRequest("Coordinates for bounding box are missing")
             else:
                 # append bounding box params to the query
@@ -434,7 +441,7 @@ class MapsObservations(EndpointResource):
                 )
 
             if not ident:
-                if not lat or not lon:
+                if lat is None or lon is None:
                     raise BadRequest("Parameters to get station details are missing")
                 else:
                     query_station_data["lat"] = lat
@@ -490,12 +497,14 @@ class MapsObservations(EndpointResource):
         if not datetime_min or not datetime_max:
             raise BadRequest("Reftime is missing")
 
-        # check the timedelta
-        requested_days = (datetime_max - datetime_min).days
-        if requested_days > MAX_REQ_DAYS:
+        # check the timedelta (the fraction of day counts as well)
+        requested_interval = datetime_max - datetime_min
+        if requested_interval > datetime.timedelta(days=MAX_REQ_DAYS):
             # check if the user is authenticated
             if user:
-                if requested_days > MAX_REQ_DAYS_AUTHENTICATED:
+                if requested_interval > datetime.timedelta(
+                    days=MAX_REQ_DAYS_AUTHENTICATED
+                ):
                     raise Unauthorized(
                         f"maximum {MAX_REQ_DAYS_AUTHENTICATED} days can be requested"
                     )

@@ -5,6 +5,7 @@ import math
 import re
 import shlex
 import subprocess
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import List
 
@@ -174,12 +175,22 @@ class BeArkimet:
         :type to_str: string
         :return: Arkimet query for reftime
         """
-        from_dt = dateutil.parser.parse(from_str)
-        to_dt = dateutil.parser.parse(to_str)
+        from_dt = BeArkimet.to_utc(dateutil.parser.parse(from_str))
+        to_dt = BeArkimet.to_utc(dateutil.parser.parse(to_str))
 
         gt = from_dt.strftime("%Y-%m-%d %H:%M")
         lt = to_dt.strftime("%Y-%m-%d %H:%M")
         return f"reftime: >={gt},<={lt}"
+
+    @staticmethod
+    def to_utc(dt: datetime) -> datetime:
+        """
+        Convert a datetime with timezone to UTC (without timezone).
+        A datetime without timezone is considered already in UTC.
+        """
+        if dt.utcoffset() is not None:
+            dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
+        return dt
 
     @staticmethod
     def parse_matchers(filters):

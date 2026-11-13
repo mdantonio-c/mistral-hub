@@ -388,13 +388,18 @@ class Data(EndpointResource, Uploader):
             dt_from = reftime.get("date_from")
             dt_to = reftime.get("date_to")
 
+            # the reftime is saved in UTC: dates with a timezone are converted
             if dt_from:
-                parsed_reftime["from"] = dt_from.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+                parsed_reftime["from"] = arki.to_utc(dt_from).strftime(
+                    "%Y-%m-%dT%H:%M:%S.%fZ"
+                )
             else:  # pragma: no cover
                 log.warning("Missing date_from in reftime")
 
             if dt_to:
-                parsed_reftime["to"] = dt_to.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+                parsed_reftime["to"] = arki.to_utc(dt_to).strftime(
+                    "%Y-%m-%dT%H:%M:%S.%fZ"
+                )
             else:  # pragma: no cover
                 log.warning("Missing date_to in reftime")
 
@@ -498,6 +503,13 @@ class Data(EndpointResource, Uploader):
                         "The requested data size is estimated to exceed the maximum limit for output size."
                     )
 
+        # get the correct celery queue to redirect the request
+        # (before creating the request record: an unsupported type is rejected)
+        try:
+            celery_queue = queue_sorting(data_type, reftime)
+        except ValueError as exc:
+            raise BadRequest(str(exc)) from exc
+
         # run the following steps in a transaction
         task = None
         try:
@@ -517,8 +529,6 @@ class Data(EndpointResource, Uploader):
             )
 
             c = celery.get_instance()
-            # get the correct celery queue to redirect the request
-            celery_queue = queue_sorting(data_type, reftime)
             task = c.celery_app.send_task(
                 "data_extract",
                 args=(

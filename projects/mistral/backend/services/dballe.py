@@ -2991,15 +2991,26 @@ class BeDballe:
         Returns the specific dballe dsn for aggregated pluvio data.
         """
         dsn = None
-        if (
-            "product" in query_dict
-            and "timerange" in query_dict
-            and query_dict["product"][0] == "B13011"
-        ):
+        if "product" in query_dict and "timerange" in query_dict:
+            # absent filters select no aggregation, empty or malformed ones are errors
+            products = query_dict["product"]
+            timeranges = query_dict["timerange"]
+            if not products or not timeranges:
+                raise InvalidFiltersException(
+                    "Invalid filters: product and timerange cannot be empty"
+                )
+            if products[0] != "B13011":
+                return dsn
+
             # Create list of multiples of 3600 from 1 to 24 (hourly aggregations)
             hourly_multiples = [i * 3600 for i in range(1, 25)]
 
-            p2 = int(query_dict["timerange"][0].split(",")[2].strip())
+            try:
+                p2 = int(timeranges[0].split(",")[2].strip())
+            except (AttributeError, IndexError, ValueError):
+                raise InvalidFiltersException(
+                    f"Invalid timerange filter: {timeranges[0]}"
+                )
 
             if p2 in hourly_multiples:
                 dsn = BeDballe.AGGREGATIONS_DSN

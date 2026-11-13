@@ -41,6 +41,28 @@ class _FixedDataExtractionDateTime(dt.datetime):
         return fixed_now.replace(tzinfo=dt.timezone.utc).astimezone(tz)
 
 
+def _freeze_data_extraction_clock(monkeypatch, fixed_now: dt.datetime) -> None:
+    """Fissa a ``fixed_now`` l'orologio (``utcnow`` e ``now``) del modulo task."""
+
+    class _FrozenDateTime(dt.datetime):
+        @classmethod
+        def utcnow(cls):
+            return cls.combine(fixed_now.date(), fixed_now.time())
+
+        @classmethod
+        def now(cls, tz=None):
+            frozen = cls.utcnow()
+            if tz is None:
+                return frozen
+            return frozen.replace(tzinfo=dt.timezone.utc).astimezone(tz)
+
+    monkeypatch.setattr(
+        data_extraction,
+        "datetime",
+        SimpleNamespace(datetime=_FrozenDateTime, timedelta=dt.timedelta),
+    )
+
+
 @pytest.fixture
 def frozen_data_extraction_clock(monkeypatch):
     """Congela l'orologio visto da tasks/data_extraction.py e restituisce l'ora fissa.
@@ -209,3 +231,83 @@ class TestDataExtractionHelpers:
             "from": "2026-05-27T00:30:00.000000Z",
             "to": "2026-05-27T12:30:00.000000Z",
         }
+
+    @pytest.mark.parametrize(
+        ("fixed_now", "crontab_settings", "reftime_to", "submission_date", "expected"),
+        [
+            pytest.param(
+                dt.datetime(2027, 1, 5, 10, 0),
+                {"day_of_month": 5, "hour": 10, "minute": 0},
+                "2026-12-04T10:00:00.000000Z",
+                dt.datetime(2026, 12, 5, 10, 0),
+                {
+                    "from": "2027-01-03T10:00:00.000000Z",
+                    "to": "2027-01-04T10:00:00.000000Z",
+                },
+                id="monthly-in-january",
+            ),
+            pytest.param(
+                dt.datetime(2028, 3, 5, 10, 0),
+                {"day_of_month": 5, "hour": 10, "minute": 0},
+                "2028-02-04T10:00:00.000000Z",
+                dt.datetime(2028, 2, 5, 10, 0),
+                {
+                    "from": "2028-03-03T10:00:00.000000Z",
+                    "to": "2028-03-04T10:00:00.000000Z",
+                },
+                id="monthly-after-leap-february",
+            ),
+            pytest.param(
+                dt.datetime(2027, 1, 5, 10, 0),
+                {"day_of_month": 5, "month_of_year": 1, "hour": 10, "minute": 0},
+                "2026-01-04T10:00:00.000000Z",
+                dt.datetime(2026, 1, 5, 10, 0),
+                {
+                    "from": "2027-01-03T10:00:00.000000Z",
+                    "to": "2027-01-04T10:00:00.000000Z",
+                },
+                id="yearly-in-january",
+            ),
+            pytest.param(
+                dt.datetime(2027, 1, 5, 10, 0),
+                {"day_of_week": 2, "hour": 10, "minute": 0},
+                "2026-12-28T10:00:00.000000Z",
+                dt.datetime(2026, 12, 29, 10, 0),
+                {
+                    "from": "2027-01-03T10:00:00.000000Z",
+                    "to": "2027-01-04T10:00:00.000000Z",
+                },
+                id="weekly",
+            ),
+        ],
+    )
+    def test_adapt_reftime_crontab_schedules_move_window_forward(
+        self,
+        monkeypatch,
+        fixed_now,
+        crontab_settings,
+        reftime_to,
+        submission_date,
+        expected,
+    ):
+        """Verifica ``adapt_reftime`` sulle crontab settimanali, mensili e annuali.
+
+        A gennaio il mese precedente e dicembre dell'anno prima: il calcolo non deve
+        fallire (prima sollevava ``KeyError: 0``) e la finestra avanza come negli
+        altri mesi, anche dopo un febbraio bisestile.
+        """
+        # arrange
+        _freeze_data_extraction_clock(monkeypatch, fixed_now)
+        schedule = SimpleNamespace(
+            is_crontab=True,
+            crontab_settings=json.dumps(crontab_settings),
+            time_delta=dt.timedelta(days=1),
+            args={"reftime": {"to": reftime_to}},
+            submission_date=submission_date,
+        )
+
+        # act
+        adapted_reftime = data_extraction.adapt_reftime(schedule, reftime={"set": True})
+
+        # assert
+        assert adapted_reftime == expected

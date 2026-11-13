@@ -242,3 +242,44 @@ def test_data_ready_skips_schedule_without_on_data_ready_flag(
         data_ready_user.headers,
         schedule_id,
     )
+
+
+def test_schedule_reftime_with_timezone_is_saved_in_utc(
+    client: FlaskClient,
+    data_ready_base,
+    data_ready_db,
+    data_ready_user,
+    schedules_endpoint_without_real_celery,
+) -> None:
+    """Verifica che ``POST /api/schedules`` salvi il reftime in UTC.
+
+    Gli estremi hanno fusi diversi (negativo con cambio di giorno, positivo): la
+    schedule e il primo ``data_extract`` inviato devono usare gli istanti UTC, mentre
+    prima l'ora locale veniva salvata come se fosse UTC.
+    """
+    # arrange
+    body = build_on_data_ready_schedule(
+        request_name="test_schedule_reftime_utc",
+        date_from="2021-10-18T21:00:00-05:00",
+        date_to="2021-10-19T05:00:00+02:00",
+        dataset_names=[DATA_READY_DATASET_NAME],
+    )
+
+    # act
+    schedule_id = create_schedule(
+        data_ready_base,
+        client,
+        data_ready_user.headers,
+        body,
+    )
+
+    # assert
+    expected_reftime = {
+        "from": "2021-10-19T02:00:00.000000Z",
+        "to": "2021-10-19T03:00:00.000000Z",
+    }
+    schedule = data_ready_db.Schedule.query.get(int(schedule_id))
+    assert schedule.args["reftime"] == expected_reftime
+    sent_tasks = schedules_endpoint_without_real_celery.sent_tasks
+    assert len(sent_tasks) == 1
+    assert sent_tasks[0]["kwargs"]["args"][2] == expected_reftime

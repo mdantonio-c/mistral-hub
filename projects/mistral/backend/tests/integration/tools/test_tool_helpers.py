@@ -7,7 +7,7 @@
 # Runtime: `tmp_path` e dizionari locali bastano perche le funzioni sotto test
 # falliscono o mutano input prima di qualsiasi subprocess reale.
 # Cleanup: pytest rimuove le directory temporanee; il test del bundle shapefile
-# corrotto verifica anche la cancellazione intenzionale della cartella da parte dell'helper.
+# corrotto verifica che l'helper non cancelli nulla nella cartella condivisa.
 
 import pytest
 from restapi.exceptions import BadRequest
@@ -80,6 +80,26 @@ class TestToolHelpers:
 
         # assert
         assert params["trans_type"] == expected_trans_type
+
+    @pytest.mark.parametrize(
+        "helper",
+        [grid_interpolation.get_trans_type, spare_point_interpol.get_trans_type],
+        ids=["grid_interpolation", "spare_point_interpol"],
+    )
+    def test_get_trans_type_rejects_unknown_sub_type(self, helper):
+        """Un sub_type sconosciuto e rifiutato e non imposta alcun trans_type.
+
+        Funzioni esercitate: `grid_interpolation.get_trans_type` e
+        `spare_point_interpol.get_trans_type`. Senza trans_type il comando esterno
+        partirebbe con `--trans-type=None`.
+        """
+        # arrange
+        params = {"sub_type": "UNKNOWN"}
+
+        # act / assert
+        with pytest.raises(BadRequest, match="Unknown interpolation sub_type: UNKNOWN"):
+            helper(params)
+        assert "trans_type" not in params
 
     @pytest.mark.parametrize(
         ("sub_type", "expected_sub_type"),
@@ -191,23 +211,38 @@ class TestToolHelpers:
         # assert
         assert result is None
 
-    def test_check_coord_filepath_corrupt_shapefile_bundle_removes_folder(
+    def test_check_coord_filepath_corrupt_shapefile_bundle_keeps_other_files(
         self, tmp_path
     ):
-        """Un bundle shapefile incompleto viene rifiutato e la sua cartella cancellata.
+        """Un bundle shapefile incompleto viene rifiutato senza cancellare nulla.
 
+        La cartella degli shapefile e condivisa da tutti i template dell'utente: un
+        altro bundle completo e un file sentinella devono restare intatti.
         Funzione esercitata: `spare_point_interpol.check_coord_filepath`.
         """
         # arrange
-        # Creiamo soltanto il file .shp: mancano .shx e .dbf. Questo esercita il cleanup
-        # intenzionale dell'helper senza usare shapefile reali o tool meteo.
-        bundle_dir = tmp_path / "corrupt-bundle"
+        # Creiamo soltanto il file .shp del bundle rotto (mancano .shx e .dbf), un
+        # secondo bundle completo e un file sentinella nella stessa cartella.
+        bundle_dir = tmp_path / "shared-shp-folder"
         bundle_dir.mkdir()
-        coord_file = bundle_dir / "points.shp"
+        coord_file = bundle_dir / "broken.shp"
         coord_file.write_text("placeholder", encoding="utf-8")
+        other_bundle = [
+            bundle_dir / f"valid{suffix}" for suffix in (".shp", ".shx", ".dbf")
+        ]
+        for path in other_bundle:
+            path.write_text("placeholder", encoding="utf-8")
+        sentinel = bundle_dir / "sentinel.txt"
+        sentinel.write_text("sentinel", encoding="utf-8")
+        files_before = {
+            p.name: p.read_text(encoding="utf-8") for p in bundle_dir.iterdir()
+        }
         params = {"coord_filepath": str(coord_file), "file_format": "shp"}
 
         # act / assert
-        with pytest.raises(BadRequest):
+        with pytest.raises(BadRequest, match="corrupted"):
             spare_point_interpol.check_coord_filepath(params)
-        assert not bundle_dir.exists()
+        files_after = {
+            p.name: p.read_text(encoding="utf-8") for p in bundle_dir.iterdir()
+        }
+        assert files_after == files_before

@@ -254,12 +254,9 @@ class PeriodSettings(Schema):
 class CrontabSettings(Schema):
     minute = fields.Integer(validate=validate.Range(min=0, max=59))
     hour = fields.Integer(validate=validate.Range(min=0, max=23))
-    day_of_week = fields.Integer(
-        validate=validate.Range(min=0, max=7, min_inclusive=False, max_inclusive=False)
-    )
-    day_of_month = fields.Integer(
-        validate=validate.Range(min=0, max=31, min_inclusive=False, max_inclusive=False)
-    )
+    # same convention as the celery crontab: 0 = sunday, 6 = saturday
+    day_of_week = fields.Integer(validate=validate.Range(min=0, max=6))
+    day_of_month = fields.Integer(validate=validate.Range(min=1, max=31))
     month_of_year = fields.Integer(validate=validate.Range(min=1, max=12))
 
     @pre_load
@@ -453,8 +450,13 @@ class SingleSchedule(EndpointResource):
             if not reftime_to or not reftime_from:  # pragma: no cover
                 raise BadRequest("Can't extra date_from and date_to from reftime")
             time_delta = reftime_to - reftime_from
-            parsed_reftime["from"] = reftime_from.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-            parsed_reftime["to"] = reftime_to.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+            # the reftime is saved in UTC: dates with a timezone are converted
+            parsed_reftime["from"] = arki.to_utc(reftime_from).strftime(
+                "%Y-%m-%dT%H:%M:%S.%fZ"
+            )
+            parsed_reftime["to"] = arki.to_utc(reftime_to).strftime(
+                "%Y-%m-%dT%H:%M:%S.%fZ"
+            )
 
         # check for existing dataset(s)
         # check for existing dataset(s)
@@ -618,11 +620,16 @@ class SingleSchedule(EndpointResource):
                     "The chosen datasets does not support 'only quality controlled data' option "
                 )
 
+        # an unsupported dataset type is rejected before creating any record
+        try:
+            celery_queue = queue_sorting(data_type, reftime)
+        except ValueError as exc:
+            raise BadRequest(str(exc)) from exc
+
         c = celery.get_instance()
 
         name = None
         try:
-            celery_queue = queue_sorting(data_type, reftime)
             if period_settings is not None:
                 every = cast(int, period_settings.get("every"))
                 period = cast(AllowedTimedeltaPeriods, period_settings.get("period"))

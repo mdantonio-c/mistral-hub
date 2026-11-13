@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timedelta
 
 from mistral.services.arkimet import BeArkimet as arki
@@ -91,55 +92,59 @@ def launch_all_on_data_ready_extractions(
         # check if there are others schedule params
         if r["period"] or r["crontab_set"]:
 
-            req_date = datetime.strptime(rundate.isoformat(), "%Y-%m-%dT%H:%M:%S")
+            req_date = rundate
 
             # get the last request
             last_req = SqlApiDbManager.get_last_scheduled_request(db, r["id"])
 
+            # dates are serialized with isoformat(), that omits zero microseconds
             if last_req:
 
-                submission_date = datetime.strptime(
-                    last_req["submission_date"], "%Y-%m-%dT%H:%M:%S.%f"
+                submission_date = datetime.fromisoformat(
+                    last_req["submission_date"]
                 ).date()
 
             else:
                 # if there aren't any previous requests consider
                 # the submission date of the schedule itself
-                submission_date = datetime.strptime(
-                    r["creation_date"], "%Y-%m-%dT%H:%M:%S.%f"
-                ).date()
+                submission_date = datetime.fromisoformat(r["creation_date"]).date()
             # periodic schedules
             if r["period"] == "days":
                 day_interval = r["every"]
                 next_submission = submission_date + timedelta(days=day_interval)
-                if req_date.date() != next_submission:
+                # a missed event does not block the schedule:
+                # it restarts with the first event after the expected date
+                if req_date.date() < next_submission:
                     log.debug(
-                        "Skipping {}: scheduling period does not coincide",
+                        "Skipping {}: scheduling period has not elapsed yet",
                         name,
                     )
                     continue
             # crontab schedules
             elif r["crontab_set"]:
-                crontab_dic = eval(r["crontab_set"])
-                if "day_of_month" in crontab_dic and "month_of_year" in crontab_dic:
-                    if (
-                        req_date.day != crontab_dic["day_of_month"]
-                        or req_date.month != crontab_dic["month_of_year"]
-                    ):
-                        log.debug(
-                            "Skipping {}: scheduling is for {}/{}",
-                            name,
-                            crontab_dic["month_of_year"],
-                            crontab_dic["day_of_month"],
-                        )
-                        continue
-                elif "day_of_week" in crontab_dic:
-                    if req_date.weekday() != crontab_dic["day_of_week"]:
-                        log.debug(
-                            "Skipping {}: schedule is for an other day of the week",
-                            name,
-                        )
-                        continue
+                crontab_dic = json.loads(r["crontab_set"])
+                # all the settings have to match, as in the celery crontab used by
+                # the other schedules: day_of_week has sunday = 0
+                if (
+                    (
+                        "day_of_week" in crontab_dic
+                        and req_date.isoweekday() % 7 != crontab_dic["day_of_week"]
+                    )
+                    or (
+                        "day_of_month" in crontab_dic
+                        and req_date.day != crontab_dic["day_of_month"]
+                    )
+                    or (
+                        "month_of_year" in crontab_dic
+                        and req_date.month != crontab_dic["month_of_year"]
+                    )
+                ):
+                    log.debug(
+                        "Skipping {}: crontab settings {} do not match the run date",
+                        name,
+                        crontab_dic,
+                    )
+                    continue
 
         log.info("Checking schedule: {}\n{}", name, r)
         reftime = {

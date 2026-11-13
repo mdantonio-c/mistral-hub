@@ -2,7 +2,8 @@
 # (projects/mistral/backend/endpoints/admin_licenses.py).
 # Ambito: verifica create con group license, listing con group e datasets annidati,
 # update di group license, delete, 404 su license mancante e comportamento documentato
-# quando si richiede un group license inesistente.
+# quando si richiede un group license inesistente (400 via HTTP, NotFound nel controller),
+# status 204 di PUT/DELETE dichiarati nella specifica OpenAPI.
 # Finestra dati: nessun dato meteorologico reale viene usato; i dataset collegati sono
 # righe metadata sintetiche create via API admin.
 # Runtime fake: nessun fake o worker; solo controller Flask e SQLAlchemy.
@@ -10,9 +11,13 @@
 
 from __future__ import annotations
 
+import inspect
+
 import pytest
+from mistral.endpoints.admin_licenses import AdminLicenses
 from restapi.connectors import sqlalchemy
-from restapi.tests import FlaskClient
+from restapi.exceptions import NotFound
+from restapi.tests import API_URI, FlaskClient
 
 from mistral.tests.integration.admin.support import (
     ADMIN_LICENSES_ENDPOINT,
@@ -202,3 +207,83 @@ def test_admin_license_missing_group_returns_400(
     assert response.status_code == 400
     assert "group_license" in response_content(response)
     assert db.License.query.filter_by(name=payload["name"]).count() == 0
+
+
+def _delete_licenses_by_name(db, name: str) -> None:
+    """Rimuove le license sintetiche con il nome indicato (cleanup idempotente)."""
+    db.session.rollback()
+    for license_entry in db.License.query.filter_by(name=name).all():
+        db.session.delete(license_entry)
+    db.session.commit()
+
+
+def test_admin_license_controller_missing_group_returns_not_found(
+    client: FlaskClient,
+    cleanup_registry,
+) -> None:
+    """Verifica il ramo NotFound del controller per un group license inesistente.
+
+    Via HTTP la OneOf rifiuta prima l'id (400, test sopra): il controller viene quindi
+    chiamato direttamente, senza decoratori. La license appena creata deve essere
+    rimossa, senza lasciare righe parziali.
+    Metodo esercitato: AdminLicenses.post.
+    """
+    # arrange
+    db = sqlalchemy.get_instance()
+    assert db.GroupLicense.query.get(ADMIN_MISSING_ID) is None
+    payload = license_payload(ADMIN_MISSING_ID)
+    cleanup_registry.add(lambda: _delete_licenses_by_name(db, payload["name"]))
+    post = inspect.unwrap(AdminLicenses.post)
+
+    # act / assert
+    with pytest.raises(NotFound):
+        post(AdminLicenses(), None, **payload)
+    assert db.License.query.filter_by(name=payload["name"]).count() == 0
+
+
+def test_admin_license_controller_update_missing_group_returns_not_found(
+    client: FlaskClient,
+    admin_headers: dict[str, str],
+    cleanup_registry,
+) -> None:
+    """Verifica il ramo NotFound di PUT per un group license inesistente.
+
+    La license resta nel suo gruppo originale.
+    Metodo esercitato: AdminLicenses.put.
+    """
+    # arrange
+    group_license_id = create_license_group_via_api(
+        client, admin_headers, cleanup_registry
+    )
+    license_id = create_license_via_api(
+        client, admin_headers, cleanup_registry, group_license_id
+    )
+    put = inspect.unwrap(AdminLicenses.put)
+
+    # act / assert
+    with pytest.raises(NotFound):
+        put(
+            AdminLicenses(),
+            str(license_id),
+            None,
+            group_license=str(ADMIN_MISSING_ID),
+        )
+    db = sqlalchemy.get_instance()
+    db.session.expire_all()
+    assert db.License.query.get(license_id).group_license_id == group_license_id
+
+
+def test_admin_license_openapi_declares_204_for_update_and_delete(
+    client: FlaskClient,
+    admin_headers: dict[str, str],
+) -> None:
+    """Verifica che la specifica OpenAPI dichiari 204, lo status reale di PUT/DELETE."""
+    # act
+    response = client.get(f"{API_URI}/specs", headers=admin_headers)
+
+    # assert
+    assert response.status_code == 200
+    path = response_content(response)["paths"]["/api/admin/licenses/{license_id}"]
+    for method in ("put", "delete"):
+        assert "204" in path[method]["responses"]
+        assert "200" not in path[method]["responses"]

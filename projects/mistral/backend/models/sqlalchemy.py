@@ -2,10 +2,13 @@
 
 import enum
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
+from restapi.connectors import celery
 from restapi.connectors.sqlalchemy.models import User, db
+from sqlalchemy import event
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Session
 
 # Add (inject) attributes to User
 setattr(User, "disk_quota", db.Column(db.BigInteger, default=1073741824))  # 1 GB
@@ -184,17 +187,24 @@ class AccessKey(db.Model):  # type: ignore
         return f"{self.__class__.__name__}({self.id}, {self.key})"
 
     def is_valid(self) -> bool:
+        """A key is valid until its expiration (excluded), without expiration always.
+
+        This is the only expiration rule, used also by the access key service.
+        """
         if self.expiration is None:
             return True
-        now = datetime.utcnow()
-        return self.expiration > now
+        expiration = self.expiration
+        # the column stores UTC instants: a datetime without timezone is UTC
+        if expiration.tzinfo is None:
+            expiration = expiration.replace(tzinfo=timezone.utc)
+        return expiration > datetime.now(timezone.utc)
 
     @staticmethod
     def generate(
         user_id, lifetime_seconds=3600, ip=None, location=None, scope="read:arco"
     ):
         key_value = secrets.token_urlsafe(32)
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         expires = None
         if lifetime_seconds is not None:
@@ -207,3 +217,24 @@ class AccessKey(db.Model):  # type: ignore
             user_id=user_id,
             scope=scope,
         )
+
+
+@event.listens_for(Session, "before_flush")
+def delete_schedules_of_deleted_users(session, flush_context, instances):
+    """Delete the schedules of the users being deleted, with their periodic tasks.
+
+    Otherwise the schedules would remain with user_id NULL and their periodic tasks
+    would keep launching extractions for a user that no longer exists.
+    Requests and files of the user are kept, as before (with user_id NULL).
+    """
+    user_ids = [obj.id for obj in session.deleted if isinstance(obj, User)]
+    if not user_ids:
+        return
+    schedules = session.query(Schedule).filter(Schedule.user_id.in_(user_ids)).all()
+    if not schedules:
+        return
+    celery_app = celery.get_instance()
+    for schedule in schedules:
+        # as in the deletion of a single schedule (DELETE /schedules/<id>)
+        celery_app.delete_periodic_task(name=str(schedule.id))
+        session.delete(schedule)
