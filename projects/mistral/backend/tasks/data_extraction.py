@@ -27,7 +27,6 @@ from mistral.tools import derived_variables as pp1
 from mistral.tools import grid_cropping as pp3_2
 from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import output_formatting
-from mistral.tools import quality_check_filter as qc
 from mistral.tools import spare_point_interpol as pp3_3
 from mistral.tools import statistic_elaboration as pp2
 from restapi.config import get_backend_url
@@ -238,11 +237,6 @@ def data_extract(
         if data_type != "OBS" and "multim-forecast" not in datasets:
             arki.arkimet_extraction(datasets, query, tmp_extraction_filename)
         else:
-            if only_reliable:
-                # keep track of the temp file the postprocess will create
-                tmp_file_list.append(
-                    Path(f"{tmp_extraction_filename}_to_be_qcfiltered.tmp")
-                )
             observed_extraction(
                 user_id,
                 output_dir,
@@ -486,7 +480,11 @@ def data_extract(
                     if request.status != states.SUCCESS:
                         notify_by_email(db, user_id, request, "")
                     else:
-                        notify_on_success = db.session.query(db.User.notify_on_successful_request).filter_by(id=user_id).scalar()
+                        notify_on_success = (
+                            db.session.query(db.User.notify_on_successful_request)
+                            .filter_by(id=user_id)
+                            .scalar()
+                        )
                         if notify_on_success:
                             notify_by_email(db, user_id, request, "")
 
@@ -668,27 +666,25 @@ def observed_extraction(
                 )
 
     # extract the data
-    if only_reliable:
-        # change the name of the output file
-        # as it will be processed an other time by the postprocessor
-        qc_outfile = outfile
-        outfile = f"{outfile}_to_be_qcfiltered.tmp"
-
     if db_type == "mixed":
         dballe.extract_data_for_mixed(
-            datasets, fields, queries, outfile, queried_reftime
+            datasets,
+            fields,
+            queries,
+            outfile,
+            queried_reftime,
+            quality_check=only_reliable,
         )
     else:
         dballe.extract_data(
-            datasets, fields, queries, outfile, db_type, queried_reftime
+            datasets,
+            fields,
+            queries,
+            outfile,
+            db_type,
+            queried_reftime,
+            quality_check=only_reliable,
         )
-
-    if only_reliable:
-        # processed the resulting file
-        qc.pp_quality_check_filter(input_file=outfile, output_file=qc_outfile)
-        # delete the tmp file
-        qc_input = Path(outfile)
-        qc_input.unlink()
 
 
 def notify_by_email(db, user_id, request, extra_msg):

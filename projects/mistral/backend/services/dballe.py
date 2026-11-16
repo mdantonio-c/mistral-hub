@@ -665,13 +665,13 @@ class BeDballe:
         # datetime interval of the query
         if fields:
             if "datetimemin" in fields:
-                query_important_params["query_original_dt_interval"]["datetimemin"] = (
-                    queries[fields.index("datetimemin")][0]
-                )
+                query_important_params["query_original_dt_interval"][
+                    "datetimemin"
+                ] = queries[fields.index("datetimemin")][0]
             if "datetimemax" in fields:
-                query_important_params["query_original_dt_interval"]["datetimemax"] = (
-                    queries[fields.index("datetimemax")][0]
-                )
+                query_important_params["query_original_dt_interval"][
+                    "datetimemax"
+                ] = queries[fields.index("datetimemax")][0]
 
         if query_important_params["need_different_size_count"]:
             query_important_params["selected_filters_keys"] = [
@@ -784,10 +784,10 @@ class BeDballe:
 
         if cur_original_dt_interval not in cursor_effective_datetime_dict:
 
-            cursor_effective_datetime_dict[cur_original_dt_interval] = (
-                BeDballe.__populate_cursor_effective_datetime_dict(
-                    cur_original_dt_interval, query_original_dt_interval
-                )
+            cursor_effective_datetime_dict[
+                cur_original_dt_interval
+            ] = BeDballe.__populate_cursor_effective_datetime_dict(
+                cur_original_dt_interval, query_original_dt_interval
             )
 
         cur_vs_query_dtime_ratio = cursor_effective_datetime_dict[
@@ -1383,10 +1383,10 @@ class BeDballe:
                 tranges, type="timerange"
             )
             if all_products:
-                fields["available_products"] = (
-                    BeDballe.from_list_of_params_to_list_of_dic(
-                        network_products, type="product"
-                    )
+                fields[
+                    "available_products"
+                ] = BeDballe.from_list_of_params_to_list_of_dic(
+                    network_products, type="product"
                 )
 
             # create summary
@@ -2308,9 +2308,9 @@ class BeDballe:
                                 )
                             if r.startswith("="):
                                 date = r.strip("=")
-                                query_dic["datetimemin"] = query_dic["datetimemax"] = (
-                                    dateutil.parser.parse(date)
-                                )
+                                query_dic["datetimemin"] = query_dic[
+                                    "datetimemax"
+                                ] = dateutil.parser.parse(date)
 
                     # parsing all other parameters
                     elif p == "license":
@@ -2605,9 +2605,9 @@ class BeDballe:
                 tmpf.write(bin_data)
             tmpf.seek(0)
             with dballe.File(tmpf, "BUFR") as f:
-                for binmsg in f:
-                    msgs = importer.from_binary(binmsg)
-                    with db.transaction() as tr:
+                with db.transaction() as tr:
+                    for binmsg in f:
+                        msgs = importer.from_binary(binmsg)
                         tr.import_messages(msgs)
         return db
 
@@ -2657,7 +2657,12 @@ class BeDballe:
 
     @staticmethod
     def extract_data_for_mixed(
-        datasets, fields, queries, outfile, queried_reftime=None
+        datasets,
+        fields,
+        queries,
+        outfile,
+        queried_reftime=None,
+        quality_check=False,
     ):
         # extract data from the dballe database
         log.debug("mixed dbs: extract data from dballe")
@@ -2699,6 +2704,7 @@ class BeDballe:
             queried_reftime=queried_reftime,
             additional_runs=additional_runs,
             mixed_extraction=True,
+            quality_check=quality_check,
         )
 
         # extract data from the arkimet database
@@ -2726,6 +2732,7 @@ class BeDballe:
             db_type="arkimet",
             queried_reftime=queried_reftime_for_arki,
             mixed_extraction=True,
+            quality_check=quality_check,
         )
 
         cat_cmd = ["cat"]
@@ -2765,6 +2772,7 @@ class BeDballe:
         queried_reftime=None,
         additional_runs=None,
         mixed_extraction=False,
+        quality_check=False,
     ):
         # get the license group
         alchemy_db = sqlalchemy.get_instance()
@@ -2879,9 +2887,13 @@ class BeDballe:
                 exporter = dballe.Exporter("BUFR")
                 with open(part_outfile, "wb") as out:
                     for row in tr.query_messages(dballe_query):
-                        if queried_reftime:
+                        if queried_reftime or quality_check:
                             msg = BeDballe.filter_messages(
-                                row.message, list_of_runs=requested_runs
+                                row.message,
+                                list_of_runs=(
+                                    requested_runs if queried_reftime else None
+                                ),
+                                quality_check=quality_check,
                             )
                         else:
                             msg = row.message
