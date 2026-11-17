@@ -61,6 +61,7 @@ services:
       - ${DATA_DIR}/netcdf_extraction:/nwp/ww3
       - ${DATA_DIR}/MER:/nwp/shyfem
       - ${DATA_DIR}/seasonal:/nwp/SEASONAL
+      - ${DATA_DIR}/subseasonal:/nwp/SUBSEASONAL
       - ${DATA_DIR}/catalog:/catalog
       - ${PROJECT_DIR}/nginx/proxy.service:/etc/nginx/sites-enabled/proxy.service
       - ${PROJECT_DIR}/nginx/analytics.service.${ACTIVATE_ANALYTICS:-0}:/etc/nginx/sites-enabled/analytics.service

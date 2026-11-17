@@ -8,6 +8,7 @@ EXIT_INVALID_INPUT = 20
 EXIT_INVALID_TREE = 30
 
 expected_tree = {
+    "grib1",
     "json_weekly",
     "t2m",
     "t2m/quintile_1",
@@ -23,7 +24,8 @@ expected_tree = {
     "tp/terzile_3",
 }
 
-DEST_DIR = Path("/opt/nifi/nfs/subseasonal")
+TIFF_DEST_DIR = Path("/opt/nifi/nfs/subseasonal")
+GRIB_DEST_DIR = Path("/opt/nifi/subseasonal_grib")
 
 # read the content from stdin
 zip_bytes = sys.stdin.buffer.read()
@@ -74,23 +76,31 @@ with tempfile.TemporaryDirectory() as tmpdir_str:
         sys.exit(EXIT_INVALID_TREE)
 
     # clean the destination output
-    if DEST_DIR.exists():
-        for item in DEST_DIR.iterdir():
+    if TIFF_DEST_DIR.exists():
+        for item in TIFF_DEST_DIR.iterdir():
             if item.is_dir():
                 shutil.rmtree(item)
             else:
                 item.unlink()
     else:
-        DEST_DIR.mkdir(parents=True)
+        TIFF_DEST_DIR.mkdir(parents=True)
 
     # copy new content
-
     for p in unzipped_data_dir.iterdir():
-        target = Path(DEST_DIR, p.name)
-        if p.is_dir():
-            shutil.copytree(p, target)
+        # copy the grib files
+        if p.is_dir() and p.name == "grib1":
+            grib_target_dir = Path(GRIB_DEST_DIR, file_date)
+            grib_target_dir.mkdir(parents=True)
+            for grib_f in p.iterdir():
+                target = Path(grib_target_dir, grib_f.name)
+                shutil.copy2(grib_f, target)
+        # copy all the other files (tiffs for visualization
         else:
-            shutil.copy2(p, target)
+            target = Path(TIFF_DEST_DIR, p.name)
+            if p.is_dir():
+                shutil.copytree(p, target)
+            else:
+                shutil.copy2(p, target)
 
 # Success
 # give to stdout the date to be set as flowfile attribute
