@@ -18,17 +18,16 @@ from typing import Any, Iterator
 
 import dballe
 import eccodes
+import mistral.tasks.data_extraction as data_extraction_task
 import pytest
+import restapi.connectors.celery as celery_connector
 from faker import Faker
 from flask import Flask
 from mistral.endpoints import DOWNLOAD_DIR
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
-import mistral.tasks.data_extraction as data_extraction_task
-import restapi.connectors.celery as celery_connector
+from mistral.tests.helpers.auth import register_test_user_cleanup
 from restapi.connectors import sqlalchemy
 from restapi.tests import API_URI, BaseTests, FlaskClient
-
-from mistral.tests.helpers.auth import register_test_user_cleanup
 
 TASK_NAME = "data_extract"
 
@@ -149,7 +148,9 @@ class PostprocessingEnv:
             return
 
         original_mark_task_as_failed = celery_connector.mark_task_as_failed
-        original_mark_task_as_failed_ignore = celery_connector.mark_task_as_failed_ignore
+        original_mark_task_as_failed_ignore = (
+            celery_connector.mark_task_as_failed_ignore
+        )
         original_notify_by_email = data_extraction_task.notify_by_email
 
         def raise_task_ignore(*args, exception, **kwargs):
@@ -586,11 +587,7 @@ def grid_interpolation_with_template(template_path: Path) -> dict[str, Any]:
 def grid_cropping_postprocessor(
     *, initial_lon: int, initial_lat: int, final_lon: int, final_lat: int
 ) -> dict[str, Any]:
-    """Restituisce il postprocessore ``grid_cropping`` (ritaglio della griglia).
-
-    L'area deve intersecare la griglia: con aree esterne lo zoom di libsim 8.0.0
-    va in crash.
-    """
+    """Restituisce il postprocessore ``grid_cropping`` (ritaglio della griglia)."""
     return {
         "processor_type": "grid_cropping",
         "boundings": {

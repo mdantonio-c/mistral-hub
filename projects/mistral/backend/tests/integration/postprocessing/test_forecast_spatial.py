@@ -16,7 +16,6 @@ from .support import (
     spare_point_postprocessor,
 )
 
-
 pytestmark = [
     pytest.mark.integration,
     pytest.mark.deterministic,
@@ -102,7 +101,7 @@ class TestForecastSpatial:
         # arrange
         request_id = pp_forecast_env.create_request()
         postprocessor = grid_cropping_postprocessor(
-            initial_lon=10, initial_lat=40, final_lon=15, final_lat=45
+            initial_lon=-10, initial_lat=-5, final_lon=10, final_lat=5
         )
 
         # act
