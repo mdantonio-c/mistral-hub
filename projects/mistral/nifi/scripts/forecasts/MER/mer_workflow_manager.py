@@ -577,7 +577,7 @@ def build_task_list(
                     "wait_timeout_sec": 30,
                     "wait_interval_sec": 10,
                     "resolution": MAPS_RESOLUTION,
-                    "geotiff_field_offset": MAPS_OFFSET,
+                    "geotiff_field_offset": 0.10601 if model == "ICON" else MAPS_OFFSET,
                     "max_hours": MAPS_MAX_TIMESTEP,
                 },
             )
