@@ -2,7 +2,6 @@ from typing import Any, Dict, Iterator, Optional, Tuple
 
 import html2text
 import jinja2
-
 from restapi.config import (
     ABS_RESTAPI_PATH,
     CODE_DIR,

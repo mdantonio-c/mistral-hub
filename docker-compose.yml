@@ -7,9 +7,9 @@ x-celery-worker: &celery-worker
       RAPYDO_VERSION: ${RAPYDO_VERSION}
     context: ./projects/mistral/builds/backend
   entrypoint:
-  - docker-entrypoint-celery
+    - docker-entrypoint-celery
   environment: &celery-worker-environment
-    ACTIVATE: '1'
+    ACTIVATE: "1"
     APP_MODE: ${APP_MODE}
 
     ALCHEMY_DB: ${ALCHEMY_DB:-SQL_API}
@@ -22,7 +22,6 @@ x-celery-worker: &celery-worker
     ALCHEMY_PASSWORD: ${ALCHEMY_PASSWORD:?ALCHEMY_PASSWORD is required}
     ALCHEMY_POOLSIZE: ${ALCHEMY_POOLSIZE:-30}
     ALCHEMY_VERIFICATION_TIME: ${ALCHEMY_VERIFICATION_TIME:-900}
-
 
     CELERYBEAT_ENABLED: ${CELERYBEAT_ENABLED:-1}
     CELERY_BACKEND_SERVICE: ${CELERY_BACKEND}
@@ -47,13 +46,13 @@ x-celery-worker: &celery-worker
     PYTHONUNBUFFERED: ${PYTHONUNBUFFERED:-1}
 
     RABBITMQ_ENABLE: ${RABBITMQ_ENABLE:-1}
-    RABBITMQ_EXCHANGE: ''
+    RABBITMQ_EXCHANGE: ""
     RABBITMQ_EXPIRATION_TIME: ${RABBITMQ_EXPIRATION_TIME:-7200}
     RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbit.dockerized.io}
     RABBITMQ_PORT: ${RABBITMQ_PORT:-5672}
     RABBITMQ_USER: ${RABBITMQ_USER:-rabbit}
     RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}
-    RABBITMQ_ROUTING_KEY: ''
+    RABBITMQ_ROUTING_KEY: ""
     RABBITMQ_SSL_ENABLED: ${RABBITMQ_SSL_ENABLED:-0}
     RABBITMQ_VERIFICATION_TIME: ${RABBITMQ_VERIFICATION_TIME:-900}
     RABBITMQ_VHOST: ${RABBITMQ_VHOST}
@@ -84,8 +83,8 @@ x-celery-worker: &celery-worker
     retries: 3
     start_period: 5m0s
     test:
-    - CMD-SHELL
-    - /usr/local/bin/celery-healthcheck
+      - CMD-SHELL
+      - /usr/local/bin/celery-healthcheck
     timeout: 10s
   image: meteohub/backend:${RAPYDO_VERSION}
   restart: always
@@ -107,31 +106,30 @@ x-celery-worker: &celery-worker
 networks:
   default:
     driver_opts:
-      com.docker.network.driver.mtu: '1500'
+      com.docker.network.driver.mtu: "1500"
     ipam: {}
     name: mistral_compose_default
 services:
-
   app:
     environment:
-      ACTIVATE: '1'
+      ACTIVATE: "1"
     image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-ui:latest-pre
     ports:
-    - "80:80"
+      - "80:80"
 
   archived_forecast_celery:
     <<: *celery-worker
     command:
-    - celery
-    - --app
-    - restapi.connectors.celery.worker.celery_app
-    - worker
-    - --concurrency=1
-    - -Ofair
-    - -Q
-    - archived_forecast
-    - -n
-    - mistral-%h
+      - celery
+      - --app
+      - restapi.connectors.celery.worker.celery_app
+      - worker
+      - --concurrency=1
+      - -Ofair
+      - -Q
+      - archived_forecast
+      - -n
+      - mistral-%h
     environment:
       <<: *celery-worker-environment
       ALCHEMY_ENABLE: ${ALCHEMY_ENABLE:-'1'}
@@ -141,19 +139,19 @@ services:
   archived_observed_celery:
     <<: *celery-worker
     command:
-    - celery
-    - --app
-    - restapi.connectors.celery.worker.celery_app
-    - worker
-    - --concurrency=1
-    - -Ofair
-    - -Q
-    - archived_observed
-    - -n
-    - mistral-%h
+      - celery
+      - --app
+      - restapi.connectors.celery.worker.celery_app
+      - worker
+      - --concurrency=1
+      - -Ofair
+      - -Q
+      - archived_observed
+      - -n
+      - mistral-%h
     environment:
       <<: *celery-worker-environment
-      ALCHEMY_ENABLE: '1'
+      ALCHEMY_ENABLE: "1"
       BACKEND_PREFIX: ${BACKEND_PREFIX}
       BACKEND_URL: ${BACKEND_URL}
 
@@ -263,7 +261,7 @@ services:
       NEO4J_USER: ${NEO4J_USER}
       NEO4J_PASSWORD: ${NEO4J_PASSWORD}
       NEO4J_VERIFICATION_TIME: ${NEO4J_VERIFICATION_TIME:-900}
-      NEOMODEL_SLOW_QUERIES: '0.09'
+      NEOMODEL_SLOW_QUERIES: "0.09"
 
       ON_DATA_READY_DATASETS: ${ON_DATA_READY_DATASETS}
       PLATFORM: ${PLATFORM}
@@ -327,7 +325,7 @@ services:
     networks:
       default:
         aliases:
-        - apiserver.dockerized.io
+          - apiserver.dockerized.io
     ports:
       - "8080:8080"
     restart: always
@@ -476,11 +474,7 @@ services:
       interval: 1m0s
       retries: 3
       start_period: 5m0s
-      test:
-        [
-          "CMD-SHELL",
-          "/usr/local/bin/celery-healthcheck"
-        ]
+      test: ["CMD-SHELL", "/usr/local/bin/celery-healthcheck"]
       timeout: 10s
     image: meteohub/backend:${RAPYDO_VERSION}
     logging:
@@ -517,7 +511,7 @@ services:
       - --loglevel
       - DEBUG
       - --max-interval
-      - '30'
+      - "30"
       - --scheduler
       - redbeat.RedBeatScheduler
     entrypoint:
@@ -530,11 +524,11 @@ services:
       BACKEND_PREFIX: ${BACKEND_PREFIX}
       BACKEND_URL: ${BACKEND_URL}
 
-      CELERYBEAT_ENABLED: '1'
+      CELERYBEAT_ENABLED: "1"
       CELERYBEAT_SCHEDULER: ${CELERYBEAT_SCHEDULER}
       CELERY_BACKEND_SERVICE: ${CELERY_BACKEND}
       CELERY_BROKER_SERVICE: ${CELERY_BROKER}
-      CELERY_ENABLE: '1'
+      CELERY_ENABLE: "1"
 
       CURRENT_GID: ${CURRENT_GID}
       CURRENT_UID: ${CURRENT_UID}
@@ -547,7 +541,7 @@ services:
       LOG_RETENTION: ${LOG_RETENTION}
       PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
 
-      RABBITMQ_ENABLE: '1'
+      RABBITMQ_ENABLE: "1"
       RABBITMQ_HOST: ${RABBITMQ_HOST}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}
       RABBITMQ_PORT: ${RABBITMQ_PORT}
@@ -555,7 +549,7 @@ services:
       RABBITMQ_USER: ${RABBITMQ_USER}
       RABBITMQ_VHOST: ${RABBITMQ_VHOST}
 
-      REDIS_ENABLE: '1'
+      REDIS_ENABLE: "1"
       REDIS_ENABLE_CONNECTOR: ${REDIS_ENABLE_CONNECTOR}
       REDIS_EXPIRATION_TIME: ${REDIS_EXPIRATION_TIME}
       REDIS_HOST: ${REDIS_HOST}
@@ -576,11 +570,7 @@ services:
       interval: 1m0s
       retries: 3
       start_period: 5m0s
-      test:
-        [
-          "CMD-SHELL",
-          "pgrep --pidfile /tmp/celerybeat.pid"
-        ]
+      test: ["CMD-SHELL", "pgrep --pidfile /tmp/celerybeat.pid"]
       timeout: 10s
     hostname: celery-beat
     image: meteohub/backend:${RAPYDO_VERSION}
@@ -613,7 +603,7 @@ services:
       - mistral-%h
     environment:
       <<: *celery-worker-environment
-      ALCHEMY_ENABLE: '1'
+      ALCHEMY_ENABLE: "1"
       BACKEND_PREFIX: ${BACKEND_PREFIX}
       BACKEND_URL: ${BACKEND_URL}
 
@@ -632,7 +622,7 @@ services:
       - mistral-%h
     environment:
       <<: *celery-worker-environment
-      ALCHEMY_ENABLE: '1'
+      ALCHEMY_ENABLE: "1"
       BACKEND_PREFIX: ${BACKEND_PREFIX}
       BACKEND_URL: ${BACKEND_URL}
 
@@ -664,7 +654,7 @@ services:
       - -c
       - max_parallel_workers=1
     environment:
-      ACTIVATE: '1'
+      ACTIVATE: "1"
       CURRENT_GID: ${CURRENT_GID}
       CURRENT_UID: ${CURRENT_UID}
 
@@ -681,7 +671,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DEFAULT_DB\""
+          'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DEFAULT_DB"',
         ]
       timeout: 20s
     image: rapydo/postgres:2.4
@@ -706,7 +696,7 @@ services:
         RAPYDO_VERSION: ${RAPYDO_VERSION}
       context: ./submodules/build-templates/rabbitmq
     environment:
-      ACTIVATE: '1'
+      ACTIVATE: "1"
       DEFAULT_PASS: ${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}
       DEFAULT_USER: ${RABBITMQ_USER:-rabbit}
       RABBITMQ_ENABLE_SHOVEL_PLUGIN: ${RABBITMQ_ENABLE_SHOVEL_PLUGIN:-0}
@@ -720,11 +710,7 @@ services:
       interval: 1m0s
       retries: 3
       start_period: 5m0s
-      test:
-        [
-          "CMD-SHELL",
-          "rabbitmq-diagnostics status"
-        ]
+      test: ["CMD-SHELL", "rabbitmq-diagnostics status"]
       timeout: 10s
     hostname: rabbit
     image: rapydo/rabbitmq:2.4
@@ -733,7 +719,7 @@ services:
     networks:
       default:
         aliases:
-        - rabbit.dockerized.io
+          - rabbit.dockerized.io
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -753,11 +739,11 @@ services:
     command:
       - redis-server
       - --appendonly
-      - 'yes'
+      - "yes"
       - --requirepass
       - ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
     environment:
-      ACTIVATE: '1'
+      ACTIVATE: "1"
       CURRENT_GID: ${CURRENT_GID}
       CURRENT_UID: ${CURRENT_UID}
       REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
@@ -766,10 +752,7 @@ services:
       retries: 3
       start_period: 5m0s
       test:
-        [
-          "CMD-SHELL",
-          "redis-cli --pass \"$$REDIS_PASSWORD\" -h 127.0.0.1 ping"
-        ]
+        ["CMD-SHELL", 'redis-cli --pass "$$REDIS_PASSWORD" -h 127.0.0.1 ping']
       timeout: 10s
     image: rapydo/redis:2.4
     logging:
@@ -789,7 +772,7 @@ services:
         condition: service_started
         required: true
     environment:
-      ACTIVATE: '1'
+      ACTIVATE: "1"
       ADMIN_JWT_SECRET: ${CMS_ADMIN_JWT_SECRET:?CMS_ADMIN_JWT_SECRET is required}
       API_TOKEN_SALT: ${CMS_API_TOKEN_SALT:?CMS_API_TOKEN_SALT is required}
       APP_KEYS: ${CMS_APP_KEYS:?CMS_APP_KEYS is required}
@@ -815,15 +798,14 @@ services:
       interval: 30s
       retries: 5
       start_period: 120s
-      test:
-        [
+      test: [
           "CMD",
           "node",
           "-e",
-          "fetch(\"http://127.0.0.1:\" + (process.env.PORT || \"1337\") + \"/_health\",
-           { signal: AbortSignal.timeout(5000) })
-           .then(r => process.exit(r.status === 204 ? 0: 1))
-           .catch(e => { console.error(e.message); process.exit(1); })"
+          'fetch("http://127.0.0.1:" + (process.env.PORT || "1337") + "/_health",
+          { signal: AbortSignal.timeout(5000) })
+          .then(r => process.exit(r.status === 204 ? 0: 1))
+          .catch(e => { console.error(e.message); process.exit(1); })',
         ]
       timeout: 10s
     image: harbor-ada.hpc.cineca.it/meteo-hub-staging/meteo-hub-strapi:latest
@@ -836,7 +818,7 @@ services:
   strapiDB:
     container_name: strapiDB
     environment:
-      ACTIVATE: '1'
+      ACTIVATE: "1"
       ADMIN_JWT_SECRET: ${CMS_ADMIN_JWT_SECRET:?CMS_ADMIN_JWT_SECRET is required}
       API_TOKEN_SALT: ${CMS_API_TOKEN_SALT:?CMS_API_TOKEN_SALT is required}
       APP_KEYS: ${CMS_APP_KEYS:?CMS_APP_KEYS is required}
@@ -851,22 +833,18 @@ services:
       ENCRYPTION_KEY: ${CMS_ENCRYPTION_KEY:?CMS_ENCRYPTION_KEY is required}
       HOST: 127.0.0.1
       JWT_SECRET: ${CMS_JWT_SECRET:?CMS_JWT_SECRET is required}
-      PORT: '5432'
+      PORT: "5432"
       POSTGRES_DB: ${CMS_DATABASE_NAME}
       POSTGRES_PASSWORD: ${CMS_DATABASE_PASSWORD:?CMS_DATABASE_PASSWORD is required}
       POSTGRES_USER: ${CMS_DATABASE_USERNAME}
       TRANSFER_TOKEN_SALT: ${CMS_TRANSFER_TOKEN_SALT:?CMS_TRANSFER_TOKEN_SALT is required}
     expose:
-      - '5432'
+      - "5432"
     healthcheck:
       interval: 10s
       retries: 5
       start_period: 30s
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""
-        ]
+      test: ["CMD-SHELL", 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
       timeout: 5s
     image: postgres:16.0-alpine
     platform: linux/amd64
@@ -897,7 +875,7 @@ services:
   ui:
     environment:
       ACTIVATE: ${ACTIVATE_UI:-1}
-      PORT: '4200'
+      PORT: "4200"
     image: harbor-ada.hpc.cineca.it/meteo-hub-staging/meteo-cms-ui:latest
     ports:
       - "${UI_PORT:-4200}:4200"

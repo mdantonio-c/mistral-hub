@@ -21,7 +21,6 @@ from pika.exceptions import (
     UnroutableError,
 )
 from requests.auth import HTTPBasicAuth
-
 from restapi.config import DOMAIN, SSL_CERTIFICATE
 from restapi.connectors import Connector, ExceptionsList
 from restapi.env import Env

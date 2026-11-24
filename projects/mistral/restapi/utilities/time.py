@@ -2,7 +2,6 @@ from datetime import datetime, timedelta, tzinfo
 from typing import List, Literal, Optional
 
 import pytz
-
 from restapi.exceptions import BadRequest
 
 EPOCH: datetime = datetime.fromtimestamp(0, pytz.utc)

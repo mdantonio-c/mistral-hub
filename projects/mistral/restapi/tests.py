@@ -20,8 +20,6 @@ import pytz
 from faker import Faker
 from flask import Flask
 from flask.testing import FlaskClient
-from werkzeug.test import TestResponse as Response
-
 from restapi.config import (
     API_URL,
     AUTH_URL,
@@ -36,6 +34,7 @@ from restapi.env import Env
 from restapi.services.authentication import BaseAuthentication, Role
 from restapi.utilities.faker import get_faker
 from restapi.utilities.logs import LOGS_FOLDER, Events, log
+from werkzeug.test import TestResponse as Response
 
 
 class MockedEmail(TypedDict):

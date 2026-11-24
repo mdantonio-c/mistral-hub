@@ -8,7 +8,6 @@ from typing import Any, Dict, Optional, Tuple
 
 import orjson
 from loguru import logger as log
-
 from restapi.config import HOST_TYPE, PRODUCTION
 from restapi.env import Env
 

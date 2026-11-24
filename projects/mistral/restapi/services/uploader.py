@@ -3,13 +3,12 @@ from typing import Dict, List, Optional, Tuple
 
 from flask import request
 from plumbum.cmd import file
-from werkzeug.http import parse_content_range_header
-from werkzeug.utils import secure_filename
-
 from restapi.config import DATA_PATH, get_backend_url
 from restapi.exceptions import BadRequest, Conflict, Forbidden, ServiceUnavailable
 from restapi.rest.definition import EndpointResource, Response
 from restapi.utilities.logs import log
+from werkzeug.http import parse_content_range_header
+from werkzeug.utils import secure_filename
 
 # Equivalent to -r--r-----
 DEFAULT_PERMISSIONS = 0o440

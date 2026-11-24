@@ -20,7 +20,6 @@ from neomodel import (
     ZeroOrMore,
     ZeroOrOne,
 )
-
 from restapi.config import TESTING
 from restapi.connectors.neo4j.types import IdentifiedNode, TimestampedNode
 from restapi.utilities.meta import Meta

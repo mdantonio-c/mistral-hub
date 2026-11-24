@@ -5,7 +5,6 @@ from functools import lru_cache
 from pathlib import Path
 
 from glom import glom
-
 from restapi.env import Env
 from restapi.utilities.globals import mem
 

@@ -5,7 +5,6 @@ import abc
 from typing import Tuple
 
 from flask import Flask
-
 from restapi.connectors import Connector
 from restapi.rest.definition import EndpointResource
 from restapi.services.authentication import User

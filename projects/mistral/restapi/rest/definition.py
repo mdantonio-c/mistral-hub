@@ -5,7 +5,6 @@ from flask import Response as FlaskResponse
 from flask import request
 from flask.views import MethodView
 from flask_apispec import MethodResource
-
 from restapi.connectors import Connector
 from restapi.rest.response import ResponseMaker, jsonifier
 from restapi.services.authentication import BaseAuthentication, User

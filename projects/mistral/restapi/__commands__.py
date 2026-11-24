@@ -6,7 +6,6 @@ from typing import Dict, Optional, Tuple
 
 import click
 from flask.cli import FlaskGroup
-
 from restapi import __package__ as current_package
 from restapi.config import BACKEND_PACKAGE, CUSTOM_PACKAGE, PRODUCTION
 from restapi.connectors import Connector

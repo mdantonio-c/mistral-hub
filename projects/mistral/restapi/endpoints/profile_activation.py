@@ -1,5 +1,4 @@
 from jwt.exceptions import ExpiredSignatureError, ImmatureSignatureError
-
 from restapi import decorators
 from restapi.config import get_frontend_url
 from restapi.connectors import Connector

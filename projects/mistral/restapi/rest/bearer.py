@@ -14,7 +14,6 @@ from functools import wraps
 from typing import Any, Callable, Iterable, Optional, Tuple, Union, cast
 
 from flask import request
-
 from restapi.customizer import FlaskRequest
 from restapi.env import Env
 from restapi.services.authentication import (

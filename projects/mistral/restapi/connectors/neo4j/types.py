@@ -3,7 +3,6 @@ from typing import Any
 
 import pytz
 from neomodel import DateTimeProperty, StringProperty, StructuredNode
-
 from restapi.utilities.uuid import getUUID
 
 

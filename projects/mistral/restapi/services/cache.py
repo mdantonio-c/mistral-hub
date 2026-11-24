@@ -2,7 +2,6 @@ from typing import Any, Callable
 
 from flask import Flask
 from flask_caching import Cache as FlaskCache
-
 from restapi.connectors import Connector
 from restapi.env import Env
 from restapi.exceptions import ServiceUnavailable

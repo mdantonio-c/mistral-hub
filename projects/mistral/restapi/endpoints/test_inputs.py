@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import Any, Optional
 
 import pytz
-
 from restapi import decorators
 from restapi.config import TESTING
 from restapi.connectors import Connector

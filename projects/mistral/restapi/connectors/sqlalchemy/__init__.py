@@ -14,19 +14,6 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import Model
 from flask_sqlalchemy import SQLAlchemy as OriginalAlchemy
 from psycopg2 import OperationalError as PsycopgOperationalError
-from sqlalchemy import create_engine, text
-from sqlalchemy.engine.base import Connection
-from sqlalchemy.engine.url import URL
-from sqlalchemy.exc import (
-    IntegrityError,
-    InternalError,
-    OperationalError,
-    ProgrammingError,
-)
-from sqlalchemy.orm import Session, scoped_session, sessionmaker
-from sqlalchemy.orm.attributes import set_attribute
-from sqlalchemy.orm.session import close_all_sessions
-
 from restapi.connectors import Connector, ExceptionsList
 from restapi.env import Env
 from restapi.exceptions import (
@@ -48,6 +35,18 @@ from restapi.services.authentication import (
 from restapi.utilities.logs import Events, log
 from restapi.utilities.time import get_now
 from restapi.utilities.uuid import getUUID
+from sqlalchemy import create_engine, text
+from sqlalchemy.engine.base import Connection
+from sqlalchemy.engine.url import URL
+from sqlalchemy.exc import (
+    IntegrityError,
+    InternalError,
+    OperationalError,
+    ProgrammingError,
+)
+from sqlalchemy.orm import Session, scoped_session, sessionmaker
+from sqlalchemy.orm.attributes import set_attribute
+from sqlalchemy.orm.session import close_all_sessions
 
 # all instances have to use the same alchemy object
 db = OriginalAlchemy()

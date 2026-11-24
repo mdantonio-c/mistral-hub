@@ -3,7 +3,6 @@ import string
 
 from faker import Faker
 from faker.providers import BaseProvider
-
 from restapi.utilities.logs import log
 
 FAKER_LOCALES = {

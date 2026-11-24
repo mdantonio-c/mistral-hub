@@ -9,7 +9,6 @@ from types import FrameType
 from typing import List, Optional
 
 import psutil
-
 from restapi.config import TESTING
 from restapi.exceptions import ServiceUnavailable
 from restapi.utilities.logs import log

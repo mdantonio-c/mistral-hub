@@ -1,7 +1,6 @@
 from typing import Optional
 
 import jwt
-
 from restapi import decorators
 from restapi.config import get_frontend_url
 from restapi.connectors import Connector

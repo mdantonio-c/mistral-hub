@@ -4,10 +4,9 @@ from typing import Any, Mapping, Optional, Tuple, Union
 import orjson
 from marshmallow import ValidationError, types
 from marshmallow.utils import missing as missing_
-from webargs import fields
-
 from restapi.config import TESTING
 from restapi.utilities.logs import log
+from webargs import fields
 
 ####################################################################################
 #    1) Override some types with custom implementation to extend functionalities

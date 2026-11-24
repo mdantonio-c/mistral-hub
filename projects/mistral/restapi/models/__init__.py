@@ -4,11 +4,10 @@ Extension of input and output Schemas and Fields
 from typing import Any
 
 from marshmallow import pre_load, validate
-from webargs.flaskparser import parser
-
 from restapi.models import fields
 from restapi.models.schema import GET_SCHEMA_KEY, Neo4jSchema, PartialSchema, Schema
 from restapi.types import FlaskRequest
+from webargs.flaskparser import parser
 
 __all__ = [
     "fields",

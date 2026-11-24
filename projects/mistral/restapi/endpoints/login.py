@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import Optional
 
 import pytz
-
 from restapi import decorators
 from restapi.endpoints.schemas import Credentials
 from restapi.rest.definition import EndpointResource, Response

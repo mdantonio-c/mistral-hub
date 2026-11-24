@@ -22,8 +22,6 @@ from flask import request
 from flask_apispec import marshal_with  # also imported from endpoints
 from flask_apispec import use_kwargs as original_use_kwargs
 from marshmallow import post_load
-from sentry_sdk import capture_exception
-
 from restapi.config import API_URL, AUTH_URL, SENTRY_URL
 from restapi.connectors import Connector
 from restapi.exceptions import RestApiException, ServerError
@@ -37,6 +35,7 @@ from restapi.utilities import print_and_exit
 from restapi.utilities.globals import mem
 from restapi.utilities.logs import log
 from restapi.utilities.uuid import getUUID
+from sentry_sdk import capture_exception
 
 log.debug("Auth loaded {}", auth)
 log.debug("Marshal loaded {}", marshal_with)

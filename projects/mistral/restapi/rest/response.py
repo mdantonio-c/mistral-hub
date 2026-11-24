@@ -14,8 +14,6 @@ from flask import jsonify, render_template, request
 from flask.json import JSONEncoder
 from marshmallow import fields as marshmallow_fields
 from marshmallow.utils import _Missing
-from werkzeug.exceptions import HTTPException
-
 from restapi import __version__ as version
 from restapi.config import (
     GZIP_ENABLE,
@@ -27,6 +25,7 @@ from restapi.models import GET_SCHEMA_KEY, Schema, fields, validate
 from restapi.services.authentication import BaseAuthentication
 from restapi.types import Response, ResponseContent
 from restapi.utilities.logs import handle_log_output, log, obfuscate_dict
+from werkzeug.exceptions import HTTPException
 
 
 def jsonifier(content: Any) -> Any:

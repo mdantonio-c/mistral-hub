@@ -1,7 +1,6 @@
 from typing import Any, Dict
 
 from glom import glom
-
 from restapi import decorators
 from restapi.endpoints.schemas import TokenAdminSchema, TotalSchema
 from restapi.exceptions import BadRequest, NotFound

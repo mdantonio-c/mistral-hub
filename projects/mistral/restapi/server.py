@@ -18,9 +18,6 @@ from flask import Flask
 from flask_apispec import FlaskApiSpec
 from flask_cors import CORS
 from neo4j.meta import ExperimentalWarning as Neo4jExperimentalWarning
-from sentry_sdk import init as sentry_sdk_init
-from sentry_sdk.integrations.flask import FlaskIntegration
-
 from restapi import __version__ as restapi_version
 from restapi import config
 from restapi.config import (
@@ -51,6 +48,8 @@ from restapi.utilities import print_and_exit
 from restapi.utilities.globals import mem
 from restapi.utilities.logs import Events, log, save_event_log
 from restapi.utilities.meta import Meta
+from sentry_sdk import init as sentry_sdk_init
+from sentry_sdk.integrations.flask import FlaskIntegration
 
 lock = Lock()
 

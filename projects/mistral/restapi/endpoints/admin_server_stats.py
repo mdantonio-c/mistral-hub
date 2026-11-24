@@ -4,7 +4,6 @@ import shutil
 from datetime import datetime
 
 from plumbum import local
-
 from restapi import decorators
 from restapi.endpoints.schemas import StatsSchema, StatsType
 from restapi.rest.definition import EndpointResource, Response

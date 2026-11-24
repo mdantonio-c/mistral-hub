@@ -10,7 +10,6 @@ So we made some improvement along the code.
 """
 
 from flask import Flask
-
 from restapi.connectors import Connector, celery
 from restapi.utilities.logs import log
 

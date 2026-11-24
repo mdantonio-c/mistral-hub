@@ -5,7 +5,6 @@ from marshmallow import EXCLUDE
 from marshmallow import Schema as MarshmallowSchema
 from marshmallow import ValidationError, pre_load
 from neomodel import StructuredNode, StructuredRel, properties
-
 from restapi.models import fields
 from restapi.utilities.logs import log
 

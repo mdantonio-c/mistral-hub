@@ -8,7 +8,6 @@ from ftplib import FTP, FTP_TLS, error_reply
 from typing import Optional, Union
 
 import certifi
-
 from restapi.config import SSL_CERTIFICATE
 from restapi.connectors import Connector, ExceptionsList
 from restapi.env import Env

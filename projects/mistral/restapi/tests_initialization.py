@@ -4,7 +4,6 @@ Initialization script for unit tests
 from datetime import datetime
 
 import pytz
-
 from restapi.config import TESTING
 from restapi.services.authentication import DEFAULT_GROUP_NAME, BaseAuthentication
 from restapi.utilities.faker import get_faker

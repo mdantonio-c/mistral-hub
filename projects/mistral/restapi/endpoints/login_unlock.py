@@ -4,7 +4,6 @@ after a block due to too many failed attemps.
 Unlock URL (including token) is sent by email
 """
 from jwt.exceptions import ExpiredSignatureError, ImmatureSignatureError
-
 from restapi import decorators
 from restapi.exceptions import BadRequest
 from restapi.rest.definition import EndpointResource, Response

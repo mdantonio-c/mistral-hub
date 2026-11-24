@@ -1,7 +1,6 @@
 from typing import Any, Dict, List, Optional
 
 from glom import glom
-
 from restapi import decorators
 from restapi.rest.definition import EndpointResource, Response
 from restapi.services.authentication import User

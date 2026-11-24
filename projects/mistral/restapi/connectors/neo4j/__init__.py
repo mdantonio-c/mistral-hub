@@ -33,7 +33,6 @@ from neomodel.exceptions import (
     UniqueProperty,
 )
 from neomodel.match import NodeSet
-
 from restapi.connectors import Connector, ExceptionsList
 from restapi.exceptions import (
     DatabaseDuplicatedEntry,

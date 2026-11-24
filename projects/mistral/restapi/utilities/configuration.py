@@ -2,7 +2,6 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Tuple, cast
 
 import yaml
-
 from restapi.utilities import print_and_exit
 from restapi.utilities.logs import log
 

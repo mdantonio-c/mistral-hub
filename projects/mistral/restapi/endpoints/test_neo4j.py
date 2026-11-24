@@ -16,7 +16,6 @@ if TESTING and Connector.check_availability("neo4j"):
         StructuredNode,
         UniqueIdProperty,
     )
-
     from restapi.connectors.neo4j.models import Group, User
 
     CHOICES_tuple = (("A", "A"), ("B", "B"), ("C", "C"))

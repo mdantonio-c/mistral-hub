@@ -4,7 +4,6 @@ from types import TracebackType
 from typing import Optional, Tuple, Type, TypeVar
 
 import orjson
-
 from restapi.utilities.logs import LOGS_FOLDER, log
 
 T = TypeVar("T", bound="SMTP")

@@ -9,7 +9,6 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Type, get_type_hints
 
 from attr import ib as attribute
 from attr import s as ClassOfAttributes
-
 from restapi import decorators
 from restapi.config import ABS_RESTAPI_PATH, CONF_PATH, CUSTOM_PACKAGE
 from restapi.env import Env

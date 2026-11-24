@@ -24,7 +24,6 @@ import certifi
 from celery import Celery, states
 from celery.app.task import Task
 from celery.exceptions import Ignore
-
 from restapi.config import CUSTOM_PACKAGE, DOCS, HOST_TYPE, SSL_CERTIFICATE, TESTING
 from restapi.connectors import Connector, ExceptionsList
 from restapi.connectors.rabbitmq import RabbitExt
