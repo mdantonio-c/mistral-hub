@@ -30,7 +30,7 @@ services:
       - ${BASE_PROJECT_DIR}/backend:/code/${EXTENDED_PROJECT}
       - ${BASE_PROJECT_DIR}/project_configuration.yaml:/code/confs/project_configuration.yaml
 
-      - ${SUBMODULE_DIR}/http-api/restapi:${PYTHON_PATH}/restapi
+      - ${PROJECT_DIR}/restapi:${PYTHON_PATH}/restapi
 
       - ${DATA_DIR}/logs:/logs
 

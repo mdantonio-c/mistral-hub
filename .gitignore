@@ -34,7 +34,6 @@ env.bak/
 venv.bak/
 
 .rapydo
-docker-compose.yml
 
 ###################################
 ##  Temporary and miscellaneous  ##
